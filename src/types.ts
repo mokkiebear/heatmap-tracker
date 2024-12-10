@@ -7,7 +7,14 @@ export interface Entry {
   separateMonths?: boolean;
 }
 
-export type Colors = { [index: string | number]: string[] };
+export type ColorsList = string[];
+
+export interface ColorScheme {
+  paletteName?: string;
+  customColors?: ColorsList;
+}
+
+export type Palettes = Record<string, ColorsList>;
 
 /**
  * Represents the data structure for the heatmap tracker.
@@ -17,12 +24,7 @@ export interface TrackerData {
    * The year for which the tracker data is relevant.
    */
   year: number;
-
-  /**
-   * A mapping of colors used in the heatmap. The keys can be either strings or numbers,
-   * and the values are arrays of strings representing color codes.
-   */
-  colors: { [index: string | number]: string[] } | string;
+  colorScheme: ColorScheme;
 
   /**
    * An array of entries representing the data points in the heatmap.
@@ -52,13 +54,13 @@ export interface TrackerData {
   /**
    * A flag indicating whether to separate the months in the heatmap.
    */
-  separateMonths: boolean;
+  separateMonths?: boolean;
   heatmapTitle?: string;
   heatmapSubtitle?: string;
 }
 
-export interface TrackerSettings extends TrackerData {
-  colors: { [index: string | number]: string[] };
+export interface TrackerSettings {
+  palettes: Palettes;
   weekStartDay: number;
   separateMonths: boolean;
   language: string;

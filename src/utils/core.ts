@@ -1,4 +1,4 @@
-import { Box, Colors, Entry, TrackerData, TrackerSettings } from "src/types";
+import { Box, ColorsList, Entry, Palettes, TrackerData, TrackerSettings } from "src/types";
 
 export function clamp(input: number, min: number, max: number): number {
   return input < min ? min : input > max ? max : input;
@@ -74,14 +74,14 @@ export function getMinMaxIntensities(intensities: number[]): [number, number] {
   ];
 }
 
-export function getColors(trackerData: TrackerData, settingsColors: Colors): Colors {
-  if (typeof trackerData.colors === 'string') {
-    return settingsColors[trackerData.colors]
-      ? { [trackerData.colors]: settingsColors[trackerData.colors] }
-      : settingsColors;
+export function getColors(trackerData: TrackerData, settingsColors: Palettes): ColorsList {
+  const { paletteName, customColors } = trackerData?.colorScheme ?? {};
+
+  if (paletteName) {
+    return settingsColors[paletteName] ?? settingsColors['default'];
   }
 
-  return trackerData.colors ?? settingsColors;
+  return customColors ?? settingsColors['default'];
 }
 
 export function getPrefilledBoxes(numberOfEmptyDaysBeforeYearBegins: number): Box[] {
@@ -98,14 +98,14 @@ export function getEntriesIntensities(entries: Entry[]): number[] {
   return entries.filter((e) => e.intensity).map((e) => e.intensity as number);
 }
 
-function getEntryIntensity(entry: Entry, intensities: number[], trackerData: TrackerData, settings: TrackerSettings, colors: Colors): number {
+function getEntryIntensity(entry: Entry, intensities: number[], trackerData: TrackerData, colorsList: ColorsList): number {
   // If we can't receive min/max intensities from entries,
   // try to use them from user's config or use them from default settings.
   const [minimumIntensity, maximumIntensity] = intensities.length
     ? getMinMaxIntensities(intensities)
     : [
-      trackerData.intensityScaleStart ?? settings.intensityScaleStart,
-      trackerData.intensityScaleEnd ?? settings.intensityScaleEnd,
+      trackerData.intensityScaleStart,
+      trackerData.intensityScaleEnd,
     ];
 
   // If user defined intensityScaleStart explicitly use them,
@@ -114,12 +114,7 @@ function getEntryIntensity(entry: Entry, intensities: number[], trackerData: Tra
     trackerData.intensityScaleStart ?? minimumIntensity;
   const intensityScaleEnd = trackerData.intensityScaleEnd ?? maximumIntensity;
 
-  const colorIntensities =
-    typeof colors === "string"
-      ? settings.colors[colors]
-      : colors[entry.color] ?? colors[Object.keys(colors)[0]];
-
-  const numberOfColorIntensities = Object.keys(colorIntensities).length;
+  const numberOfColorIntensities = colorsList.length;
 
   if (
     minimumIntensity === maximumIntensity &&
@@ -143,8 +138,7 @@ function getEntryIntensity(entry: Entry, intensities: number[], trackerData: Tra
 export function fillEntriesWithIntensity(
   entries: Entry[],
   trackerData: TrackerData,
-  colors: Colors,
-  settings: TrackerSettings,
+  colorsList: ColorsList,
 ): Record<number, Entry> {
   const entriesByDay: Record<number, Entry> = {};
 
@@ -153,7 +147,7 @@ export function fillEntriesWithIntensity(
   entries.forEach((e) => {
     const newEntry = {
       ...e,
-      intensity: getEntryIntensity(e, intensities, trackerData, settings, colors),
+      intensity: getEntryIntensity(e, intensities, trackerData, colorsList),
     };
 
     const day = getDayOfYear(new Date(e.date));
@@ -167,8 +161,7 @@ export function fillEntriesWithIntensity(
 export function getBoxes(
   currentYear: number,
   entriesWithIntensity: Record<number, Entry>,
-  colors: Colors,
-  separateMonths: boolean,
+  colorsList: ColorsList,
   trackerData: TrackerData,
   settings: TrackerSettings
 ): Box[] {
@@ -187,7 +180,7 @@ export function getBoxes(
     const currentDate = new Date(Date.UTC(currentYear, 0, day));
 
     // We don't need to add padding before January.
-    if (separateMonths && day > 31) {
+    if (trackerData.separateMonths && day > 31) {
       const dayInMonth = Number(
         currentDate.toLocaleString("en-us", { day: "numeric" })
       );
@@ -219,11 +212,7 @@ export function getBoxes(
         box.content = entry.content;
       }
 
-      const currentDayColors = entry.color
-        ? colors[entry.color]
-        : colors[Object.keys(colors)[0]];
-
-      box.backgroundColor = entry?.customColor ?? currentDayColors[(entry.intensity as number) - 1];
+      box.backgroundColor = entry?.customColor ?? colorsList[(entry.intensity as number) - 1];
     } else {
       box.date = currentDate?.toISOString()?.split('T')[0];
       box.hasData = false;

@@ -123,40 +123,6 @@ exports[`ReactApp component renders correctly and matches snapshot 1`] = `
               />
             </svg>
           </button>
-          <button
-            aria-label="Menu (in progress)"
-            class="heatmap-tracker-tab clickable-icon "
-            disabled=""
-          >
-            <svg
-              class="lucide lucide-ellipsis-vertical"
-              fill="none"
-              height="18"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="18"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle
-                cx="12"
-                cy="12"
-                r="1"
-              />
-              <circle
-                cx="12"
-                cy="5"
-                r="1"
-              />
-              <circle
-                cx="12"
-                cy="19"
-                r="1"
-              />
-            </svg>
-          </button>
         </div>
       </div>
     </div>
@@ -3443,7 +3409,7 @@ exports[`ReactApp component renders correctly and matches snapshot 1`] = `
           </div>
           <div
             aria-label="2024-12-09"
-            class="heatmap-tracker-box month-dec today with-border isEmpty"
+            class="heatmap-tracker-box month-dec isEmpty"
             data-date="2024-12-09"
           >
             <span
@@ -3452,7 +3418,7 @@ exports[`ReactApp component renders correctly and matches snapshot 1`] = `
           </div>
           <div
             aria-label="2024-12-10"
-            class="heatmap-tracker-box month-dec isEmpty"
+            class="heatmap-tracker-box month-dec today isEmpty"
             data-date="2024-12-10"
           >
             <span

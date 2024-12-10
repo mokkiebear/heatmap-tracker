@@ -10,9 +10,9 @@ export function HeatmapTrackerView() {
   const {
     currentYear,
     entriesWithIntensity,
-    colors,
+    colorsList,
     settings,
-    mergedTrackerData,
+    trackerData,
   } = useHeatmapContext();
 
   const graphRef = React.useRef<HTMLDivElement>(null);
@@ -21,9 +21,8 @@ export function HeatmapTrackerView() {
   const boxes = getBoxes(
     currentYear,
     entriesWithIntensity,
-    colors,
-    mergedTrackerData.separateMonths,
-    mergedTrackerData,
+    colorsList,
+    trackerData,
     settings
   );
 

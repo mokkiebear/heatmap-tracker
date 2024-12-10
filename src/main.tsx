@@ -28,11 +28,17 @@ export const useAppContext = (): App => {
 };
 
 const DEFAULT_SETTINGS: TrackerSettings = {
-  year: new Date().getFullYear(),
-  colors: {
+  palettes: {
     default: ["#c6e48b", "#7bc96f", "#49af5d", "#2e8840", "#196127"],
-    danger: ["#fff33b", "#fdc70c", "#f3903f", "#ed683c", "#e93e3a"]
+    danger: ["#fff33b", "#fdc70c", "#f3903f", "#ed683c", "#e93e3a"],
   },
+  weekStartDay: 1,
+  separateMonths: false,
+  language: "en",
+};
+
+const DEFAULT_TRACKER_DATA: TrackerData = {
+  year: new Date().getFullYear(),
   entries: [
     { date: "1900-01-01", color: "#7bc96f", intensity: 5, content: "" },
   ],
@@ -40,9 +46,9 @@ const DEFAULT_SETTINGS: TrackerSettings = {
   defaultEntryIntensity: 4,
   intensityScaleStart: 1,
   intensityScaleEnd: 5,
-  weekStartDay: 1,
-  separateMonths: false,
-  language: "en"
+  colorScheme: {
+    paletteName: "default",
+  }
 };
 
 export default class HeatmapTracker extends Plugin {
@@ -67,7 +73,10 @@ export default class HeatmapTracker extends Plugin {
       root.render(
         <StrictMode>
           <AppContext.Provider value={this.app}>
-            <HeatmapProvider trackerData={trackerData} settings={this.settings}>
+            <HeatmapProvider
+              trackerData={{ ...DEFAULT_TRACKER_DATA, ...trackerData }}
+              settings={this.settings}
+            >
               <ReactApp />
             </HeatmapProvider>
           </AppContext.Provider>
@@ -87,15 +96,15 @@ export default class HeatmapTracker extends Plugin {
   }
 
   async loadSettings() {
-    const settingsData = await this.loadData();
+    const settingsData: TrackerSettings = await this.loadData();
 
     this.settings = {
       ...DEFAULT_SETTINGS,
       ...settingsData,
-      colors: {
-        ...DEFAULT_SETTINGS.colors,
-        ...settingsData.colors,
-      }
+      palettes: {
+        ...DEFAULT_SETTINGS.palettes,
+        ...settingsData.palettes,
+      },
     };
   }
 

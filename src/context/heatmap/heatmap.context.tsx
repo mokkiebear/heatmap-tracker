@@ -1,6 +1,16 @@
 import React, { useMemo } from "react";
-import { Colors, Entry, TrackerData, TrackerSettings, View } from "src/types";
-import { fillEntriesWithIntensity, getColors, getEntriesForYear } from "src/utils/core";
+import {
+  ColorsList,
+  Entry,
+  TrackerData,
+  TrackerSettings,
+  View,
+} from "src/types";
+import {
+  fillEntriesWithIntensity,
+  getColors,
+  getEntriesForYear,
+} from "src/utils/core";
 
 export const HeatmapContext = React.createContext<HeatmapContextProps | null>(
   null
@@ -31,22 +41,27 @@ export function HeatmapProvider({
     [trackerData.entries, currentYear]
   );
 
-  const mergedTrackerData = useMemo(() => {
+  const mergedTrackerData: TrackerData = useMemo(() => {
     return {
-      ...settings,
+      separateMonths: settings.separateMonths,
       ...trackerData,
     };
   }, [trackerData, settings]);
 
-  const colors = useMemo( () => getColors(trackerData, settings.colors), [trackerData, settings.colors]);
+  const colorsList = useMemo(
+    () => getColors(trackerData, settings.palettes),
+    [trackerData, settings.palettes]
+  );
 
-  const entriesWithIntensity = useMemo(() => fillEntriesWithIntensity(
-    currentYearEntries,
-    mergedTrackerData,
-    colors,
-    settings
-  ), [currentYearEntries, mergedTrackerData, colors, settings]);
-
+  const entriesWithIntensity = useMemo(
+    () =>
+      fillEntriesWithIntensity(
+        currentYearEntries,
+        mergedTrackerData,
+        colorsList
+      ),
+    [currentYearEntries, mergedTrackerData, colorsList]
+  );
 
   return (
     <HeatmapContext.Provider
@@ -54,12 +69,11 @@ export function HeatmapProvider({
         currentYear,
         setCurrentYear,
         currentYearEntries,
-        trackerData,
         settings,
-        mergedTrackerData,
+        trackerData: mergedTrackerData,
         view,
         setView,
-        colors,
+        colorsList,
         entriesWithIntensity,
       }}
     >
@@ -74,10 +88,9 @@ interface HeatmapContextProps {
   currentYearEntries: Entry[];
   trackerData: TrackerData;
   settings: TrackerSettings;
-  mergedTrackerData: TrackerData;
   view: View;
   setView: React.Dispatch<React.SetStateAction<View>>;
-  colors: Colors;
+  colorsList: ColorsList;
   entriesWithIntensity: Record<number, Entry>;
 }
 

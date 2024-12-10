@@ -3,18 +3,16 @@ import { HeatmapBox } from "../HeatmapBox/HeatmapBox";
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
 
 export function HeatmapBoxesList({ boxes }: { boxes: Box[] }) {
-  const { mergedTrackerData } = useHeatmapContext();
+  const { trackerData } = useHeatmapContext();
 
   return (
     <div
       className={`heatmap-tracker-boxes ${
-        mergedTrackerData.separateMonths ? "separate-months" : ""
+        trackerData.separateMonths ? "separate-months" : ""
       }`}
     >
       {boxes.map((box, index) => {
-        return (
-          <HeatmapBox key={index} box={box} />
-        );
+        return <HeatmapBox key={index} box={box} />;
       })}
     </div>
   );

@@ -1,6 +1,5 @@
 {
-  "year": 2024,
-  "colors": {
+  "palettes": {
     "default": ["#c6e48b", "#7bc96f", "#49af5d", "#2e8840", "#196127"]
   },
   "entries": [

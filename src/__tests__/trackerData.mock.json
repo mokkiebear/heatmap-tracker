@@ -602,8 +602,8 @@
       "content": "some content"
     }
   ],
-  "colors": {
-    "oldGithubGreen11": [
+  "colorScheme": {
+    "customColors": [
       "hsl(65, 83%, 88%)",
       "hsl(70, 77%, 78%)",
       "hsl(80, 62%, 72%)",

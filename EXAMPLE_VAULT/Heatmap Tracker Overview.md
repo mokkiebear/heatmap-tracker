@@ -49,8 +49,8 @@ renderHeatmapTracker(this.container, trackerData)
 const trackerData = {
     year: 2024, // optional, remove this line to autoswitch year
     entries: [],
-    colors: {
-            "intensity": [
+    colorScheme: {
+        customColors: [
             "rgb(255, 0, 0)",
             "rgb(255, 162, 127)",
             "rgb(255, 232, 197)",
@@ -113,8 +113,8 @@ renderHeatmapTracker(this.container, trackerData)
 const trackerData = {
     year: 2024, // optional, remove this line to autoswitch year
     entries: [],
-    colors: {
-            "intensity": [
+    colorScheme: {
+        customColors: [
             "#d63230",
             "#f39237",
             "#40bcd8",
@@ -180,7 +180,7 @@ renderHeatmapTracker(this.container, trackerData)
 const trackerData = {
     year: 2024,
     intensityScaleEnd: 45 * 60 * 1000, //convert 45 minutes to millis
-    colors: "danger",
+    colorScheme: { paletteName: "danger" },
     entries: [],
     separateMonths: true,
     heatmapTitle: "🏋️ Exercise Tracker 🏋️",
@@ -226,8 +226,8 @@ renderHeatmapTracker(this.container, trackerData)
 const trackerData = {
     year: 2024, // optional, remove this line to autoswitch year
     entries: [],
-    colors: {
-        oldGithubGreen11:[
+    colorScheme: {
+        customColors:[
             "hsl(65, 83%, 88%)",
             "hsl(70, 77%, 78%)",
             "hsl(80, 62%, 72%)",
@@ -289,8 +289,8 @@ const trackerData = {
     year: 2022, // optional, remove this line to autoswitch year
     entries: [],
     intensityScaleStart: 2000,
-    colors: {
-        oldGithubGreen11:[
+    colorScheme: {
+        customColors:[
             "hsl(65, 83%, 88%)","hsl(70, 77%, 78%)",
             "hsl(80, 62%, 72%)","hsl(95, 52%, 66%)",
             "hsl(112, 45%, 61%)","hsl(125, 43%, 56%)",
@@ -320,8 +320,8 @@ renderHeatmapTracker(this.container, trackerData)
 
 const trackerData = {
     year: 2024,
-    colors: {
-        red: ["#ffdf04","#ffbe04","#ff9a03","#ff6d02","#ff2c01"]
+    colorScheme: {
+        customColors: ["#ffdf04","#ffbe04","#ff9a03","#ff6d02","#ff2c01"]
     },
     entries: [],
     showCurrentDayBorder: false,
