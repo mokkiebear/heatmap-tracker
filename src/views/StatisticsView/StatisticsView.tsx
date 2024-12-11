@@ -7,60 +7,82 @@ interface StatisticsMetricProps {
   value: number;
 }
 
-type StreakResult = {
+interface StreakResult {
   currentStreak: number;
   longestStreak: number;
-};
+  currentStreakStartDate: Date | null;
+  currentStreakEndDate: Date | null;
+  longestStreakStartDate: Date | null;
+  longestStreakEndDate: Date | null;
+}
 
 function calculateStreaks(entries: Entry[]): StreakResult {
-  if (!entries.length) return { currentStreak: 0, longestStreak: 0 };
+  if (entries.length === 0) {
+    return {
+      currentStreak: 0,
+      longestStreak: 0,
+      currentStreakStartDate: null,
+      currentStreakEndDate: null,
+      longestStreakStartDate: null,
+      longestStreakEndDate: null,
+    };
+  }
 
-  // Sort the data by date in ascending order
-  const sortedData = entries.sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
+  const sortedEntries = entries
+    .slice()
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  let longestStreak = 1;
   let currentStreak = 1;
-  let maxStreak = 1;
-  const dayDifference = 1000 * 60 * 60 * 24;
+  let longestStreak = 1;
 
-  for (let i = 1; i < sortedData.length; i++) {
-    const currentDate = new Date(sortedData[i].date);
-    const previousDate = new Date(sortedData[i - 1].date);
+  let currentStreakStartDate: Date | null = new Date(sortedEntries[0].date);
+  let currentStreakEndDate: Date | null = new Date(sortedEntries[0].date);
+  let longestStreakStartDate = new Date(sortedEntries[0].date);
+  let longestStreakEndDate = new Date(sortedEntries[0].date);
 
-    // Calculate the difference in days between the current and previous date
-    const differenceInDays = Math.ceil(
-      (currentDate.getTime() - previousDate.getTime()) / dayDifference
-    );
+  let tempStreakStartDate = new Date(sortedEntries[0].date);
 
-    if (differenceInDays === 1) {
-      // If the dates are consecutive, increase the current streak
+  for (let i = 1; i < sortedEntries.length; i++) {
+    const prevDate = new Date(sortedEntries[i - 1].date);
+    const currDate = new Date(sortedEntries[i].date);
+
+    const diffDays =
+      (currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
+    if (diffDays === 1) {
       currentStreak++;
     } else {
-      // Otherwise, reset the current streak
       currentStreak = 1;
+      tempStreakStartDate = currDate;
     }
 
-    // Update the longest streak
-    maxStreak = Math.max(maxStreak, currentStreak);
+    if (currentStreak > longestStreak) {
+      longestStreak = currentStreak;
+      longestStreakStartDate = tempStreakStartDate;
+      longestStreakEndDate = currDate;
+    }
+
+    currentStreakEndDate = currDate;
   }
 
-  // Calculate the current streak
   const today = new Date();
-  const lastDate = new Date(sortedData[sortedData.length - 1].date);
-  const differenceWithToday = Math.ceil(
-    (today.getTime() - lastDate.getTime()) / dayDifference
-  );
+  const lastEntryDate = new Date(sortedEntries[sortedEntries.length - 1].date);
+  const diffWithToday =
+    (today.getTime() - lastEntryDate.getTime()) / (1000 * 60 * 60 * 24);
 
-  if (differenceWithToday === 0 || differenceWithToday === 1) {
-    longestStreak = maxStreak;
-  } else {
-    longestStreak = maxStreak;
+  if (diffWithToday > 1) {
     currentStreak = 0;
+    currentStreakStartDate = null;
+    currentStreakEndDate = null;
   }
 
-  return { currentStreak, longestStreak };
+  return {
+    currentStreak,
+    longestStreak,
+    currentStreakStartDate,
+    currentStreakEndDate,
+    longestStreakStartDate,
+    longestStreakEndDate,
+  };
 }
 
 function StatisticsMetric({ label, value }: StatisticsMetricProps) {
@@ -76,9 +98,14 @@ export function StatisticsView() {
   const { t } = useTranslation();
   const { entriesWithIntensity, trackerData } = useHeatmapContext();
 
-  const { currentStreak, longestStreak } = calculateStreaks(
-    trackerData.entries
-  );
+  const {
+    currentStreak,
+    longestStreak,
+    longestStreakEndDate,
+    longestStreakStartDate,
+    currentStreakStartDate,
+    currentStreakEndDate,
+  } = calculateStreaks(trackerData.entries);
 
   return (
     <div className="heatmap-statistics">
@@ -100,6 +127,10 @@ export function StatisticsView() {
           label={t("statistics.longestStreak")}
           value={longestStreak}
         />
+        {currentStreakStartDate?.toString()}
+        {currentStreakEndDate?.toString()}
+        {longestStreakStartDate?.toString()}
+        {longestStreakEndDate?.toString()}
         <hr />
         <div>{t("statistics.developmentNote")}</div>
       </div>
