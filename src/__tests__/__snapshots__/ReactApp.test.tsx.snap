@@ -124,12 +124,11 @@ exports[`ReactApp component renders correctly and matches snapshot 1`] = `
             </svg>
           </button>
           <button
-            aria-label="Menu (in progress)"
+            aria-label="Documentation"
             class="heatmap-tracker-tab clickable-icon "
-            disabled=""
           >
             <svg
-              class="lucide lucide-ellipsis-vertical"
+              class="lucide lucide-book-open-text"
               fill="none"
               height="18"
               stroke="currentColor"
@@ -140,20 +139,23 @@ exports[`ReactApp component renders correctly and matches snapshot 1`] = `
               width="18"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <circle
-                cx="12"
-                cy="12"
-                r="1"
+              <path
+                d="M12 7v14"
               />
-              <circle
-                cx="12"
-                cy="5"
-                r="1"
+              <path
+                d="M16 12h2"
               />
-              <circle
-                cx="12"
-                cy="19"
-                r="1"
+              <path
+                d="M16 8h2"
+              />
+              <path
+                d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"
+              />
+              <path
+                d="M6 12h2"
+              />
+              <path
+                d="M6 8h2"
               />
             </svg>
           </button>
@@ -3443,7 +3445,7 @@ exports[`ReactApp component renders correctly and matches snapshot 1`] = `
           </div>
           <div
             aria-label="2024-12-09"
-            class="heatmap-tracker-box month-dec today with-border isEmpty"
+            class="heatmap-tracker-box month-dec isEmpty"
             data-date="2024-12-09"
           >
             <span
@@ -3479,7 +3481,7 @@ exports[`ReactApp component renders correctly and matches snapshot 1`] = `
           </div>
           <div
             aria-label="2024-12-13"
-            class="heatmap-tracker-box month-dec isEmpty"
+            class="heatmap-tracker-box month-dec today with-border isEmpty"
             data-date="2024-12-13"
           >
             <span
@@ -3651,6 +3653,9 @@ exports[`ReactApp component renders correctly and matches snapshot 1`] = `
         </div>
       </div>
     </div>
+    <div
+      class="heatmap-tracker-footer"
+    />
   </div>
 </DocumentFragment>
 `;

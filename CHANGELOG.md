@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.8.0] - 2024-12-13
+- Add documentation view.
+- Add heatmap footer.
+- Add note about breaking changes.
+  
+---
+
 ## [1.7.2] - 2024-12-10
 - Fix color removal.
 ---
