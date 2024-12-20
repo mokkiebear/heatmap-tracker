@@ -1,22 +1,11 @@
-import React from "react";
 import { ReactNode } from "react";
+import { Box } from "src/types";
 
 interface HeatmapBoxProps {
-  columnIndex: number;
-  rowIndex: number;
-  style: any;
-  data: any;
+  box: Box;
 }
 
-const GUTTER_SIZE = 2;
-
-function HeatmapBox({ columnIndex, rowIndex, style, data }: HeatmapBoxProps) {
-  const index = columnIndex * 7 + rowIndex;
-  const box = data[index] ?? {
-    backgroundColor: "transparent",
-    isSpaceBetweenBox: true,
-  };
-
+export function HeatmapBox({ box }: HeatmapBoxProps) {
   const boxClassNames = [
     "heatmap-tracker-box",
     box.name,
@@ -39,15 +28,7 @@ function HeatmapBox({ columnIndex, rowIndex, style, data }: HeatmapBoxProps) {
   return (
     <div
       data-date={box.date}
-      data-index={index}
-      style={{
-        ...style,
-        backgroundColor: box.backgroundColor,
-        left: style.left + GUTTER_SIZE,
-        top: style.top + GUTTER_SIZE,
-        width: style.width - GUTTER_SIZE,
-        height: style.height - GUTTER_SIZE,
-      }}
+      style={{ backgroundColor: box.backgroundColor }}
       className={`${boxClassNames.filter(Boolean).join(" ")}`}
       // On Desktop it will show the date on hover.
       aria-label={box.date}
@@ -56,5 +37,3 @@ function HeatmapBox({ columnIndex, rowIndex, style, data }: HeatmapBoxProps) {
     </div>
   );
 }
-
-export default HeatmapBox;

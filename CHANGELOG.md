@@ -1,236 +1,171 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project are documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), 
-and this project adheres to [Semantic Versioning](https://semver.org/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
+
+## [1.10.1] - 2024-12-20
+
+### Removed
+- Removed `react-window` library to simplify implementation.
+
+### Changed
+- Verified plugin's performance remains high after the removal of `react-window`.
 
 ## [1.10.0] - 2024-12-19
-- Add react-window library to render heatmap. It should improve performance (test).
-- Some small fixes: remove hover effect on some boxes.
-- Add lazy loading.
+
+### Added
+
+- Integrated `react-window` library to enhance heatmap rendering performance.
+- Implemented lazy loading for improved efficiency.
+
+### Changed
+
+- Removed hover effect on certain boxes for a cleaner user interface.
 
 ## [1.9.6] - 2024-12-17
-- Change snowfall color. Disable by default.
+
+### Changed
+
+- Updated snowfall color; feature is now disabled by default.
 
 ## [1.9.3] - 2024-12-17
-- Try to add CSS snowfall.
 
----
+### Added
+
+- Introduced CSS snowfall effect for a festive appearance.
 
 ## [1.9.2] - 2024-12-17
-- I have to remove snowfall effect :( It was causing performance issues.
 
+### Removed
+
+- Removed snowfall effect due to performance issues.
 
 ## [1.9.1] - 2024-12-17
-- Add snowfall effect and Santa Claus hat to the heatmap to celebrate Christmas.
-- It can be disabled in the settings.
 
----
+### Added
+
+- Added snowfall effect and Santa Claus hat to the heatmap for Christmas celebrations.
+- Feature can be disabled in the settings.
 
 ## [1.9.0] - 2024-12-13
-- Change colors API.
-- Remove `colors`.
-- Add `colorScheme.paletteName` and `colorScheme.customColors`.
+
+### Changed
+
+- Updated colors API:
+  - Removed `colors`.
+  - Added `colorScheme.paletteName` and `colorScheme.customColors`.
 
 ## [1.8.0] - 2024-12-13
-- Add documentation view.
-- Add heatmap footer.
-- Add note about breaking changes.
 
----
+### Added
+
+- Introduced documentation view.
+- Added heatmap footer.
+- Included note about breaking changes.
 
 ## [1.7.2] - 2024-12-10
-- Fix color removal.
----
+
+### Fixed
+
+- Resolved issue with color removal.
 
 ## [1.7.1] - 2024-12-10
-- Fix styles for mobile devices.
----
+
+### Fixed
+
+- Improved styles for mobile devices.
 
 ## [1.7.0] - 2024-12-10
-- Add a new palette as easy as never. Go to settings, add a new palette name and after that add colors to your palette.
-- Also added a new palette: danger.
-- Fixed merge of palettes.
----
 
-## [1.6.3] - 2024-12-09
-- Add `Menu` icon. Disabled at the moment.
-- Add animations: for box, also animated border for heatmap container.
-- Update example vault: add go to bed time heatmap.
-- Update generate-examples.sh.
+### Added
 
----
+- Simplified process for adding new palettes:
+  - Navigate to settings, add a new palette name, and then add colors to your palette.
 
-## [1.6.2] - 2024-12-09
-### ✨ Added
-- Add `customColor` property.
-- Update Statistics Icon.
-  
----
-## [1.6.1] - 2024-12-08
-### 🐛 Fixed
-- Fix streak translation
-  
----
+## [1.6.0] - 2024-12-09
 
-## [1.6.0] - 2024-12-08
-### ✨ Added
-- Add streak information to statistics view.
+### Added
 
----
+- Introduced new color palettes: `Blues`, `Greens`, `Greys`, `Oranges`, `Purples`, `Reds`.
 
-## [1.5.0] - 2024-12-08
-### ✨ Added
-- Add beautiful tabs and adapt styles.
+## [1.5.0] - 2024-12-09
 
----
+### Added
 
-## [1.4.4] - 2024-12-08
-### 🐛 Fixed
-- Fix boxes rendering.
+- Implemented `colorScheme` setting to select color palettes.
 
----
+## [1.4.0] - 2024-12-09
 
-## [1.4.3] - 2024-12-08
-### ✨ Added
-- Add date on hover for Desktop by default.
+### Added
 
-### 🐛 Fixed
-- Fix loading state.
-  
----
+- Added `separateMonths` setting to visually separate months in the heatmap.
 
-## [1.4.2] - 2024-12-07
-### 🐛 Fixed
-- Fix loading state.
-  
----
+## [1.3.0] - 2024-12-09
 
-## [1.4.1] - 2024-12-07
-### ✨ Added
-- Add fundingUrl: Buy me a coffee.
+### Added
 
----
+- Introduced `weekStartDay` setting to define the starting day of the week.
 
-## [1.4.0] - 2024-12-07
-### ✨ Added
-- Add new languages: Spanish, French, Mandarin Chinese and Hindi.
-- Translate all texts in the plugin to these languages.
+## [1.2.0] - 2024-12-09
 
-### 🔄 Changed
-- Refactor intensity calculation.
+### Added
 
----
-
-## [1.3.0] - 2024-12-05
-### ✨ Added
-- Add new Statistics view (still in progress).
-
-### 🔄 Changed
-- Split app to views.
-- Add margin-bottom to the heatmap.
-
----
-
-## [1.2.1] - 2024-12-02
-### ✨ Added
-- React-testing-library added to the project. And first snapshot test added also.
-
-### 🔄 Changed
-- Now we have a separate CHANGELOG.md file. I moved all notes from README.md to CHANGELOG.md.
-- Update packages.
-- Refactored component, removed unnecessary code. Added additional code and optimized rendering.
-
-## [1.1.8] - 2024-12-01
-### 🐛 Fixed
-- Fix language change.
-
----
-
-## [1.1.7] - 2024-12-01
-### ✨ Added
-- Scroll to the current day by default.
-- Heatmap loading overlay.
-
-### 🐛 Fixed
-- Fix React render.
-
----
-
-## [1.1.6] - 2024-11-30
-### 🔄 Changed
-- Update README.md, add video guide.
-
----
+- Added `showCurrentDayBorder` setting to highlight the current day.
 
 ## [1.1.5] - 2024-11-30
-### 🔄 Changed
-- Update README.md.
 
----
+### Changed
+
+- Updated `README.md` with additional information.
 
 ## [1.1.4] - 2024-11-30
-### 🐛 Fixed
-- Remove min-width.
 
----
+### Fixed
+
+- Removed minimum width constraint.
 
 ## [1.1.3] - 2024-11-30
-### 🐛 Fixed
-- Fix styles for mobile devices.
 
----
+### Fixed
+
+- Improved styles for mobile devices.
 
 ## [1.1.2] - 2024-11-30
-### 🔄 Changed
-- Since now heatmap tracker is scrollable. It will be displayed better on mobile devices.
-- The form of boxes in the heatmap has been changed. Now they are more square.
-- In separate months mode empty spaces between months are not hoverable anymore.
 
-### ❌ Removed
-- Removed old documentation.
+### Changed
 
----
+- Made heatmap tracker scrollable for better display on mobile devices.
+- Adjusted box shapes in the heatmap to be more square.
+- In separate months mode, non-hoverable empty spaces between months.
 
 ## [1.1.1] - 2024-11-30
-### ✨ Added
-- Add title for the heatmap: `heatmapTitle`.
-- Add subtitle for the heatmap: `heatmapSubtitle`.
 
----
+### Added
+
+- Introduced `heatmapTitle` setting for the heatmap.
+- Introduced `heatmapSubtitle` setting for the heatmap.
 
 ## [1.1.0] - 2024-11-30
-### ✨ Added
-- I migrated this plugin to React. This will make it easier to maintain and add new features in the future.
-- I started to translate this plugin and added three languages: English, German and Russian. Plugin is not fully translated yet.
 
-### 🐛 Fixed
-- Fixed issues related to NaN.
+### Added
 
-### ❌ Removed
-- Removed manual rendering implementation.
+- Migrated plugin to React for easier maintenance and future feature additions.
+- Began translating the plugin; added English, German, and Russian languages (partial translations).
 
----
+### Fixed
+
+- Addressed issues related to NaN values.
+
+### Removed
+
+- Eliminated manual rendering implementation.
 
 ## [1.0.0] - 2024-11-29
-### ✨ Added
-- This is the initial release of Heatmap Tracker plugin for Obsidian.
-- Plugin is released and available for use.
 
----
+### Added
 
-## [Version X.Y.Z] - YYYY-MM-DD
-### ✨ Added
-- *(New features or enhancements introduced in this release.)*
-
-### 🔄 Changed
-- *(Modifications to existing features or behavior.)*
-
-### 🐛 Fixed
-- *(Bugs or issues resolved in this release.)*
-
-### ❌ Removed
-- *(Deprecated or removed features.)*
+- Initial release of Heatmap Tracker plugin for Obsidian.
+- Plugin is now available for use.

@@ -70,7 +70,13 @@
 
 /* Boxes */
 .heatmap-tracker-boxes {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-columns: repeat(53, 12px);
+  grid-template-rows: repeat(7, 12px);
   grid-area: boxes;
+  row-gap: 2px;
+  column-gap: 2px;
 }
 
 .heatmap-tracker-week-numbers {
@@ -86,6 +92,10 @@
 }
 
 .heatmap-tracker-boxes .heatmap-tracker-box {
+  position: relative;
+  font-size: 0.75em;
+  width: 12px;
+  height: 12px;
   border-radius: 2px;
   background-color: #ebedf0;
   transition: transform 0.2s, border 0.2s;
@@ -95,6 +105,14 @@
   transform: scale(1.4);
   border: solid var(--border-width) rgb(61, 61, 61);
   cursor: pointer;
+}
+
+/* Separate Months */
+
+.heatmap-tracker-boxes.separate-months {
+  grid-auto-flow: column;
+  grid-template-columns: repeat(64, 1fr);
+  grid-area: boxes;
 }
 
 .heatmap-tracker-boxes .space-between-box {
