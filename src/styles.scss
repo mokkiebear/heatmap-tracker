@@ -78,7 +78,7 @@
   column-gap: 2px;
 }
 
-.heatmap-tracker-boxes .heatmap-tracker-box {
+.heatmap-tracker-box {
   position: relative;
   font-size: 0.75em;
   width: 12px;
@@ -120,7 +120,7 @@
   margin: 0 12px;
 }
 
-.heatmap-tracker-boxes .heatmap-tracker-box:not(.task-list-item)::before {
+.heatmap-tracker-box:not(.task-list-item)::before {
   content: unset;
 }
 

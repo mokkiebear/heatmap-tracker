@@ -1,4 +1,4 @@
-import { Box, ColorsList, Entry, Palettes, TrackerData, TrackerSettings } from "src/types";
+import { Box, ColorsList, Entry, IntensityConfig, Palettes, TrackerData, TrackerSettings } from "src/types";
 
 export function clamp(input: number, min: number, max: number): number {
   return input < min ? min : input > max ? max : input;
@@ -99,41 +99,27 @@ export function getEntriesIntensities(entries: Entry[]): number[] {
   return entries.filter((e) => e.intensity).map((e) => e.intensity as number);
 }
 
-function getEntryIntensity(entry: Entry, intensities: number[], trackerData: TrackerData, colorsList: ColorsList): number {
-  // If we can't receive min/max intensities from entries,
-  // try to use them from user's config or use them from default settings.
-  const [minimumIntensity, maximumIntensity] = intensities.length
-    ? getMinMaxIntensities(intensities)
-    : [
-      trackerData.intensityScaleStart,
-      trackerData.intensityScaleEnd,
-    ];
+export function getIntensitiesRanges(numberOfIntensities: number, intensityStart: number, intensityEnd: number) {
+  const intensityRanges = [];
 
-  // If user defined intensityScaleStart explicitly use them,
-  // otherwise minimum and maximum from entries will be used.
-  const intensityScaleStart =
-    trackerData.intensityScaleStart ?? minimumIntensity;
-  const intensityScaleEnd = trackerData.intensityScaleEnd ?? maximumIntensity;
+  for (let i = 0; i < numberOfIntensities; i++) {
+    const min = mapRange(i, 0, numberOfIntensities, intensityStart, intensityEnd);
+    const max = mapRange(i + 1, 0, numberOfIntensities, intensityStart, intensityEnd);
+
+    intensityRanges.push({ min, max, intensity: i + 1 });
+  }
+
+  console.log('### intensityRanges', intensityRanges);
+
+  return intensityRanges;
+}
+
+export function getIntensitiesInfo(intensities: number[], intensityConfig: IntensityConfig, colorsList: ColorsList) {
+  const [minimumIntensity, maximumIntensity] = intensities.length ? getMinMaxIntensities(intensities) : [1, 5];
 
   const numberOfColorIntensities = colorsList.length;
 
-  if (
-    minimumIntensity === maximumIntensity &&
-    intensityScaleStart === intensityScaleEnd
-  ) {
-    return numberOfColorIntensities;
-  }
-
-  return Math.round(
-    mapRange(
-      entry.intensity ?? trackerData.defaultEntryIntensity,
-      intensityScaleStart,
-      intensityScaleEnd,
-      1,
-      numberOfColorIntensities
-    )
-  );
-
+  return getIntensitiesRanges(numberOfColorIntensities, intensityConfig.scaleStart ?? minimumIntensity, intensityConfig.scaleEnd ?? maximumIntensity);
 }
 
 export function fillEntriesWithIntensity(
@@ -144,11 +130,15 @@ export function fillEntriesWithIntensity(
   const entriesByDay: Record<number, Entry> = {};
 
   const intensities = getEntriesIntensities(entries);
+  const intensitiesMap = getIntensitiesInfo(intensities, trackerData.intensityConfig, colorsList);
 
   entries.forEach((e) => {
+    const currentIntensity = e.intensity ?? trackerData.intensityConfig.defaultIntensity;
+    const foundIntensityInfo = intensitiesMap.find((o) => currentIntensity >= o.min && currentIntensity <= o.max);
+
     const newEntry = {
       ...e,
-      intensity: getEntryIntensity(e, intensities, trackerData, colorsList),
+      intensity: foundIntensityInfo ? foundIntensityInfo.intensity : currentIntensity,
     };
 
     const day = getDayOfYear(new Date(e.date));

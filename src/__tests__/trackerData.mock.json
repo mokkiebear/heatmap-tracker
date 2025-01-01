@@ -618,6 +618,8 @@
     ]
   },
   "heatmapTitle": "👣 Steps Tracker 👣 (11 intensities instead of 5)",
-  "intensityScaleStart": 1,
-  "intensityScaleEnd": 10000
+  "intensityConfig": {
+    "scaleStart": 1,
+    "scaleEnd": 10000
+  }
 }

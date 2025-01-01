@@ -17,6 +17,7 @@ const DocumentationView = lazy(
   () => import("./views/DocumentationView/DocumentationView")
 );
 const DonationView = lazy(() => import("./views/DonationView/DonationView"));
+const LegendView = lazy(() => import("./views/LegendView/LegendView"));
 
 const SnowFall = lazy(() => import("./components/SnowFall/SnowFall"));
 
@@ -38,6 +39,9 @@ function ReactApp() {
       break;
     case IHeatmapView.Documentation:
       content = <DocumentationView />;
+      break;
+    case IHeatmapView.Legend:
+      content = <LegendView />;
       break;
     case IHeatmapView.Donation:
       content = <DonationView />;

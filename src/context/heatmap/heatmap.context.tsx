@@ -6,6 +6,7 @@ import {
   TrackerData,
   TrackerSettings,
   IHeatmapView,
+  IntensityConfig,
 } from "src/types";
 import {
   fillEntriesWithIntensity,
@@ -90,6 +91,7 @@ export function HeatmapProvider({
         colorsList,
         entriesWithIntensity,
         boxes,
+        intensityConfig: trackerData.intensityConfig,
       }}
     >
       {children}
@@ -102,6 +104,7 @@ interface HeatmapContextProps {
   setCurrentYear: React.Dispatch<React.SetStateAction<number>>;
   currentYearEntries: Entry[];
   trackerData: TrackerData;
+  intensityConfig: IntensityConfig;
   settings: TrackerSettings;
   view: IHeatmapView;
   setView: React.Dispatch<React.SetStateAction<IHeatmapView>>;

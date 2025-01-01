@@ -42,6 +42,7 @@ const DEFAULT_SETTINGS: TrackerSettings = {
     [IHeatmapView.Donation]: true,
     [IHeatmapView.HeatmapTracker]: true,
     [IHeatmapView.HeatmapTrackerStatistics]: true,
+    [IHeatmapView.Legend]: true,
   },
 };
 
@@ -51,9 +52,11 @@ const DEFAULT_TRACKER_DATA: TrackerData = {
     { date: "1900-01-01", color: "#7bc96f", intensity: 5, content: "" },
   ],
   showCurrentDayBorder: true,
-  defaultEntryIntensity: 4,
-  intensityScaleStart: 1,
-  intensityScaleEnd: 5,
+  intensityConfig: {
+    scaleStart: undefined,
+    scaleEnd: undefined,
+    defaultIntensity: 4,
+  },
   colorScheme: {
     paletteName: "default",
   },
@@ -81,7 +84,14 @@ export default class HeatmapTracker extends Plugin {
         <StrictMode>
           <AppContext.Provider value={this.app}>
             <HeatmapProvider
-              trackerData={{ ...DEFAULT_TRACKER_DATA, ...trackerData }}
+              trackerData={{
+                ...DEFAULT_TRACKER_DATA,
+                ...trackerData,
+                intensityConfig: {
+                  ...DEFAULT_TRACKER_DATA.intensityConfig,
+                  ...trackerData.intensityConfig,
+                },
+              }}
               settings={this.settings}
             >
               <ReactApp />

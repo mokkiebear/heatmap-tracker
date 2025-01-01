@@ -11,9 +11,11 @@
     }
   ],
   "showCurrentDayBorder": true,
-  "defaultEntryIntensity": 4,
-  "intensityScaleStart": 1,
-  "intensityScaleEnd": 5,
+  "intensityConfig": {
+    "scaleStart": 1,
+    "scaleEnd": 5,
+    "defaultIntensity": 4
+  },
   "weekStartDay": 1,
   "separateMonths": false,
   "language": "en",
@@ -21,6 +23,7 @@
     "heatmap-tracker": true,
     "heatmap-tracker-statistics": true,
     "documentation": true,
-    "donation": true
+    "donation": true,
+    "legend": true
   }
 }

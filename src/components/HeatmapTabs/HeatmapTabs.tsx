@@ -19,7 +19,7 @@ export function HeatmapTabs() {
         label={t("statistics.title")}
       />
       <HeatmapTab view={IHeatmapView.Documentation} label="Documentation" />
-      {/* <HeatmapTab view={View.HeatmapMenu} label={"Menu (in progress)"} disabled /> */}
+      <HeatmapTab view={IHeatmapView.Legend} label={"Legend"} />
     </div>
   );
 }
