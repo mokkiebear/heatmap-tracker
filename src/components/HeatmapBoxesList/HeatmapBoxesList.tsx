@@ -7,7 +7,7 @@ export function HeatmapBoxesList({ boxes }: { boxes: Box[] }) {
 
   return (
     <div
-      className={`heatmap-tracker-boxes ${
+      className={`boxes ${
         trackerData.separateMonths ? "separate-months" : ""
       }`}
     >

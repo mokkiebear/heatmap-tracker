@@ -4,5 +4,6 @@
   "useTab": false,
   "promptDelete": false,
   "showFrontmatter": true,
-  "showUnsupportedFiles": true
+  "showUnsupportedFiles": true,
+  "readableLineLength": false
 }

@@ -23,7 +23,7 @@ export function HeatmapWeekDays() {
   }, [settings.weekStartDay, i18n.language]);
 
   return (
-    <div className={`heatmap-tracker-days heatmap-tracker-days--${settings.weekDisplayMode}`}>
+    <div className={`days eatmap-tracker-days--${settings.weekDisplayMode}`}>
       {weekDays.map((day) => (
         <div key={day} className="heatmap-tracker-days__week-day">
           {day}

@@ -28,11 +28,13 @@ function HeatmapTrackerView() {
         isLoading ? "heatmap-tracker-loading" : ""
       }`}
     >
-      <div className="heatmap-tracker-graph" ref={graphRef}>
-        <HeatmapMonthsList />
+      <div className="wrapper">
         <HeatmapWeekDays />
+      <div className="data" ref={graphRef}>
+        <HeatmapMonthsList />
 
         <HeatmapBoxesList boxes={boxes} />
+      </div>
       </div>
     </div>
   );
