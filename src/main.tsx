@@ -12,7 +12,7 @@ import { IHeatmapView } from "src/types";
 import { mergeTrackerData } from "./utils/core";
 import LegendView from "./views/LegendView/LegendView";
 import StatisticsView from "./views/StatisticsView/StatisticsView";
-import { getCurrentFullYear } from "./utils/date";
+import { DateHelper } from "./utils/date";
 import { HeatmapHeader } from "./components/HeatmapHeader/HeatmapHeader";
 
 declare global {
@@ -60,7 +60,7 @@ const DEFAULT_SETTINGS: TrackerSettings = {
 };
 
 export const DEFAULT_TRACKER_DATA: TrackerData = {
-  year: getCurrentFullYear(),
+  year: DateHelper.getCurrentFullYear(),
   entries: [
     { date: "1900-01-01", customColor: "#7bc96f", intensity: 5, content: "" },
   ],
@@ -78,6 +78,7 @@ export const DEFAULT_TRACKER_DATA: TrackerData = {
     paletteName: "default",
   },
   insights: [],
+  dateFormat: 'YYYY-MM-DD',
 };
 
 export default class HeatmapTracker extends Plugin {
@@ -97,6 +98,7 @@ export default class HeatmapTracker extends Plugin {
       });
 
       const root = createRoot(container);
+      DateHelper.getInstance(trackerData.dateFormat);
 
       root.render(
         <StrictMode>

@@ -10,7 +10,7 @@ import {
 } from "src/types";
 import { getColors } from "src/utils/colors";
 import { getBoxes, getEntriesForYear } from "src/utils/core";
-import { getCurrentFullYear } from "src/utils/date";
+import { DateHelper } from "src/utils/date";
 import { fillEntriesWithIntensity } from "src/utils/intensity";
 
 export const HeatmapContext = createContext<HeatmapContextProps | null>(null);
@@ -29,7 +29,7 @@ export function HeatmapProvider({
   const [view, setView] = useState(IHeatmapView.HeatmapTracker);
 
   const defaultYear = useMemo(
-    () => trackerData.year ?? getCurrentFullYear(),
+    () => trackerData.year ?? DateHelper.getCurrentFullYear(),
     [trackerData.year]
   );
 

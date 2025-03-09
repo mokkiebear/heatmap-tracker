@@ -60,6 +60,7 @@ export interface TrackerData {
   heatmapSubtitle?: string;
 
   insights: Insight[];
+  dateFormat: string;
 }
 
 export interface TrackerSettings {

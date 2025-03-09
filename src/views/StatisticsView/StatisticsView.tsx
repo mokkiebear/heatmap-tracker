@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
 import { Entry } from "src/types";
-import { formatDateToISO8601 } from "src/utils/date";
+import { DateHelper } from "src/utils/date";
 import { processCustomMetrics } from "src/utils/statistics";
 
 interface StatisticsMetricProps {
@@ -122,8 +122,8 @@ function StatisticsView() {
     }
 
     return `${currentStreak} (${
-      formatDateToISO8601(currentStreakStartDate) ?? ""
-    } - ${formatDateToISO8601(currentStreakEndDate) ?? ""})`;
+      DateHelper.formatDateToISO8601(currentStreakStartDate) ?? ""
+    } - ${DateHelper.formatDateToISO8601(currentStreakEndDate) ?? ""})`;
   }, [currentStreak, currentStreakStartDate, currentStreakEndDate]);
 
   const longestStreakValue = useMemo(() => {
@@ -132,8 +132,8 @@ function StatisticsView() {
     }
 
     return `${longestStreak} (${
-      formatDateToISO8601(longestStreakStartDate) ?? ""
-    } - ${formatDateToISO8601(longestStreakEndDate) ?? ""})`;
+      DateHelper.formatDateToISO8601(longestStreakStartDate) ?? ""
+    } - ${DateHelper.formatDateToISO8601(longestStreakEndDate) ?? ""})`;
   }, [longestStreak, longestStreakStartDate, longestStreakEndDate]);
 
   const userInsights = useMemo(

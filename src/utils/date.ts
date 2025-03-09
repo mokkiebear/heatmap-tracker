@@ -1,64 +1,71 @@
-export function isValidDate(dateString: string): boolean {
-  const date = new Date(dateString);
-  return !isNaN(date.getTime());
-}
+import moment from 'moment';
 
-export function getDayOfYear(date: Date): number {
-  const startOfYear = Date.UTC(date.getUTCFullYear(), 0, 0);
-  const diff = date.getTime() - startOfYear;
-  return Math.floor(diff / (1000 * 60 * 60 * 24));
-}
+export class DateHelper {
+  private static instance: DateHelper;
+  private momentFormat: string;
 
-export function getShiftedWeekdays(weekdays: string[], weekStartDay: number): string[] {
-  if (weekStartDay < 0 || weekStartDay > 6) {
-    throw new Error('weekStartDay must be between 0 and 6');
+  private constructor(momentFormat: string) {
+    this.momentFormat = momentFormat;
   }
 
-  return weekdays.slice(weekStartDay).concat(weekdays.slice(0, weekStartDay));
-}
-
-export function getFirstDayOfYear(year: number): Date {
-  return new Date(Date.UTC(year, 0, 1));
-}
-
-export function getNumberOfEmptyDaysBeforeYearStarts(year: number, weekStartDay: number): number {
-  if (isNaN(weekStartDay) || weekStartDay < 0 || weekStartDay > 6) {
-    throw new Error('weekStartDay must be a number between 0 and 6');
+  static getInstance(momentFormat = "YYYY-MM-DD"): DateHelper {
+    if (!DateHelper.instance) {
+      DateHelper.instance = new DateHelper(momentFormat);
+    }
+    return DateHelper.instance;
   }
 
-  if (isNaN(year)) {
-    throw new Error('year must be a number');
+  isValidDate(dateString: string): boolean {
+    return moment(dateString, this.momentFormat, true).isValid();
   }
 
-  const firstDayOfYear = getFirstDayOfYear(year);
-  const firstWeekday = firstDayOfYear.getUTCDay();
-  return (firstWeekday - weekStartDay + 7) % 7;
-}
-
-export function getLastDayOfYear(year: number): Date {
-  return new Date(Date.UTC(year, 11, 31));
-}
-
-export function isToday(day: number) {
-  const todaysDayNumberLocal = getDayOfYear(new Date());
-
-  return day === todaysDayNumberLocal;
-}
-
-export function formatDateToISO8601(date: Date | null): string | null {
-  if (!date) {
-    return null;
+  static getDayOfYear(date: Date): number {
+    return moment(date).dayOfYear();
   }
 
-  const formattedDate = date?.toISOString?.()?.split('T')?.[0];
+  static getShiftedWeekdays(weekdays: string[], weekStartDay: number): string[] {
+    if (weekStartDay < 0 || weekStartDay > 6) {
+      throw new Error('weekStartDay must be between 0 and 6');
+    }
 
-  return formattedDate;
-}
+    return weekdays.slice(weekStartDay).concat(weekdays.slice(0, weekStartDay));
+  }
 
-export function getFullYear(date: string) {
-  return  new Date(date).getUTCFullYear();
-}
+  getFirstDayOfYear(year: number): Date {
+    return moment.utc({ year, month: 0, day: 1 }).toDate();
+  }
 
-export function getCurrentFullYear() {
-  return new Date().getUTCFullYear();
+  getNumberOfEmptyDaysBeforeYearStarts(year: number, weekStartDay: number): number {
+    if (isNaN(weekStartDay) || weekStartDay < 0 || weekStartDay > 6) {
+      throw new Error('weekStartDay must be a number between 0 and 6');
+    }
+
+    if (isNaN(year)) {
+      throw new Error('year must be a number');
+    }
+
+    const firstDayOfYear = moment.utc({ year, month: 0, day: 1 });
+    const firstWeekday = firstDayOfYear.day();
+    return (firstWeekday - weekStartDay + 7) % 7;
+  }
+
+  getLastDayOfYear(year: number): Date {
+    return moment.utc({ year, month: 11, day: 31 }).toDate();
+  }
+
+  isToday(day: number): boolean {
+    return day === moment().dayOfYear();
+  }
+
+  static formatDateToISO8601(date: Date | string | null): string | null {
+    return date instanceof Date ? moment.utc(date).format('YYYY-MM-DD') : null;
+  }
+
+  getFullYear(date: string): number {
+    return moment.utc(date, this.momentFormat).year();
+  }
+
+  static getCurrentFullYear(): number {
+    return moment().year();
+  }
 }

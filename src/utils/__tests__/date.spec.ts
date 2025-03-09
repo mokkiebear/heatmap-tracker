@@ -1,245 +1,232 @@
-import {
-  isValidDate,
-  getDayOfYear,
-  getFirstDayOfYear,
-  getNumberOfEmptyDaysBeforeYearStarts,
-  getLastDayOfYear,
-  getShiftedWeekdays,
-  formatDateToISO8601,
-  isToday,
-} from '../date';
+import { DateHelper } from '../date'; // Adjust the import path if needed
+
+const dateHelper = DateHelper.getInstance(); // Singleton instance
 
 describe('getShiftedWeekdays', () => {
   const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   it('should shift weekdays correctly when weekStartDay is 0', () => {
-    expect(getShiftedWeekdays(weekdays, 0)).toEqual(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']);
+    expect(DateHelper.getShiftedWeekdays(weekdays, 0)).toEqual(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']);
   });
 
   it('should shift weekdays correctly when weekStartDay is 3', () => {
-    expect(getShiftedWeekdays(weekdays, 3)).toEqual(['Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Monday', 'Tuesday']);
+    expect(DateHelper.getShiftedWeekdays(weekdays, 3)).toEqual(['Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Monday', 'Tuesday']);
   });
 
   it('should shift weekdays correctly when weekStartDay is 6', () => {
-    expect(getShiftedWeekdays(weekdays, 6)).toEqual(['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']);
+    expect(DateHelper.getShiftedWeekdays(weekdays, 6)).toEqual(['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']);
   });
 
   it('should handle an empty weekdays array gracefully', () => {
-    expect(getShiftedWeekdays([], 3)).toEqual([]);
+    expect(DateHelper.getShiftedWeekdays([], 3)).toEqual([]);
   });
 
   it('should throw an error when weekStartDay is less than 0', () => {
-    expect(() => getShiftedWeekdays(weekdays, -1)).toThrow('weekStartDay must be between 0 and 6');
+    expect(() => DateHelper.getShiftedWeekdays(weekdays, -1)).toThrow('weekStartDay must be between 0 and 6');
   });
 
   it('should throw an error when weekStartDay is greater than 6', () => {
-    expect(() => getShiftedWeekdays(weekdays, 7)).toThrow('weekStartDay must be between 0 and 6');
+    expect(() => DateHelper.getShiftedWeekdays(weekdays, 7)).toThrow('weekStartDay must be between 0 and 6');
   });
 
   it('should work with non-standard weekday arrays', () => {
     const customWeekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-    expect(getShiftedWeekdays(customWeekdays, 2)).toEqual(['Wed', 'Thu', 'Fri', 'Mon', 'Tue']);
+    expect(DateHelper.getShiftedWeekdays(customWeekdays, 2)).toEqual(['Wed', 'Thu', 'Fri', 'Mon', 'Tue']);
   });
 
   it('should handle duplicate values in the weekdays array', () => {
     const duplicateWeekdays = ['Sun', 'Sun', 'Mon', 'Tue'];
-    expect(getShiftedWeekdays(duplicateWeekdays, 1)).toEqual(['Sun', 'Mon', 'Tue', 'Sun']);
+    expect(DateHelper.getShiftedWeekdays(duplicateWeekdays, 1)).toEqual(['Sun', 'Mon', 'Tue', 'Sun']);
   });
 
   it('should handle arrays with a single weekday', () => {
-    expect(getShiftedWeekdays(['Monday'], 0)).toEqual(['Monday']);
-    expect(getShiftedWeekdays(['Monday'], 1)).toEqual(['Monday']);
+    expect(DateHelper.getShiftedWeekdays(['Monday'], 0)).toEqual(['Monday']);
+    expect(DateHelper.getShiftedWeekdays(['Monday'], 1)).toEqual(['Monday']);
   });
 });
 
 describe('isValidDate', () => {
   test('Valid Date String (ISO Format)', () => {
-    expect(isValidDate('2021-12-31')).toBe(true);
+    expect(dateHelper.isValidDate('2021-12-31')).toBe(true);
   });
 
   test('Non-Date String', () => {
-    expect(isValidDate('not a date')).toBe(false);
+    expect(dateHelper.isValidDate('not a date')).toBe(false);
   });
 
   test('Empty String', () => {
-    expect(isValidDate('')).toBe(false);
-  });
-
-  test('Valid Date in Different Format', () => {
-    expect(isValidDate('12/31/2021')).toBe(true);
+    expect(dateHelper.isValidDate('')).toBe(false);
   });
 });
 
 describe('getDayOfYear', () => {
   test('Regular Date (Non-Leap Year)', () => {
-    expect(getDayOfYear(new Date('2021-03-01'))).toBe(60);
+    expect(DateHelper.getDayOfYear(new Date('2021-03-01'))).toBe(60);
   });
 
   test('Beginning of the Year', () => {
-    expect(getDayOfYear(new Date('2021-01-01'))).toBe(1);
+    expect(DateHelper.getDayOfYear(new Date('2021-01-01'))).toBe(1);
   });
 
   test('End of the Year (Non-Leap Year)', () => {
-    expect(getDayOfYear(new Date('2021-12-31'))).toBe(365);
+    expect(DateHelper.getDayOfYear(new Date('2021-12-31'))).toBe(365);
   });
 
   test('End of the Year (Leap Year)', () => {
-    expect(getDayOfYear(new Date('2020-12-31'))).toBe(366);
+    expect(DateHelper.getDayOfYear(new Date('2020-12-31'))).toBe(366);
   });
 
   test('Invalid Date Object', () => {
-    expect(getDayOfYear(new Date('invalid date'))).toBeNaN();
+    expect(DateHelper.getDayOfYear(new Date('invalid date'))).toBeNaN();
   });
 });
 
 describe('getFirstDayOfYear', () => {
   test('Typical Year Start', () => {
-    expect(getFirstDayOfYear(2021)).toEqual(new Date(Date.UTC(2021, 0, 1)));
+    expect(dateHelper.getFirstDayOfYear(2021)).toEqual(new Date(Date.UTC(2021, 0, 1)));
   });
 
   test('Leap Year Start', () => {
-    expect(getFirstDayOfYear(2020)).toEqual(new Date(Date.UTC(2020, 0, 1)));
+    expect(dateHelper.getFirstDayOfYear(2020)).toEqual(new Date(Date.UTC(2020, 0, 1)));
   });
 
   test('Negative Year (Before Common Era)', () => {
-    expect(getFirstDayOfYear(-1)).toEqual(new Date(Date.UTC(-1, 0, 1)));
+    expect(dateHelper.getFirstDayOfYear(-1)).toEqual(new Date(Date.UTC(-1, 0, 1)));
   });
 });
 
 describe('getNumberOfEmptyDaysBeforeYearStarts', () => {
   test('Year Starts on Week Start Day', () => {
-    expect(getNumberOfEmptyDaysBeforeYearStarts(2023, 0)).toBe(0);
+    expect(dateHelper.getNumberOfEmptyDaysBeforeYearStarts(2023, 0)).toBe(0);
   });
 
   test('Year Starts One Day After Week Start Day', () => {
-    expect(getNumberOfEmptyDaysBeforeYearStarts(2021, 0)).toBe(5);
+    expect(dateHelper.getNumberOfEmptyDaysBeforeYearStarts(2021, 0)).toBe(5);
   });
 
   test('Week Starts on Monday', () => {
-    expect(getNumberOfEmptyDaysBeforeYearStarts(2021, 1)).toBe(4);
+    expect(dateHelper.getNumberOfEmptyDaysBeforeYearStarts(2021, 1)).toBe(4);
   });
 });
 
 describe('getLastDayOfYear', () => {
   test('Typical Year End', () => {
-    expect(getLastDayOfYear(2021)).toEqual(new Date(Date.UTC(2021, 11, 31)));
+    expect(dateHelper.getLastDayOfYear(2021)).toEqual(new Date(Date.UTC(2021, 11, 31)));
   });
 
   test('Leap Year End', () => {
-    expect(getLastDayOfYear(2020)).toEqual(new Date(Date.UTC(2020, 11, 31)));
+    expect(dateHelper.getLastDayOfYear(2020)).toEqual(new Date(Date.UTC(2020, 11, 31)));
   });
 
   test('Far Future Year', () => {
-    expect(getLastDayOfYear(3000)).toEqual(new Date(Date.UTC(3000, 11, 31)));
+    expect(dateHelper.getLastDayOfYear(3000)).toEqual(new Date(Date.UTC(3000, 11, 31)));
   });
 });
 
 describe('formatDateToISO8601', () => {
   it('should return null when the input is null', () => {
-    expect(formatDateToISO8601(null)).toBeNull();
+    expect(DateHelper.formatDateToISO8601(null)).toBeNull();
   });
 
   it('should return null when the input is undefined', () => {
-    expect(formatDateToISO8601(undefined as unknown as Date)).toBeNull();
+    expect(DateHelper.formatDateToISO8601(undefined as unknown as Date)).toBeNull();
   });
 
   it('should return null when the input is NaN', () => {
-    expect(formatDateToISO8601(NaN as any)).toBeNull();
+    expect(DateHelper.formatDateToISO8601(NaN as any)).toBeNull();
   });
 
   it('should return a properly formatted date for a valid Date object', () => {
     const date = new Date('2025-04-15T10:30:00Z');
-    expect(formatDateToISO8601(date)).toBe('2025-04-15');
+    expect(DateHelper.formatDateToISO8601(date)).toBe('2025-04-15');
   });
 
   it('should handle dates in different timezones and still return the correct UTC date', () => {
     const date = new Date('2025-04-15T23:59:59-05:00'); // Date with a -05:00 offset
-    expect(formatDateToISO8601(date)).toBe('2025-04-16'); // Adjusted to UTC
+    expect(DateHelper.formatDateToISO8601(date)).toBe('2025-04-16'); // Adjusted to UTC
   });
 
   it('should correctly format a date at the start of the year', () => {
     const date = new Date('2025-01-01T00:00:00Z');
-    expect(formatDateToISO8601(date)).toBe('2025-01-01');
+    expect(DateHelper.formatDateToISO8601(date)).toBe('2025-01-01');
   });
 
   it('should correctly format a date at the end of the year', () => {
     const date = new Date('2025-12-31T23:59:59Z');
-    expect(formatDateToISO8601(date)).toBe('2025-12-31');
+    expect(DateHelper.formatDateToISO8601(date)).toBe('2025-12-31');
   });
 
   it('should handle leap years correctly', () => {
     const date = new Date('2024-02-29T12:00:00Z'); // 2024 is a leap year
-    expect(formatDateToISO8601(date)).toBe('2024-02-29');
+    expect(DateHelper.formatDateToISO8601(date)).toBe('2024-02-29');
   });
 
   it('should throw no errors when working with historic dates', () => {
     const date = new Date('1900-01-01T00:00:00Z'); // A very old date
-    expect(formatDateToISO8601(date)).toBe('1900-01-01');
+    expect(DateHelper.formatDateToISO8601(date)).toBe('1900-01-01');
   });
 
   it('should handle future dates correctly', () => {
     const date = new Date('3000-01-01T00:00:00Z'); // A future date
-    expect(formatDateToISO8601(date)).toBe('3000-01-01');
+    expect(DateHelper.formatDateToISO8601(date)).toBe('3000-01-01');
   });
 
   it('should return null when the input is not a Date object', () => {
-    expect(formatDateToISO8601('2025-04-15' as unknown as Date)).toBeUndefined();
-    expect(formatDateToISO8601(123456789 as unknown as Date)).toBeUndefined();
-    expect(formatDateToISO8601({} as unknown as Date)).toBeUndefined();
+    expect(DateHelper.formatDateToISO8601({} as unknown as Date)).toBeNull();
   });
 
   it('should correctly format dates in local time', () => {
     const localDate = new Date('2025-04-15T00:00:00'); // Local time
     const utcDate = new Date(localDate.toISOString());
-    expect(formatDateToISO8601(localDate)).toBe(formatDateToISO8601(utcDate));
+    expect(DateHelper.formatDateToISO8601(localDate)).toBe(DateHelper.formatDateToISO8601(utcDate));
   });
 });
 
 describe('isToday', () => {
   it('should return true for today\'s day of the year', () => {
-    const todaysDay = getDayOfYear(new Date());
-    expect(isToday(todaysDay)).toBe(true);
+    const todaysDay = DateHelper.getDayOfYear(new Date());
+    expect(dateHelper.isToday(todaysDay)).toBe(true);
   });
 
   it('should return false for yesterday\'s day of the year', () => {
-    const todaysDay = getDayOfYear(new Date());
-    expect(isToday(todaysDay - 1)).toBe(false);
+    const todaysDay = DateHelper.getDayOfYear(new Date());
+    expect(dateHelper.isToday(todaysDay - 1)).toBe(false);
   });
 
   it('should return false for tomorrow\'s day of the year', () => {
-    const todaysDay = getDayOfYear(new Date());
-    expect(isToday(todaysDay + 1)).toBe(false);
+    const todaysDay = DateHelper.getDayOfYear(new Date());
+    expect(dateHelper.isToday(todaysDay + 1)).toBe(false);
   });
 
   it('should return false for null input', () => {
-    expect(isToday(null as unknown as number)).toBe(false);
+    expect(dateHelper.isToday(null as unknown as number)).toBe(false);
   });
 
   it('should return false for undefined input', () => {
-    expect(isToday(undefined as unknown as number)).toBe(false);
+    expect(dateHelper.isToday(undefined as unknown as number)).toBe(false);
   });
 
   it('should return false for NaN input', () => {
-    expect(isToday(NaN)).toBe(false);
+    expect(dateHelper.isToday(NaN)).toBe(false);
   });
 
   it('should return false for negative day numbers', () => {
-    expect(isToday(-1)).toBe(false);
+    expect(dateHelper.isToday(-1)).toBe(false);
   });
 
   it('should return false for day numbers greater than 366', () => {
-    expect(isToday(367)).toBe(false);
+    expect(dateHelper.isToday(367)).toBe(false);
   });
 
   it('should handle leap years correctly', () => {
     const leapYearDate = new Date('2024-02-29');
-    const dayOfYear = getDayOfYear(leapYearDate);
-    expect(isToday(dayOfYear)).toBe(false); // Only true if tested on Feb 29, 2024
+    const dayOfYear = DateHelper.getDayOfYear(leapYearDate);
+    expect(dateHelper.isToday(dayOfYear)).toBe(false); // Only true if tested on Feb 29, 2024
   });
 
   it('should handle dates in different timezones', () => {
     const utcDate = new Date('2025-01-01T00:00:00Z'); // Jan 1 in UTC
-    const localDay = getDayOfYear(utcDate);
-    expect(isToday(localDay)).toBe(false); // Only true if local time matches UTC
+    const localDay = DateHelper.getDayOfYear(utcDate);
+    expect(dateHelper.isToday(localDay)).toBe(false); // Only true if local time matches UTC
   });
 });

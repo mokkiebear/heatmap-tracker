@@ -1,6 +1,6 @@
 import { ColorsList, Entry, IntensityConfig } from "src/types";
 import { mapRange } from "./core";
-import { getDayOfYear } from "./date";
+import { DateHelper } from "./date";
 
 export function getEntriesIntensities(entries: Entry[]): number[] {
   return Array.from(
@@ -77,7 +77,7 @@ export function fillEntriesWithIntensity(
       intensity: newIntensity,
     };
 
-    const day = getDayOfYear(new Date(e.date));
+    const day = DateHelper.getDayOfYear(new Date(e.date));
 
     entriesByDay[day] = newEntry;
   });

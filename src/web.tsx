@@ -7,7 +7,7 @@ import { HeatmapProvider } from "./context/heatmap/heatmap.context";
 import "./localization/i18n";
 import { IHeatmapView } from "src/types";
 import { mergeTrackerData } from "./utils/core";
-import { getCurrentFullYear } from "./utils/date";
+import { DateHelper } from "./utils/date";
 
 const DEFAULT_SETTINGS: TrackerSettings = {
   palettes: {
@@ -28,7 +28,7 @@ const DEFAULT_SETTINGS: TrackerSettings = {
 };
 
 export const DEFAULT_TRACKER_DATA: TrackerData = {
-  year: getCurrentFullYear(),
+  year: DateHelper.getCurrentFullYear(),
   entries: [
     { date: "1900-01-01", customColor: "#7bc96f", intensity: 5, content: "" },
   ],
@@ -47,6 +47,7 @@ export const DEFAULT_TRACKER_DATA: TrackerData = {
   },
 
   insights: [],
+  dateFormat: "YYYY-MM-DD",
 };
 
 export function renderHeatmapTracker(
