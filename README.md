@@ -14,12 +14,31 @@ The **Heatmap Tracker plugin for Obsidian** is a powerful and customizable tool 
 
 <img src="https://raw.githubusercontent.com/mokkiebear/heatmap-tracker/refs/heads/main/public/heatmap-how-to.gif" />
 
-## Start with this code example
-> **Tip:** Update `trackerData` with your own dataset to visualize custom data points.
+## Basic Usage
 
-> **Tip:** Add `dataviewjs` in the beginning of your code block to enable DataviewJS functionality.
+This plugin comes with frontmatter tracking out of the box. You can use the `tracker-heatmap` codeblock with the following parameters:
 
-```javascript
+````
+```tracker-heatmap
+property: <frontmatter_property_key>
+```
+````
+
+This will look for `frontmatter_property_key` in your daily notes and activate a spot on the heatmap wherever that property is set.
+
+You can also use an array of property names as such:
+
+````
+```tracker-heatmap
+property: [<frontmatter_property_key_1>, <frontmatter_property_key_2>, ...]
+```
+````
+
+This will aggregate the values of all specified properties on the heatmap.
+
+If you want something more involved, you may use a `dataviewjs` codeblock as such (update `trackerData` with your own dataset to visualize custom data points):
+
+````javascript
 // Update this object
 const trackerData = {
     entries: [],
@@ -43,7 +62,7 @@ for(let page of dv.pages(`"${PATH_TO_YOUR_FOLDER}"`).where((p) => p[PARAMETER_NA
 }
 
 renderHeatmapTracker(this.container, trackerData);
-```
+````
 
 ## Tracker Settings Documentation
 > You can also read about parameters in [EXAMPLE_VAULT](https://github.com/mokkiebear/heatmap-tracker/tree/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters) (there're examples).

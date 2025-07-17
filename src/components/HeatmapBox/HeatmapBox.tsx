@@ -3,9 +3,10 @@ import { Box } from "src/types";
 
 interface HeatmapBoxProps {
   box: Box;
+  onClick?: (box: Box) => void;
 }
 
-export function HeatmapBox({ box }: HeatmapBoxProps) {
+export function HeatmapBox({ box, onClick }: HeatmapBoxProps) {
   const boxClassNames = [
     "heatmap-tracker-box",
     box.name,
@@ -30,8 +31,8 @@ export function HeatmapBox({ box }: HeatmapBoxProps) {
       data-htp-date={box.date}
       style={{ backgroundColor: box.backgroundColor }}
       className={`${boxClassNames.filter(Boolean).join(" ")}`}
-      // On Desktop it will show the date on hover.
       aria-label={box.date}
+      onClick={onClick ? () => onClick(box) : undefined}
     >
       <span className="heatmap-tracker-content">{content}</span>
     </div>

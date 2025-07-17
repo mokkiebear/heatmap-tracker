@@ -4,9 +4,13 @@ import { HeatmapBoxesList } from "src/components/HeatmapBoxesList/HeatmapBoxesLi
 import { HeatmapMonthsList } from "src/components/HeatmapMonthsList/HeatmapMonthsList";
 import { HeatmapWeekDays } from "src/components/HeatmapWeekDays/HeatmapWeekDays";
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
+import { useAppContext } from "src/main";
+import { getDailyNote, createDailyNote, getAllDailyNotes } from "obsidian-daily-notes-interface";
+import moment from "moment";
 
 function HeatmapTrackerView() {
   const { boxes } = useHeatmapContext();
+  const app = useAppContext();
 
   const graphRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -22,6 +26,17 @@ function HeatmapTrackerView() {
     setIsLoading(false);
   }, [boxes]);
 
+  const handleBoxClick = async (box: any) => {
+    if (!box.date) return;
+    const date = moment(box.date);
+    const allDailyNotes = getAllDailyNotes();
+    let file = getDailyNote(date, allDailyNotes);
+    if (!file) {
+      file = await createDailyNote(date);
+    }
+    app.workspace.openLinkText(file.basename, file.path);
+  };
+
   return (
     <div
       className={`heatmap-tracker ${
@@ -32,7 +47,7 @@ function HeatmapTrackerView() {
       <div className="heatmap-tracker-graph" ref={graphRef}>
         <HeatmapMonthsList />
 
-        <HeatmapBoxesList boxes={boxes} />
+        <HeatmapBoxesList boxes={boxes} onBoxClick={handleBoxClick} />
       </div>
     </div>
   );

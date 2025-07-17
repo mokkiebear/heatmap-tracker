@@ -51,7 +51,8 @@ export const DEFAULT_TRACKER_DATA: TrackerData = {
 
 export function renderHeatmapTracker(
   el: HTMLElement,
-  trackerData: TrackerData = DEFAULT_TRACKER_DATA
+  trackerData: TrackerData = DEFAULT_TRACKER_DATA,
+  settings: TrackerSettings = DEFAULT_SETTINGS
 ) {
   const root = createRoot(el);
 
@@ -59,7 +60,7 @@ export function renderHeatmapTracker(
     <StrictMode>
       <HeatmapProvider
         trackerData={mergeTrackerData(DEFAULT_TRACKER_DATA, trackerData)}
-        settings={DEFAULT_SETTINGS}
+        settings={settings}
       >
         <ReactApp />
       </HeatmapProvider>
