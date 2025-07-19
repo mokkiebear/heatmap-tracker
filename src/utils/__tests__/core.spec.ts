@@ -1,4 +1,4 @@
-import { DEFAULT_TRACKER_DATA } from 'src/main';
+import { DEFAULT_TRACKER_DATA } from 'src/HeatmapDefaultData';
 import { clamp, getEntriesForYear, mapRange, mergeTrackerData, } from '../core';
 import { Entry } from 'src/types';
 

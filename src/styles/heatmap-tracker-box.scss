@@ -5,11 +5,11 @@
   background-color: #ebedf0;
   transition: transform 0.2s, border 0.2s;
   aspect-ratio: 1;
+  cursor: pointer;
 
   &:hover {
     transform: scale(1.4);
     border: solid var(--border-width) rgb(61, 61, 61);
-    cursor: pointer;
   }
 }
 

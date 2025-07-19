@@ -27,6 +27,7 @@ export function HeatmapProvider({
   settings,
 }: HeatmapProviderProps) {
   const [view, setView] = useState(IHeatmapView.HeatmapTracker);
+  const [selectedBox, setSelectedBox] = useState<Box | null>(null);
 
   const _defaultYear = useMemo(
     () => trackerData.year ?? getCurrentFullYear(),
@@ -88,6 +89,8 @@ export function HeatmapProvider({
         entriesWithIntensity,
         boxes,
         intensityConfig: trackerData.intensityConfig,
+        selectedBox,
+        setSelectedBox,
       }}
     >
       {children}
@@ -107,6 +110,8 @@ interface HeatmapContextProps {
   colorsList: ColorsList;
   entriesWithIntensity: Record<number, Entry>;
   boxes: Box[];
+  selectedBox: Box | null;
+  setSelectedBox: React.Dispatch<React.SetStateAction<Box | null>>;
 }
 
 export function useHeatmapContext(): HeatmapContextProps {

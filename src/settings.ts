@@ -136,11 +136,55 @@ export default class HeatmapTrackerSettingsTab extends PluginSettingTab {
     kofiContainer.innerHTML = kofi;
   }
 
+  displayDateFormatSettings() {
+    const MARKUP = `
+        <label for="formatSelect">Choose Date Format:</label>
+        <select id="formatSelect">
+          <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+          <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+          <option value="MMMM D, YYYY">MMMM D, YYYY</option>
+          <option value="ddd, MMM D YYYY">ddd, MMM D YYYY</option>
+          <option value="MM-DD-YYYY">MM-DD-YYYY</option>
+          <option value="YYYY.MM.DD">YYYY.MM.DD</option>
+          <option value="custom">Custom...</option>
+        </select>
+        <input type="text" id="customFormat" placeholder="Enter custom format" />
+
+        <div id="preview"></div>
+    `;
+
+    const OPTIONS = {
+      "YYYY-MM-DD": "YYYY-MM-DD",
+      "DD/MM/YYYY": "DD/MM/YYYY",
+      "MMMM D, YYYY": "MMMM D, YYYY",
+      "ddd, MMM D YYYY": "ddd, MMM D YYYY",
+      "MM-DD-YYYY": "MM-DD-YYYY",
+      "YYYY.MM.DD": "YYYY.MM.DD",
+      custom: "Custom..."
+    };
+
+    new Setting(this.containerEl)
+      .setName('Select Date Format')
+      .setDesc('Choose a date format for the heatmap. You can also enter a custom format.')
+      .addDropdown((dropdown) => {
+        dropdown
+          .addOptions(OPTIONS)
+          .setValue(this.plugin.settings.dateFormat || "YYYY-MM-DD")
+          .onChange(async (value) => {
+            i18n.changeLanguage(value);
+            this.plugin.settings.language = value;
+            await this.plugin.saveSettings();
+            this.display(); // Refresh the settings page
+          });
+      });
+  }
+
   display() {
     const { containerEl } = this;
 
     containerEl.empty();
 
+    this.displayDateFormatSettings();
     this.displayLanguageSettings();
     this.displayWeekStartDaySettings();
     this.displayWeekDisplayModeSettings();
