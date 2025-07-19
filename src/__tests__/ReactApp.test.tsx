@@ -3,9 +3,9 @@ import ReactApp from "../App";
 import { act, render } from "@testing-library/react";
 import { settingsMock } from "../__mocks__/settings.mock";
 import { mergeTrackerData } from "src/utils/core";
-import { DEFAULT_TRACKER_DATA } from "../main";
 import { trackerDataMock } from "src/__mocks__/trackerData.mock";
 import { getToday } from "src/utils/date";
+import { DEFAULT_TRACKER_DATA } from "src/HeatmapDefaultData";
 
 jest.mock("react-i18next", () => ({
   ...jest.requireActual("react-i18next"),
@@ -77,7 +77,7 @@ describe("ReactApp component", () => {
   it("should use paletteName instead of customColors", async () => {
     const trackerData = {
       ...trackerDataMock,
-      colorScheme: undefined
+      colorScheme: undefined,
     };
 
     const { asFragment } = await render(

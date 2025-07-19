@@ -60,6 +60,16 @@ export interface TrackerData {
   heatmapSubtitle?: string;
 
   insights: Insight[];
+  /**
+   * `dateFormat` is used to format the date in the heatmap.
+   * It should be a valid date format string, e.g. "YYYY-MM-DD".
+   * If not provided, the default format will be used.
+   * 
+   * @default "YYYY-MM-DD"
+   * @example "YYYY-MM-DD" for a date like "2023-10-01"
+   * @example "DD/MM/YYYY" for a date like "01/10/2023"
+   */
+  dateFormat?: string;
 }
 
 export interface TrackerSettings {
@@ -69,6 +79,7 @@ export interface TrackerSettings {
   separateMonths: boolean;
   language: string;
   viewTabsVisibility: Partial<Record<IHeatmapView, boolean>>;
+  dateFormat: string;
 }
 
 export interface Box {

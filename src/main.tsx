@@ -12,8 +12,8 @@ import { IHeatmapView } from "src/types";
 import { mergeTrackerData } from "./utils/core";
 import LegendView from "./views/LegendView/LegendView";
 import StatisticsView from "./views/StatisticsView/StatisticsView";
-import { getCurrentFullYear } from "./utils/date";
 import { HeatmapHeader } from "./components/HeatmapHeader/HeatmapHeader";
+import { DEFAULT_TRACKER_DATA } from "./HeatmapDefaultData";
 
 declare global {
   interface Window {
@@ -57,27 +57,7 @@ const DEFAULT_SETTINGS: TrackerSettings = {
     [IHeatmapView.HeatmapTrackerStatistics]: true,
     [IHeatmapView.Legend]: true,
   },
-};
-
-export const DEFAULT_TRACKER_DATA: TrackerData = {
-  year: getCurrentFullYear(),
-  entries: [
-    { date: "1900-01-01", customColor: "#7bc96f", intensity: 5, content: "" },
-  ],
-  showCurrentDayBorder: true,
-  intensityConfig: {
-    scaleStart: undefined,
-    scaleEnd: undefined,
-    defaultIntensity: 4,
-    showOutOfRange: true,
-  },
-  intensityScaleStart: undefined,
-  intensityScaleEnd: undefined,
-  defaultEntryIntensity: 4,
-  colorScheme: {
-    paletteName: "default",
-  },
-  insights: [],
+  dateFormat: "YYYY-MM-DD",
 };
 
 export default class HeatmapTracker extends Plugin {
