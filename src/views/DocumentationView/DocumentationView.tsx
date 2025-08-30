@@ -3,6 +3,7 @@ function DocumentationView() {
   const trackerData = {
     entries: [{
         date: "2021-01-01",
+        filePath: page.file.path,
         intensity: 1,
         // customColor: "#ff0000",
     }],

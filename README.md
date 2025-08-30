@@ -56,13 +56,22 @@ const PARAMETER_NAME = 'steps';
 for(let page of dv.pages(`"${PATH_TO_YOUR_FOLDER}"`).where((p) => p[PARAMETER_NAME])){
     trackerData.entries.push({
         date: page.file.name,
+        // Use absolute file path so clicks open the exact note (for cases when you have multiple notes with the same name)
+        filePath: page.file.path,
         intensity: page[PARAMETER_NAME],
-        content: await dv.span(`[](${page.file.name})`)
     });
 }
 
+// Optional: set base path so new files are created here if missing
+trackerData.basePath = PATH_TO_YOUR_FOLDER;
+
 renderHeatmapTracker(this.container, trackerData);
 ````
+
+Notes
+- If you provide `filePath` for each entry (`page.file.path`), clicking a heatmap box opens that exact file. If the file is missing, the plugin offers to create it at the same path.
+- If `filePath` is not set on a box but `trackerData.basePath` is provided, the plugin proposes creating/opening `trackerData.basePath/YYYY-MM-DD.md`.
+- If neither is available, it falls back to the Daily Notes settings (folder/format) via the Daily Notes API.
 
 ## Tracker Settings Documentation
 > You can also read about parameters in [EXAMPLE_VAULT](https://github.com/mokkiebear/heatmap-tracker/tree/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters) (there're examples).

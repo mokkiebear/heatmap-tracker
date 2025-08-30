@@ -145,6 +145,7 @@ export default class HeatmapTracker extends Plugin {
             }
             trackerData.entries.push({
               date: page.file.name,
+              filePath: page.file.path,
               intensity: intensity,
               content: el.createSpan(`[](${page.file.name})`),
             });

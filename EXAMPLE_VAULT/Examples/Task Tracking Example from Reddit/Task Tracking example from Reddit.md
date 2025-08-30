@@ -54,11 +54,13 @@ for (let page of dv.pages('"Examples/Task Tracking Example from Reddit/notes"')
 const markdown = await dv.io.load(page.file.path); 
 trackerData.entries.push({ 
 date: page.file.name, 
-intensity: countHabits(markdown), 
-content: await dv.span(`[](${page.file.name})`) }); 
+filePath: page.file.path, 
+intensity: countHabits(markdown) }); 
 } 
 
 /* this just executes the heatmap plugin to render the image */
+
+trackerData.basePath = 'Examples/Task Tracking Example from Reddit/notes';
 
 renderHeatmapTracker(this.container, trackerData);
 ```

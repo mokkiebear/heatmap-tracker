@@ -10,15 +10,17 @@ var trackerData = {
     heatmapTitle: "👣 Steps Tracker 👣"
 }
 
+const PATH_TO_FOLDER = "daily notes";
  
-for(let page of dv.pages('"daily notes"').where(p=>p.steps)){
-
+for(let page of dv.pages(`"${PATH_TO_FOLDER}"`).where(p=>p.steps)){
     trackerData.entries.push({
         date: page.file.name,
-        intensity: page.steps,
-        content: await dv.span(`[](${page.file.name})`)
+        filePath: page.file.path,
+        intensity: page.steps
     })  
 }
+
+trackerData.basePath = PATH_TO_FOLDER;
 
 renderHeatmapTracker(this.container, trackerData)
 

@@ -3,7 +3,7 @@ import ReactApp from "../App";
 import { act, render } from "@testing-library/react";
 import { settingsMock } from "../__mocks__/settings.mock";
 import { mergeTrackerData } from "src/utils/core";
-import { DEFAULT_TRACKER_DATA } from "../main";
+import { AppContext, DEFAULT_TRACKER_DATA } from "../main";
 import { trackerDataMock } from "src/__mocks__/trackerData.mock";
 import { getToday } from "src/utils/date";
 
@@ -30,15 +30,17 @@ describe("ReactApp component", () => {
 
   it("renders correctly and matches snapshot", async () => {
     const { asFragment } = await render(
-      <HeatmapProvider
-        trackerData={mergeTrackerData(
-          DEFAULT_TRACKER_DATA,
-          trackerDataMock as any
-        )}
-        settings={settingsMock}
-      >
-        <ReactApp />
-      </HeatmapProvider>
+      <AppContext.Provider value={{} as any}>
+        <HeatmapProvider
+          trackerData={mergeTrackerData(
+            DEFAULT_TRACKER_DATA,
+            trackerDataMock as any
+          )}
+          settings={settingsMock}
+        >
+          <ReactApp />
+        </HeatmapProvider>
+      </AppContext.Provider>
     );
 
     // Wait for all promises inside Suspense to resolve
@@ -57,12 +59,17 @@ describe("ReactApp component", () => {
     };
 
     const { asFragment } = await render(
-      <HeatmapProvider
-        trackerData={mergeTrackerData(DEFAULT_TRACKER_DATA, trackerData as any)}
-        settings={settingsMock}
-      >
-        <ReactApp />
-      </HeatmapProvider>
+      <AppContext.Provider value={{} as any}>
+        <HeatmapProvider
+          trackerData={mergeTrackerData(
+            DEFAULT_TRACKER_DATA,
+            trackerData as any
+          )}
+          settings={settingsMock}
+        >
+          <ReactApp />
+        </HeatmapProvider>
+      </AppContext.Provider>
     );
 
     // Wait for all promises inside Suspense to resolve
@@ -77,16 +84,21 @@ describe("ReactApp component", () => {
   it("should use paletteName instead of customColors", async () => {
     const trackerData = {
       ...trackerDataMock,
-      colorScheme: undefined
+      colorScheme: undefined,
     };
 
     const { asFragment } = await render(
-      <HeatmapProvider
-        trackerData={mergeTrackerData(DEFAULT_TRACKER_DATA, trackerData as any)}
-        settings={settingsMock}
-      >
-        <ReactApp />
-      </HeatmapProvider>
+      <AppContext.Provider value={{} as any}>
+        <HeatmapProvider
+          trackerData={mergeTrackerData(
+            DEFAULT_TRACKER_DATA,
+            trackerData as any
+          )}
+          settings={settingsMock}
+        >
+          <ReactApp />
+        </HeatmapProvider>
+      </AppContext.Provider>
     );
 
     // Wait for all promises inside Suspense to resolve

@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
+## [1.18.0] - 2025-08-30
+### Added
+- Obsidian hover preview on boxes by adding `data-href`/`href` and `internal-link` when applicable.
+- `customHref` for boxes (highest priority): supports external URLs and internal linktext.
+
+### Changed
+- Click behavior generalized and deterministic:
+  - Priority: `customHref` → `filePath` → `basePath` → Daily Notes.
+  - Opens exact files via `openFile(TFile)` when `filePath` is provided (no ambiguous "closest" resolution).
+  - Confirmation dialogs now display the exact target path for creation.
+- Dataview examples updated to include `filePath` and `basePath`; removed redundant link `content` where not needed.
 
 ## [1.17.0] - 2025-08-03
 - Add codeblock preprocessor for `heatmap-tracker`. This codeblock accepts parameter property and uses it to aggregate data across pages with that property. By default, the pages searched will be in the Daily Notes folder, but this can be overridden with the path parameter. Contributed by [@dsynkd](https://github.com/dsynkd).

@@ -86,6 +86,8 @@ export function getBoxes(
       const entry = entriesWithIntensity[day];
 
       box.content = entry.content || undefined;
+      box.filePath = entry.filePath || undefined;
+      box.customHref = entry.customHref || undefined;
       box.backgroundColor = entry.customColor ?? (entry.intensity !== undefined ? colorsList[entry.intensity - 1] : undefined);
     } else {
       box.hasData = false;

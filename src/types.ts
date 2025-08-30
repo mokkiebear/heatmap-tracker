@@ -1,5 +1,9 @@
 export interface Entry {
   date: string;
+  /** Absolute path to the file in the vault (if known). */
+  filePath?: string;
+  /** Custom href for this box; takes precedence over filePath. */
+  customHref?: string;
   /**
    * This is the mapped intensity.
    * The user set intensity, then I recalculate intensity and write here new intensity. User's value write to `value`.
@@ -39,6 +43,8 @@ export interface TrackerData {
   colorScheme: ColorScheme;
   entries: Entry[];
   showCurrentDayBorder: boolean;
+  /** Base folder used to collect entries (if applicable). */
+  basePath?: string;
 
   /**
   * @deprecated The default intensity value for an entry.
@@ -74,6 +80,10 @@ export interface TrackerSettings {
 export interface Box {
   backgroundColor?: string;
   date?: string;
+  /** Absolute path to the file in the vault (if known). */
+  filePath?: string;
+  /** Custom href for this box; takes precedence over filePath. */
+  customHref?: string;
   content?: string | HTMLElement;
   isToday?: boolean;
   name?: string;
