@@ -120,7 +120,22 @@ export default class HeatmapTrackerSettingsTab extends PluginSettingTab {
 
     supportSection.createEl('h5', {
       cls: 'heatmap-tracker-settings-support-section__header',
-      text: i18n.t(' ☕️ If this plugin adds value for you and you would like to support its development, please use the buttons below:')
+      text: i18n.t('support.header')
+    });
+
+    supportSection.createEl('p', {
+      cls: 'heatmap-tracker-settings-support-section__text',
+      text: i18n.t('support.text1')
+    });
+
+    supportSection.createEl('p', {
+      cls: 'heatmap-tracker-settings-support-section__text',
+            text: i18n.t('support.text2')
+    });
+
+    supportSection.createEl('p', {
+      cls: 'heatmap-tracker-settings-support-section__text--highlight',
+         text: i18n.t('support.cta')
     });
 
     const supportSectionOptions = supportSection.createDiv({

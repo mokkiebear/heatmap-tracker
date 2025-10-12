@@ -79,5 +79,10 @@
     "heatmap-tracker": "热图",
     "heatmap-tracker-statistics": "统计数据",
     "legend": "传奇"
-  }
+  },
+
+  "support.header": "☕️ 你好！",
+  "support.text1": "如果这个插件让你的工作更顺一点、组织更高效，我真的非常开心 ❤️",
+  "support.text2": "我已投入数十个小时来构建和改进它——你的支持能让我继续带来新点子和更新 ✨",
+  "support.cta": "全程不到 2 分钟，无需注册，哪怕一杯 5 美元的咖啡也能带来实实在在的帮助 ☕️💛"
 }

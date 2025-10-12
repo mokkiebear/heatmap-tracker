@@ -79,5 +79,10 @@
     "heatmap-tracker": "Carte thermique",
     "heatmap-tracker-statistics": "Statistiques",
     "legend": "Légende"
-  }
+  },
+
+  "support.header": "☕️ Salut !",
+  "support.text1": "Si ce plugin rend votre journée un peu plus fluide ou vous aide à vous organiser, ça me fait super plaisir ❤️",
+  "support.text2": "J’y ai consacré des dizaines d’heures — votre soutien m’aide à continuer avec de nouvelles idées et mises à jour ✨",
+  "support.cta": "Moins de 2 minutes, pas d’inscription, et même un café à 5 $ fait une vraie différence ☕️💛"
 }

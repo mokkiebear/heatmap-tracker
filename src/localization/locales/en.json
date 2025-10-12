@@ -79,5 +79,10 @@
     "donation": "Donation",
     "legend": "Legend"
   },
-  "tab": "Tab"
+  "tab": "Tab",
+
+  "support.header": "☕️ Hey there!",
+  "support.text1": "If this plugin makes your day a bit smoother or helps you stay organized, that honestly makes me so happy ❤️",
+  "support.text2": "I’ve poured dozens of hours into building and improving it — your support helps me keep adding new ideas and updates ✨",
+  "support.cta": "It takes under 2 minutes, no sign-up needed, and even a $5 coffee makes a real difference ☕️💛"
 }
