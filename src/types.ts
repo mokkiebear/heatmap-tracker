@@ -66,6 +66,7 @@ export interface TrackerData {
   heatmapSubtitle?: string;
 
   insights: Insight[];
+  evaluateIntensity?: (entry: Entry) => number;
 }
 
 export interface TrackerSettings {
@@ -103,6 +104,6 @@ export enum IHeatmapView {
 export type WeekDisplayMode = "even" | "odd" | "none" | "all";
 
 export interface TrackerParams {
-  path?: string;
+  basePath?: string;
   property: string | string[];
 }

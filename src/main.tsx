@@ -1,4 +1,10 @@
-import { App, MarkdownPostProcessorContext, parseYaml, Plugin } from "obsidian";
+import {
+  App,
+  MarkdownPostProcessorContext,
+  MarkdownView,
+  parseYaml,
+  Plugin,
+} from "obsidian";
 import { getAPI, Literal } from "obsidian-dataview";
 import { createRoot } from "react-dom/client";
 import { createContext, StrictMode } from "react";
@@ -16,13 +22,14 @@ import LegendView from "./views/LegendView/LegendView";
 import StatisticsView from "./views/StatisticsView/StatisticsView";
 import { getCurrentFullYear } from "./utils/date";
 import { HeatmapHeader } from "./components/HeatmapHeader/HeatmapHeader";
+import { NewHeatmapModal } from "./modals/NewHeatmapModal";
 
 declare global {
   interface Window {
     renderHeatmapTracker?: (
       el: HTMLElement,
       trackerData: TrackerData,
-      settings: TrackerSettings
+      settings?: TrackerSettings
     ) => void;
     renderHeatmapTrackerLegend?: (
       el: HTMLElement,
@@ -51,6 +58,20 @@ const DEFAULT_SETTINGS: TrackerSettings = {
   palettes: {
     default: ["#c6e48b", "#7bc96f", "#49af5d", "#2e8840", "#196127"],
     danger: ["#fff33b", "#fdc70c", "#f3903f", "#ed683c", "#e93e3a"],
+    obsidianTheme: [
+      "var(--color-base-00)",
+      "var(--color-base-05)",
+      "var(--color-base-10)",
+      "var(--color-base-20)",
+      "var(--color-base-25)",
+      "var(--color-base-30)",
+      "var(--color-base-35)",
+      "var(--color-base-40)",
+      "var(--color-base-50)",
+      "var(--color-base-60)",
+      "var(--color-base-70)",
+      "var(--color-base-100)",
+    ],
   },
   weekStartDay: 1,
   weekDisplayMode: "even",
@@ -93,23 +114,56 @@ export default class HeatmapTracker extends Plugin {
     await this.loadSettings();
     this.addSettingTab(new HeatmapTrackerSettingsTab(this.app, this));
 
+    this.addCommand({
+      id: "create-new-heatmap-tracker",
+      name: "Create new Heatmap Tracker",
+      editorCallback: (editor, ctx) => {
+        new NewHeatmapModal(this.app, (result) => {
+          console.log("New Heatmap Tracker created:", result);
+
+          console.log("#####", {
+            editor,
+            ctx,
+          });
+
+          const markdownView =
+            this.app.workspace.getActiveViewOfType(MarkdownView);
+          if (!markdownView) {
+            return;
+          }
+          const codeblock = `\`\`\`heatmap-tracker-json\n${JSON.stringify(
+            {
+              heatmapTitle: result.heatmapTitle,
+              property: result.property,
+            },
+            null,
+            2
+          )}\n\`\`\`\n`;
+          editor.replaceSelection(codeblock);
+        }).open();
+      },
+    });
+
     this.registerMarkdownCodeBlockProcessor(
-      "heatmap-tracker",
+      "heatmap-tracker-yaml",
       async (
         source: string,
         el: HTMLElement,
         ctx: MarkdownPostProcessorContext
       ) => {
-        const params: any = parseYaml(source) as TrackerParams;
+        const params = parseYaml(source) as TrackerParams;
+        console.log("##### params", params);
+
         if (params.property === undefined) {
           console.warn("Missing codeblock parameter: property");
           return;
         }
-        if (params.path === undefined) {
+
+        if (params.basePath === undefined) {
           // Use DailyNotes API to get the Daily Notes folder
           const dailyNoteSettings = getDailyNoteSettings();
           if (dailyNoteSettings.folder !== undefined) {
-            params.path = dailyNoteSettings.folder;
+            params.basePath = dailyNoteSettings.folder;
           }
         }
         try {
@@ -122,7 +176,7 @@ export default class HeatmapTracker extends Plugin {
           // Use DataView API to filter pages that contain specified frontmatter property
           const dv = getAPI();
           const pages = dv
-            .pages(`"${params.path}"`)
+            .pages(`"${params.basePath}"`)
             .where((p: Record<string, Literal>) => {
               if (typeof params.property === "string") {
                 return p[params.property];
@@ -156,6 +210,69 @@ export default class HeatmapTracker extends Plugin {
               ...this.settings,
               ...params,
             });
+          }
+        } catch (e) {
+          console.warn(e);
+        }
+      }
+    );
+
+    const jsonProcessor = this.registerMarkdownCodeBlockProcessor(
+      "heatmap-tracker",
+      async (
+        source: string,
+        el: HTMLElement,
+        ctx: MarkdownPostProcessorContext
+      ) => {
+        // accept JS object instead of JSON
+        // const params = JSON.parse(source) as TrackerData;
+        const wrappedSource = ("(" + source + ")") as unknown as TrackerData;
+        const params = new Function("return " + wrappedSource)();
+
+        const property = (params as any).property;
+        console.log("##### params", params, ctx.getSectionInfo(el));
+
+        try {
+          // Append codeblock parameters to TrackerData object
+          const trackerData: TrackerData = {
+            ...params,
+          };
+          // Use DataView API to filter pages that contain specified frontmatter property
+          const dv = getAPI();
+          const pages = dv
+            .pages(`"${params.basePath}"`)
+            .where((p: Record<string, Literal>) => {
+              if (typeof property === "string") {
+                return p[property];
+              }
+              for (const prop of property) {
+                if (p[prop]) {
+                  return true;
+                }
+              }
+              return false;
+            });
+
+          for (const page of pages) {
+            let intensity = 0;
+            if (typeof property === "string") {
+              intensity = page[property];
+            } else {
+              intensity = property.reduce((sum: number, str: string) => {
+                sum + page[str];
+              }, 0);
+            }
+
+            trackerData.entries.push({
+              date: page.file.name,
+              filePath: page.file.path,
+              intensity: intensity,
+            });
+          }
+
+          if (window.renderHeatmapTracker) {
+            // Append codeblock parameters to TrackerSettings object
+            window.renderHeatmapTracker(el, trackerData);
           }
         } catch (e) {
           console.warn(e);

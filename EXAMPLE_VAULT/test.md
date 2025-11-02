@@ -1,10 +1,15 @@
 
-```dataviewjs
-
-const trackerData = {
-    heatmapTitle: "Test",
-    intensityScaleStart: 0,
-    intensityScaleEnd: 10,
+```heatmap-tracker
+{
+    heatmapTitle: "Test123",
+    evaluateIntensity: (e) => {
+    console.log('###', e)
+        if (e.intensity >= 8) {
+            return 1;
+        }
+        
+        return 2;
+    },
     separateMonths: true,
     entries: [
         {
@@ -25,7 +30,28 @@ const trackerData = {
     },
     ]
 }
-
-renderHeatmapTracker(this.container, trackerData)
-
 ```
+
+```heatmap-tracker-yaml
+heatmapTitle: Some Title
+property: [steps]
+```
+
+```heatmap-tracker
+{
+    "heatmapTitle": "Some Title JS",
+    "property": ["steps"],
+    "basePath": "daily notes"
+}
+```
+
+
+```heatmap-tracker
+{
+  "heatmapTitle": "New Steps Tracker",
+  "property": "steps"
+}
+```
+
+
+
