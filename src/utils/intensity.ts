@@ -3,8 +3,10 @@ import { mapRange } from "./core";
 import { getDayOfYear } from "./date";
 
 export function getEntriesIntensities(entries: Entry[]): number[] {
+  const allDefined = entries.filter((e) => e.intensity !== undefined && e.intensity !== null).map((e) => e.intensity as number);
+
   return Array.from(
-    new Set(entries.filter((e) => e.intensity !== undefined).map((e) => e.intensity as number))
+    new Set(allDefined)
   );
 }
 
@@ -47,11 +49,6 @@ export function getIntensitiesInfo(intensities: number[], intensityConfig: Inten
   const numberOfColorIntensities = colorsList.length;
 
   return getIntensitiesRanges(numberOfColorIntensities, minimumIntensity, maximumIntensity);
-}
-
-function parseDateOnly(input: string): Date {
-  // Only use first 10 characters (YYYY-MM-DD), ignore time/timezone
-  return new Date(input.slice(0, 10));
 }
 
 export function fillEntriesWithIntensity(
