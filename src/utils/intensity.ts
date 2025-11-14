@@ -3,8 +3,10 @@ import { mapRange } from "./core";
 import { getDayOfYear } from "./date";
 
 export function getEntriesIntensities(entries: Entry[]): number[] {
+  const allDefined = entries.filter((e) => e.intensity !== undefined && e.intensity !== null).map((e) => e.intensity as number);
+
   return Array.from(
-    new Set(entries.filter((e) => e.intensity !== undefined).map((e) => e.intensity as number))
+    new Set(allDefined)
   );
 }
 
@@ -20,12 +22,12 @@ export function getEntriesIntensities(entries: Entry[]): number[] {
  * ```typescript
  * const ranges = getIntensitiesRanges(3, 0, 100);
  * console.log(ranges);
- * // Output:
- * // [
- * //   { min: 0, max: 33.333333333333336, intensity: 1 },
- * //   { min: 33.333333333333336, max: 66.66666666666667, intensity: 2 },
- * //   { min: 66.66666666666667, max: 100, intensity: 3 }
- * // ]
+ * Output:
+ * [
+ *   { min: 0, max: 33.333333333333336, intensity: 1 },
+ *   { min: 33.333333333333336, max: 66.66666666666667, intensity: 2 },
+ *   { min: 66.66666666666667, max: 100, intensity: 3 }
+ * ]
  * ```
  */
 export function getIntensitiesRanges(numberOfIntensities: number, intensityStart: number, intensityEnd: number) {
@@ -47,11 +49,6 @@ export function getIntensitiesInfo(intensities: number[], intensityConfig: Inten
   const numberOfColorIntensities = colorsList.length;
 
   return getIntensitiesRanges(numberOfColorIntensities, minimumIntensity, maximumIntensity);
-}
-
-function parseDateOnly(input: string): Date {
-  // Only use first 10 characters (YYYY-MM-DD), ignore time/timezone
-  return new Date(input.slice(0, 10));
 }
 
 export function fillEntriesWithIntensity(
