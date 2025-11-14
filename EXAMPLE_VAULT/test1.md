@@ -84,7 +84,7 @@ renderHeatmapTracker(this.container, trackerData)
     "heatmapSubtitle": "Track wake-up times against your target. Green means early, red means late. 🌄✨",
     "intensityScaleStart": 0,
     "intensityScaleEnd": 1,
-    "evaluateIntensity": function calculateIntensity(e) {
+    "evaluateIntensity": function evaluateIntensity(e) {
       const MAX_DIFF = 120;
       const TARGET_TIME = "06:00";
     

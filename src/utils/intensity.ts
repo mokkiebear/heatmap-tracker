@@ -69,8 +69,6 @@ export function fillEntriesWithIntensity(
 
     if (evaluateIntensity) {
       newIntensity = evaluateIntensity(e);
-
-      console.log('##', newIntensity);
     } else {
       const currentIntensity = e.intensity ?? intensityConfig.defaultIntensity;
       const foundIntensityInfo = intensitiesMap.find((o) => currentIntensity >= o.min && currentIntensity <= o.max);
