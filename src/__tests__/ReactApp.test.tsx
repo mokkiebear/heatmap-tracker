@@ -3,9 +3,10 @@ import ReactApp from "../App";
 import { act, render } from "@testing-library/react";
 import { settingsMock } from "../__mocks__/settings.mock";
 import { mergeTrackerData } from "src/utils/core";
-import { AppContext, DEFAULT_TRACKER_DATA } from "../main";
 import { trackerDataMock } from "src/__mocks__/trackerData.mock";
 import { getToday } from "src/utils/date";
+import { AppContext } from "src/context/app/app.context";
+import { DEFAULT_TRACKER_DATA } from "src/constants/defaultTrackerData";
 
 jest.mock("react-i18next", () => ({
   ...jest.requireActual("react-i18next"),

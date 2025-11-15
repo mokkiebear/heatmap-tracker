@@ -1,23 +1,11 @@
-export interface Entry {
-  date: string;
-  /** Absolute path to the file in the vault (if known). */
-  filePath?: string;
-  /** Custom href for this box; takes precedence over filePath. */
-  customHref?: string;
-  /**
-   * This is the mapped intensity.
-   * The user set intensity, then I recalculate intensity and write here new intensity. User's value write to `value`.
-   */
-  intensity?: number;
-  /**
-   * Initial user intensity (value).
-   */
-  value?: number;
-  customColor?: string;
-  content?: string | HTMLElement;
-}
+import z from "zod";
+import { ColorsListSchema } from "./schemas/schema";
+import { EntrySchema } from "./schemas/entry.schema";
+import { TrackerDataSchema } from "./schemas/trackerData.schema";
 
-export type ColorsList = string[];
+export type Entry = z.infer<typeof EntrySchema>;
+
+export type ColorsList = z.infer<typeof ColorsListSchema>;
 
 export interface ColorScheme {
   paletteName?: string;
@@ -38,35 +26,7 @@ export interface IntensityConfig {
   showOutOfRange: boolean;
 }
 
-export interface TrackerData {
-  year: number;
-  colorScheme: ColorScheme;
-  entries: Entry[];
-  showCurrentDayBorder: boolean;
-  /** Base folder used to collect entries (if applicable). */
-  basePath?: string;
-
-  /**
-  * @deprecated The default intensity value for an entry.
-  */
-  defaultEntryIntensity: number;
-
-  /**
-   * @deprecated The starting value for the intensity scale.
-   */
-  intensityScaleStart: number | undefined;
-
-  /**
-   * @deprecated The ending value for the intensity scale.
-   */
-  intensityScaleEnd: number | undefined;
-  intensityConfig: IntensityConfig;
-  separateMonths?: boolean;
-  heatmapTitle?: string;
-  heatmapSubtitle?: string;
-
-  insights: Insight[];
-}
+export type TrackerData = z.infer<typeof TrackerDataSchema>;
 
 export interface TrackerSettings {
   palettes: Palettes;

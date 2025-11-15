@@ -5,49 +5,10 @@ import ReactApp from "./App";
 import { HeatmapProvider } from "./context/heatmap/heatmap.context";
 
 import "./localization/i18n";
-import { IHeatmapView } from "src/types";
 import { mergeTrackerData } from "./utils/core";
-import { getCurrentFullYear } from "./utils/date";
+import { DEFAULT_SETTINGS } from "./constants/defaultSettings";
+import { DEFAULT_TRACKER_DATA } from "./constants/defaultTrackerData";
 
-const DEFAULT_SETTINGS: TrackerSettings = {
-  palettes: {
-    default: ["#c6e48b", "#7bc96f", "#49af5d", "#2e8840", "#196127"],
-    danger: ["#fff33b", "#fdc70c", "#f3903f", "#ed683c", "#e93e3a"],
-  },
-  weekStartDay: 1,
-  weekDisplayMode: "even",
-  separateMonths: false,
-  language: "en",
-  viewTabsVisibility: {
-    [IHeatmapView.Documentation]: true,
-    // [IHeatmapView.Donation]: true,
-    [IHeatmapView.HeatmapTracker]: true,
-    [IHeatmapView.HeatmapTrackerStatistics]: true,
-    [IHeatmapView.Legend]: true,
-  },
-};
-
-export const DEFAULT_TRACKER_DATA: TrackerData = {
-  year: getCurrentFullYear(),
-  entries: [
-    { date: "1900-01-01", customColor: "#7bc96f", intensity: 5, content: "" },
-  ],
-  showCurrentDayBorder: true,
-  intensityConfig: {
-    scaleStart: undefined,
-    scaleEnd: undefined,
-    defaultIntensity: 4,
-    showOutOfRange: true,
-  },
-  intensityScaleStart: undefined,
-  intensityScaleEnd: undefined,
-  defaultEntryIntensity: 4,
-  colorScheme: {
-    paletteName: "default",
-  },
-
-  insights: [],
-};
 
 export function renderHeatmapTracker(
   el: HTMLElement,

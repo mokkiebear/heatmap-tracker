@@ -4,7 +4,7 @@ import { HeatmapBoxesList } from "src/components/HeatmapBoxesList/HeatmapBoxesLi
 import { HeatmapMonthsList } from "src/components/HeatmapMonthsList/HeatmapMonthsList";
 import { HeatmapWeekDays } from "src/components/HeatmapWeekDays/HeatmapWeekDays";
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
-import { useAppContext } from "src/main";
+
 import {
   getDailyNote,
   createDailyNote,
@@ -15,6 +15,7 @@ import moment from "moment";
 import { Box } from "src/types";
 import { App, TFile } from "obsidian";
 import { notify } from "src/utils/notify";
+import { useAppContext } from "src/context/app/app.context";
 
 async function createNewFile(app: App, fileName: string, path: string) {
   const shouldCreate = window.confirm(
