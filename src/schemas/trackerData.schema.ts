@@ -28,7 +28,7 @@ export const TrackerDataSchema = z.strictObject({
 
   intensityConfig: IntensityConfigSchema,
   separateMonths: z.boolean().optional(),
-  heatmapTitle: z.string().optional(),
-  heatmapSubtitle: z.string().optional(),
+  heatmapTitle: z.string().or(z.number()).optional(),
+  heatmapSubtitle: z.string().or(z.number()).optional(),
   insights: z.array(InsightSchema),
 });
