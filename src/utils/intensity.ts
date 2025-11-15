@@ -24,9 +24,9 @@ export function getEntriesIntensities(entries: Entry[]): number[] {
  * console.log(ranges);
  * Output:
  * [
- *   { min: 0, max: 33.333333333333336, intensity: 1 },
- *   { min: 33.333333333333336, max: 66.66666666666667, intensity: 2 },
- *   { min: 66.66666666666667, max: 100, intensity: 3 }
+ *    { min: 0, max: 33.333333333333336, intensity: 1 },
+ *    { min: 33.333333333333336, max: 66.66666666666667, intensity: 2 },
+ *    { min: 66.66666666666667, max: 100, intensity: 3 }
  * ]
  * ```
  */
@@ -55,6 +55,7 @@ export function fillEntriesWithIntensity(
   entries: Entry[],
   intensityConfig: IntensityConfig,
   colorsList: ColorsList,
+  evaluateIntensity?: (entry: Entry) => number,
 ): Record<number, Entry> {
   const entriesByDay: Record<number, Entry> = {};
 
@@ -64,14 +65,20 @@ export function fillEntriesWithIntensity(
   const [minimumIntensity, maximumIntensity] = getMinMaxIntensities(intensities, intensityConfig);
 
   entries.forEach((e) => {
-    const currentIntensity = e.intensity ?? intensityConfig.defaultIntensity;
-    const foundIntensityInfo = intensitiesMap.find((o) => currentIntensity >= o.min && currentIntensity <= o.max);
+    let newIntensity = undefined;
 
-    const newIntensity = foundIntensityInfo
-      ? foundIntensityInfo.intensity
-      : intensityConfig.showOutOfRange
-        ? Math.round(mapRange(currentIntensity, minimumIntensity, maximumIntensity, 1, colorsList.length))
-        : undefined;
+    if (evaluateIntensity) {
+      newIntensity = evaluateIntensity(e);
+    } else {
+      const currentIntensity = e.intensity ?? intensityConfig.defaultIntensity;
+      const foundIntensityInfo = intensitiesMap.find((o) => currentIntensity >= o.min && currentIntensity <= o.max);
+
+      newIntensity = foundIntensityInfo
+        ? foundIntensityInfo.intensity
+        : intensityConfig.showOutOfRange
+          ? Math.round(mapRange(currentIntensity, minimumIntensity, maximumIntensity, 1, colorsList.length))
+          : undefined;
+    }
 
     const newEntry = {
       ...e,

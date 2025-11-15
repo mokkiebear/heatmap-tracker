@@ -31,4 +31,8 @@ export const TrackerDataSchema = z.strictObject({
   heatmapTitle: z.string().or(z.number()).optional(),
   heatmapSubtitle: z.string().or(z.number()).optional(),
   insights: z.array(InsightSchema),
+  evaluateIntensity: z.function({
+    input: [EntrySchema],
+    output: z.number(),
+  }).optional(),
 });

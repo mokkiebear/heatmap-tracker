@@ -57,7 +57,8 @@ export function HeatmapProvider({
       fillEntriesWithIntensity(
         currentYearEntries,
         mergedTrackerData.intensityConfig,
-        colorsList
+        colorsList,
+        mergedTrackerData.evaluateIntensity
       ),
     [currentYearEntries, mergedTrackerData.intensityConfig, colorsList]
   );

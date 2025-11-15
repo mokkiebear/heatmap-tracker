@@ -56,6 +56,6 @@ export enum IHeatmapView {
 export type WeekDisplayMode = "even" | "odd" | "none" | "all";
 
 export interface TrackerParams {
-  path?: string;
+  basePath?: string;
   property: string | string[];
 }

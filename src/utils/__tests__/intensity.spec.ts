@@ -150,6 +150,27 @@ describe("fillEntriesWithIntensity", () => {
     expect(showOutOfRange[11].intensity).toBe(4);
     expect(showOutOfRange[11].value).toBeUndefined();
   });
+
+  describe("with custom evaluateIntensity function", () => {
+    it("should use the custom function to determine intensity values", () => {
+      const colors: ColorsList = ["#111", "#222"];
+      const entries: Entry[] = [
+        { date: "2024-01-01", content: "A" },
+        { date: "2024-01-02", content: "BBBB" },
+        { date: "2024-01-03", content: "CCC" },
+      ];
+
+      const evaluateIntensity = (entry: Entry) => (entry?.content as any)?.length;
+
+      const config = createConfig();
+      const result = fillEntriesWithIntensity(entries, config, colors, evaluateIntensity);
+
+      console.log(result);
+      expect(result[1].intensity).toBe(1); // "A" -> length 1
+      expect(result[2].intensity).toBe(4); // "BBBB" -> length 4
+      expect(result[3].intensity).toBe(3); // "CCC" -> length 3
+    });
+  });
 });
 
 
