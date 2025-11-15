@@ -67,7 +67,7 @@ export function validateTrackerData(input: unknown): TrackerData {
   const error = result.error;
 
   const messages = formatZodError(error);
-  throw new Error("Неверный формат TrackerData:\n" + messages.join("\n"));
+  throw new Error("Incorrect format for TrackerData:\n" + messages.join("\n"));
 }
 
 function formatZodError(error: ZodError): string[] {
@@ -81,10 +81,10 @@ function formatZodError(error: ZodError): string[] {
         const suggestion = suggestKeyName(key);
         if (suggestion) {
           parts.push(
-            `Неизвестное свойство "${key}" в "${path}". Возможно, имелось в виду "${suggestion}".`
+            `Unknown property "${key}" in "${path}". Did you mean "${suggestion}"?`
           );
         } else {
-          parts.push(`Неизвестное свойство "${key}" в "${path}".`);
+          parts.push(`Unknown property "${key}" in "${path}".`);
         }
       }
       return parts.join(" ");
