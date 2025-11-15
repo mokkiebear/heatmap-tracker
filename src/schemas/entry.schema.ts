@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { NumberLike } from "./common";
 
 export const EntrySchema = z.strictObject({
   date: z.string(),
@@ -10,7 +11,7 @@ export const EntrySchema = z.strictObject({
    * This is the mapped intensity.
    * The user set intensity, then I recalculate intensity and write here new intensity. User's value write to `value`.
    */
-  intensity: z.number().optional(),
+  intensity: NumberLike.optional(),
   /**
   * Initial user intensity (value).
   */
