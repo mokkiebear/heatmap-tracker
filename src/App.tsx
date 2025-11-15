@@ -16,7 +16,7 @@ const StatisticsView = lazy(
 const DocumentationView = lazy(
   () => import("./views/DocumentationView/DocumentationView")
 );
-// const DonationView = lazy(() => import("./views/DonationView/DonationView"));
+
 const LegendView = lazy(() => import("./views/LegendView/LegendView"));
 
 function ReactApp() {
@@ -41,9 +41,6 @@ function ReactApp() {
     case IHeatmapView.Legend:
       content = <LegendView />;
       break;
-    // case IHeatmapView.Donation:
-    //   content = <DonationView />;
-    //   break;
     default:
       content = null;
   }
