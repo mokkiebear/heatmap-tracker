@@ -11,7 +11,6 @@ export const DEFAULT_SETTINGS: TrackerSettings = {
   language: "en",
   viewTabsVisibility: {
     [IHeatmapView.Documentation]: true,
-    // [IHeatmapView.Donation]: true,
     [IHeatmapView.HeatmapTracker]: true,
     [IHeatmapView.HeatmapTrackerStatistics]: true,
     [IHeatmapView.Legend]: true,

@@ -7,7 +7,6 @@ export function HeatmapTabs() {
 
   return (
     <div className="heatmap-tracker-header__tabs">
-      {/* <HeatmapTab view={IHeatmapView.Donation} label={t('view.donation')} /> */}
       <HeatmapTab view={IHeatmapView.HeatmapTracker} label={t('view.heatmap-tracker')} />
       <HeatmapTab
         view={IHeatmapView.HeatmapTrackerStatistics}

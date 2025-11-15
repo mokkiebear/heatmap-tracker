@@ -56,7 +56,6 @@ export enum IHeatmapView {
   HeatmapTracker = "heatmap-tracker",
   HeatmapTrackerStatistics = "heatmap-tracker-statistics",
   Documentation = "documentation",
-  // Donation = "donation",
   Legend = "legend"
 }
 
