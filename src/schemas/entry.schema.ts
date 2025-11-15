@@ -10,7 +10,7 @@ export const EntrySchema = z.strictObject({
    * This is the mapped intensity.
    * The user set intensity, then I recalculate intensity and write here new intensity. User's value write to `value`.
    */
-  intensity: z.number().or(z.string()).optional(),
+  intensity: z.number().optional(),
   /**
   * Initial user intensity (value).
   */

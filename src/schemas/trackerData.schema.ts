@@ -21,11 +21,11 @@ export const TrackerDataSchema = z.strictObject({
   /**
    * @deprecated The starting value for the intensity scale.
    */
-  intensityScaleStart: z.number(),
+  intensityScaleStart: z.number().optional(),
   /**
    * @deprecated The ending value for the intensity scale.
    */
-  intensityScaleEnd: z.number(),
+  intensityScaleEnd: z.number().optional(),
 
   intensityConfig: IntensityConfigSchema,
   separateMonths: z.boolean().optional(),
