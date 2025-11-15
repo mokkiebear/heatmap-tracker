@@ -1,10 +1,9 @@
 import z from "zod";
-import {
-  ColorSchemeSchema,
-  InsightSchema,
-  IntensityConfigSchema,
-} from "./schema";
+
 import { EntrySchema } from "./entry.schema";
+import { IntensityConfigSchema } from "./intensityConfig.schema";
+import { InsightSchema } from "./insight.schema";
+import { ColorSchemeSchema } from "./colorScheme.schema";
 
 export const TrackerDataSchema = z.strictObject({
   year: z.number(),

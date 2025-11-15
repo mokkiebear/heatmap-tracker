@@ -1,30 +1,24 @@
 import z from "zod";
-import { ColorsListSchema } from "./schemas/schema";
+
 import { EntrySchema } from "./schemas/entry.schema";
 import { TrackerDataSchema } from "./schemas/trackerData.schema";
+import { IntensityConfigSchema } from "./schemas/intensityConfig.schema";
+import { InsightSchema } from "./schemas/insight.schema";
+import { ColorsListSchema } from "./schemas/colorsList.schema";
+import { ColorSchemeSchema } from "./schemas/colorScheme.schema";
+import { PalettesSchema } from "./schemas/palettes.schema";
 
 export type Entry = z.infer<typeof EntrySchema>;
 
 export type ColorsList = z.infer<typeof ColorsListSchema>;
 
-export interface ColorScheme {
-  paletteName?: string;
-  customColors?: ColorsList;
-}
+export type ColorScheme = z.infer<typeof ColorSchemeSchema>;
 
-export type Palettes = Record<string, ColorsList>;
+export type Palettes = z.infer<typeof PalettesSchema>;
 
-export interface Insight {
-  name: string;
-  calculate({ yearEntries }: { yearEntries: Entry[] }): string | number;
-}
+export type Insight = z.infer<typeof InsightSchema>;
 
-export interface IntensityConfig {
-  scaleStart: number | undefined;
-  scaleEnd: number | undefined;
-  defaultIntensity: number;
-  showOutOfRange: boolean;
-}
+export type IntensityConfig = z.infer<typeof IntensityConfigSchema>;
 
 export type TrackerData = z.infer<typeof TrackerDataSchema>;
 
@@ -56,7 +50,7 @@ export enum IHeatmapView {
   HeatmapTracker = "heatmap-tracker",
   HeatmapTrackerStatistics = "heatmap-tracker-statistics",
   Documentation = "documentation",
-  Legend = "legend"
+  Legend = "legend",
 }
 
 export type WeekDisplayMode = "even" | "odd" | "none" | "all";
