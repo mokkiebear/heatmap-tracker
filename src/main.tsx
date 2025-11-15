@@ -6,24 +6,21 @@ import {
   Plugin,
 } from "obsidian";
 import { getAPI, Literal } from "obsidian-dataview";
-import { createRoot } from "react-dom/client";
-import { createContext, StrictMode } from "react";
 import HeatmapTrackerSettingsTab from "./settings";
 import { TrackerData, TrackerParams, TrackerSettings } from "./types";
-import ReactApp from "./App";
-import { HeatmapProvider } from "./context/heatmap/heatmap.context";
+
 import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
 
 import "./localization/i18n";
-import { useContext } from "react";
-import { IHeatmapView } from "src/types";
-import { mergeTrackerData } from "./utils/core";
-import LegendView from "./views/LegendView/LegendView";
-import StatisticsView from "./views/StatisticsView/StatisticsView";
-import { getCurrentFullYear } from "./utils/date";
-import { HeatmapHeader } from "./components/HeatmapHeader/HeatmapHeader";
-import { NewHeatmapModal } from "./modals/NewHeatmapModal";
 
+import {
+  getRenderHeatmapTracker,
+  getRenderHeatmapTrackerLegend,
+  getRenderHeatmapTrackerStatistics,
+} from "./render";
+import { DEFAULT_SETTINGS } from "./constants/defaultSettings";
+import { DEFAULT_TRACKER_DATA } from "./constants/defaultTrackerData";
+import { NewHeatmapModal } from "./modals/NewHeatmapModal";
 declare global {
   interface Window {
     renderHeatmapTracker?: (
@@ -42,72 +39,7 @@ declare global {
   }
 }
 
-export const AppContext = createContext<App | undefined>(undefined);
-
-export const useAppContext = (): App => {
-  const context = useContext(AppContext);
-
-  if (!context) {
-    throw new Error("useAppContext must be used within an AppContextProvider");
-  }
-
-  return context;
-};
-
-const DEFAULT_SETTINGS: TrackerSettings = {
-  palettes: {
-    default: ["#c6e48b", "#7bc96f", "#49af5d", "#2e8840", "#196127"],
-    danger: ["#fff33b", "#fdc70c", "#f3903f", "#ed683c", "#e93e3a"],
-    obsidianTheme: [
-      "var(--color-base-00)",
-      "var(--color-base-05)",
-      "var(--color-base-10)",
-      "var(--color-base-20)",
-      "var(--color-base-25)",
-      "var(--color-base-30)",
-      "var(--color-base-35)",
-      "var(--color-base-40)",
-      "var(--color-base-50)",
-      "var(--color-base-60)",
-      "var(--color-base-70)",
-      "var(--color-base-100)",
-    ],
-  },
-  weekStartDay: 1,
-  weekDisplayMode: "even",
-  separateMonths: true,
-  language: "en",
-  viewTabsVisibility: {
-    [IHeatmapView.Documentation]: true,
-    // [IHeatmapView.Donation]: true,
-    [IHeatmapView.HeatmapTracker]: true,
-    [IHeatmapView.HeatmapTrackerStatistics]: true,
-    [IHeatmapView.Legend]: true,
-  },
-};
-
-export const DEFAULT_TRACKER_DATA: TrackerData = {
-  year: getCurrentFullYear(),
-  entries: [
-    { date: "1900-01-01", customColor: "#7bc96f", intensity: 5, content: "" },
-  ],
-  showCurrentDayBorder: true,
-  intensityConfig: {
-    scaleStart: undefined,
-    scaleEnd: undefined,
-    defaultIntensity: 4,
-    showOutOfRange: true,
-  },
-  intensityScaleStart: undefined,
-  intensityScaleEnd: undefined,
-  defaultEntryIntensity: 4,
-  colorScheme: {
-    paletteName: "default",
-  },
-  insights: [],
-};
-
-export default class HeatmapTracker extends Plugin {
+export default class HeatmapTrackerPlugin extends Plugin {
   settings: TrackerSettings = DEFAULT_SETTINGS;
 
   async onload() {
@@ -280,98 +212,20 @@ export default class HeatmapTracker extends Plugin {
       }
     );
 
-    window.renderHeatmapTracker = (
-      el: HTMLElement,
-      trackerData: TrackerData = DEFAULT_TRACKER_DATA,
-      settings: TrackerSettings = this.settings
-    ) => {
-      const container = el.createDiv({
-        cls: "heatmap-tracker-container",
-        attr: { "data-htp-name": trackerData?.heatmapTitle ?? "" },
-      });
+    window.renderHeatmapTracker = getRenderHeatmapTracker(
+      this.app,
+      this.settings
+    );
 
-      const root = createRoot(container);
+    window.renderHeatmapTrackerLegend = getRenderHeatmapTrackerLegend(
+      this.app,
+      this.settings
+    );
 
-      root.render(
-        <StrictMode>
-          <AppContext.Provider value={this.app}>
-            <HeatmapProvider
-              trackerData={mergeTrackerData(DEFAULT_TRACKER_DATA, trackerData)}
-              settings={settings}
-            >
-              <ReactApp />
-            </HeatmapProvider>
-          </AppContext.Provider>
-        </StrictMode>
-      );
-
-      return container;
-    };
-
-    window.renderHeatmapTrackerLegend = (
-      el: HTMLElement,
-      trackerData: TrackerData = DEFAULT_TRACKER_DATA
-    ) => {
-      const container = el.createDiv({
-        cls: "heatmap-tracker-legend",
-        attr: {
-          "data-htp-name": trackerData?.heatmapTitle
-            ? `${trackerData?.heatmapTitle}-legend`
-            : "",
-        },
-      });
-
-      const root = createRoot(container);
-
-      root.render(
-        <StrictMode>
-          <AppContext.Provider value={this.app}>
-            <HeatmapProvider
-              trackerData={mergeTrackerData(DEFAULT_TRACKER_DATA, trackerData)}
-              settings={this.settings}
-            >
-              <LegendView />
-            </HeatmapProvider>
-          </AppContext.Provider>
-        </StrictMode>
-      );
-
-      return container;
-    };
-
-    window.renderHeatmapTrackerStatistics = (
-      el: HTMLElement,
-      trackerData: TrackerData = DEFAULT_TRACKER_DATA
-    ) => {
-      const container = el.createDiv({
-        cls: "heatmap-tracker-statistics",
-        attr: {
-          "data-htp-name": trackerData?.heatmapTitle
-            ? `${trackerData?.heatmapTitle}-statistics`
-            : "",
-        },
-      });
-
-      const root = createRoot(container);
-
-      root.render(
-        <StrictMode>
-          <AppContext.Provider value={this.app}>
-            <HeatmapProvider
-              trackerData={mergeTrackerData(DEFAULT_TRACKER_DATA, trackerData)}
-              settings={this.settings}
-            >
-              <>
-                <HeatmapHeader hideTabs hideSubtitle />
-                <StatisticsView />
-              </>
-            </HeatmapProvider>
-          </AppContext.Provider>
-        </StrictMode>
-      );
-
-      return container;
-    };
+    window.renderHeatmapTrackerStatistics = getRenderHeatmapTrackerStatistics(
+      this.app,
+      this.settings
+    );
   }
 
   onunload() {

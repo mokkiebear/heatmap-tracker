@@ -12,7 +12,7 @@
     },
     separateMonths: true,
     entries: [
-        {
+    {
       "date": "2025-04-04T00:00:00+01:00",
       "intensity": '0'
     },
