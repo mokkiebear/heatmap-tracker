@@ -1,3 +1,6 @@
-This example vault is just for testing the Heatmap Tracker plugin.
+This example vault is for testing and learning the Heatmap Tracker plugin.
 
-Remember to install **"Dataview"** and **"Heatmap Tracker"** in *settings -> community plugins*
+**To get started, open the [[Start Here]] note in Obsidian.**
+
+> [!IMPORTANT]
+> Remember to install **"Dataview"** and **"Heatmap Tracker"** in *settings -> community plugins*
