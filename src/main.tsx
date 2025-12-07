@@ -21,6 +21,7 @@ import {
 import { DEFAULT_SETTINGS } from "./constants/defaultSettings";
 import { DEFAULT_TRACKER_DATA } from "./constants/defaultTrackerData";
 import { NewHeatmapModal } from "./modals/NewHeatmapModal";
+import { TrackerDataSchema } from "./schemas/trackerData.schema";
 declare global {
   interface Window {
     renderHeatmapTracker?: (
@@ -149,15 +150,13 @@ export default class HeatmapTrackerPlugin extends Plugin {
       }
     );
 
-    const jsonProcessor = this.registerMarkdownCodeBlockProcessor(
+    const codeblockProcessor = this.registerMarkdownCodeBlockProcessor(
       "heatmap-tracker",
       async (
         source: string,
         el: HTMLElement,
         ctx: MarkdownPostProcessorContext
       ) => {
-        // accept JS object instead of JSON
-        // const params = JSON.parse(source) as TrackerData;
         const wrappedSource = ("(" + source + ")") as unknown as TrackerData;
         const params = new Function("return " + wrappedSource)();
 
@@ -165,10 +164,26 @@ export default class HeatmapTrackerPlugin extends Plugin {
         console.log("##### params", params, ctx.getSectionInfo(el));
 
         try {
+          // Separate params into trackerData and settings based on TrackerDataSchema
+          const trackerDataKeys = Object.keys(TrackerDataSchema.shape);
+          const trackerDataParams: Record<string, any> = {};
+          const settingsParams: Record<string, any> = {};
+
+          for (const key in params) {
+            if (Object.prototype.hasOwnProperty.call(params, key)) {
+              if (trackerDataKeys.includes(key)) {
+                trackerDataParams[key] = params[key];
+              } else {
+                settingsParams[key] = params[key];
+              }
+            }
+          }
+
           // Append codeblock parameters to TrackerData object
           const trackerData: TrackerData = {
-            ...params,
-          };
+            ...trackerDataParams,
+          } as TrackerData;
+
           // Use DataView API to filter pages that contain specified frontmatter property
           const dv = getAPI();
           const pages = dv
@@ -204,7 +219,10 @@ export default class HeatmapTrackerPlugin extends Plugin {
 
           if (window.renderHeatmapTracker) {
             // Append codeblock parameters to TrackerSettings object
-            window.renderHeatmapTracker(el, trackerData);
+            window.renderHeatmapTracker(el, trackerData, {
+              ...this.settings,
+              ...settingsParams,
+            });
           }
         } catch (e) {
           console.warn(e);
