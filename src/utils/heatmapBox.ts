@@ -86,7 +86,8 @@ async function tryOpenExplicitFile(
   if (!box?.filePath) {
     return false;
   }
-  return await handleFileOpen(app, box.filePath, moment(box.date), trackerData);
+  await handleFileOpen(app, box.filePath, moment(box.date), trackerData);
+  return true;
 }
 
 /**
@@ -111,7 +112,8 @@ async function tryOpenBasePathFile(
     normalizedBase ? normalizedBase + "/" : ""
   }${date.format("YYYY-MM-DD")}.md`;
 
-  return await handleFileOpen(app, expectedPath, date, trackerData);
+  await handleFileOpen(app, expectedPath, date, trackerData);
+  return true;
 }
 
 /**
