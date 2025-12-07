@@ -11,6 +11,7 @@ function DocumentationView() {
     heatmapTitle: "This is the title for your heatmap",
     heatmapSubtitle: "This is the subtitle for your heatmap. You can use it as a description.",
     showCurrentDayBorder: true,
+    disableFileCreation: true, // OPTIONAL: If you want to disable new file creation on click
 
     // OPTIONAL: If you want to define your own color scheme
     colorScheme: {

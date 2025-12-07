@@ -4,10 +4,9 @@ import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
 
 interface HeatmapBoxesListProps {
   boxes: Box[];
-  onBoxClick?: (box: Box) => void;
 }
 
-export function HeatmapBoxesList({ boxes, onBoxClick }: HeatmapBoxesListProps) {
+export function HeatmapBoxesList({ boxes }: HeatmapBoxesListProps) {
   const { trackerData } = useHeatmapContext();
 
   return (
@@ -17,7 +16,7 @@ export function HeatmapBoxesList({ boxes, onBoxClick }: HeatmapBoxesListProps) {
       }`}
     >
       {boxes.map((box, index) => {
-        return <HeatmapBox key={index} box={box} onClick={onBoxClick} />;
+        return <HeatmapBox key={index} box={box} />;
       })}
     </div>
   );
