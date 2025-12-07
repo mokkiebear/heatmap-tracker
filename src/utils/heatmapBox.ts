@@ -25,7 +25,11 @@ async function openFileInLeaf(app: App, file: TFile): Promise<void> {
  * @param path - The full path where the file should be created.
  * @returns Promise<boolean> - True if the file was created and opened, false otherwise.
  */
-export async function createNewFile(app: App, fileName: string, path: string): Promise<boolean> {
+export async function createNewFile(
+  app: App,
+  fileName: string,
+  path: string
+): Promise<boolean> {
   const shouldCreate = window.confirm(
     `Do you want to create a new file '${fileName}' at '${path}'?`
   );
@@ -74,7 +78,11 @@ async function handleFileOpen(
  * @param trackerData - The tracker settings.
  * @returns Promise<boolean> - True if handled (opened or created), false if not applicable.
  */
-async function tryOpenExplicitFile(app: App, box: Box, trackerData: TrackerData): Promise<boolean> {
+async function tryOpenExplicitFile(
+  app: App,
+  box: Box,
+  trackerData: TrackerData
+): Promise<boolean> {
   if (!box?.filePath) {
     return false;
   }
@@ -89,7 +97,11 @@ async function tryOpenExplicitFile(app: App, box: Box, trackerData: TrackerData)
  * @param trackerData - The tracker settings.
  * @returns Promise<boolean> - True if handled (opened or created), false if not applicable.
  */
-async function tryOpenBasePathFile(app: App, date: moment.Moment, trackerData: TrackerData): Promise<boolean> {
+async function tryOpenBasePathFile(
+  app: App,
+  date: moment.Moment,
+  trackerData: TrackerData
+): Promise<boolean> {
   if (!trackerData?.basePath) {
     return false;
   }
@@ -110,7 +122,11 @@ async function tryOpenBasePathFile(app: App, date: moment.Moment, trackerData: T
  * @param trackerData - The tracker settings.
  * @returns Promise<boolean> - True if handled (opened or created), false if failed or not applicable.
  */
-async function tryOpenDailyNote(app: App, date: moment.Moment, trackerData: TrackerData): Promise<boolean> {
+async function tryOpenDailyNote(
+  app: App,
+  date: moment.Moment,
+  trackerData: TrackerData
+): Promise<boolean> {
   try {
     const allDailyNotes = getAllDailyNotes();
     const existing = getDailyNote(date, allDailyNotes);
@@ -159,7 +175,11 @@ async function tryOpenDailyNote(app: App, date: moment.Moment, trackerData: Trac
  * @param trackerData - The tracker settings.
  * @returns Promise<void>
  */
-async function tryOpenFallbackFile(app: App, date: moment.Moment, trackerData: TrackerData): Promise<void> {
+async function tryOpenFallbackFile(
+  app: App,
+  date: moment.Moment,
+  trackerData: TrackerData
+): Promise<void> {
   const fileName = `${date.format("YYYY-MM-DD")}.md`;
   const file = app.vault.getFiles().find((f) => f.name === fileName);
 
@@ -191,7 +211,11 @@ async function tryOpenFallbackFile(app: App, date: moment.Moment, trackerData: T
  * @param app - The Obsidian App instance.
  * @param trackerData - The tracker settings.
  */
-export async function handleBoxClick(box: Box, app: App, trackerData: TrackerData) {
+export async function handleBoxClick(
+  box: Box,
+  app: App,
+  trackerData: TrackerData
+) {
   if (!box?.date) {
     return;
   }
