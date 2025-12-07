@@ -147,6 +147,13 @@ Notes
 
 ---
 
+### `basePath`
+- **Type:** `string`
+- **Default:** `undefined`
+- **Description:** Base folder used to collect entries. If set, the plugin will propose creating new files in this folder when clicking on empty heatmap boxes.
+
+---
+
 ### `separateMonths`
 - **Type:** `boolean`
 - **Default:** `true`
