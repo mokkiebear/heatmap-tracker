@@ -35,4 +35,8 @@ export const TrackerDataSchema = z.strictObject({
     input: [EntrySchema],
     output: z.number(),
   }).optional(),
+  /**
+   * Disables the creation of a new file when clicking on a heatmap box that doesn't have a corresponding file.
+   */
+  disableFileCreation: z.boolean().optional(),
 });

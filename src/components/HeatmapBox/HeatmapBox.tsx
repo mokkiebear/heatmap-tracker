@@ -1,12 +1,18 @@
 import { ReactNode, useMemo } from "react";
 import { Box } from "src/types";
 
+import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
+import { useAppContext } from "src/context/app/app.context";
+import { handleBoxClick } from "src/utils/heatmapBox";
+
 interface HeatmapBoxProps {
   box: Box;
-  onClick?: (box: Box) => void;
 }
 
-export function HeatmapBox({ box, onClick }: HeatmapBoxProps) {
+export function HeatmapBox({ box }: HeatmapBoxProps) {
+  const { trackerData } = useHeatmapContext();
+  const app = useAppContext();
+
   const boxClassNames = [
     "heatmap-tracker-box",
     box.name,
@@ -46,12 +52,12 @@ export function HeatmapBox({ box, onClick }: HeatmapBoxProps) {
     ? { "data-href": linkTarget, href: linkTarget }
     : {};
 
-  function handleBoxClick() {
+  function onBoxClick() {
     if (linkTarget) {
       return;
     }
 
-    onClick && onClick(box);
+    handleBoxClick(box, app, trackerData);
   }
 
   return (
@@ -60,7 +66,7 @@ export function HeatmapBox({ box, onClick }: HeatmapBoxProps) {
       style={{ backgroundColor: box.backgroundColor }}
       className={`${boxClassNames.filter(Boolean).join(" ")}`}
       aria-label={box.date}
-      onClick={handleBoxClick}
+      onClick={onBoxClick}
     >
       <a
         className={`heatmap-tracker-content${
