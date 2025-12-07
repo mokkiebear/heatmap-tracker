@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.19.0] - 2025-12-07
+### Added
+- Add zod.
+- Add `disableFileCreation` option.
+- A lot of tests.
+- Updated EXAMPLE_VAULT.
+
 ## [1.18.2] - 2025-11-02
 ### Changed
 - Fix zh translations.
