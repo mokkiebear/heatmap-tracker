@@ -20,4 +20,7 @@ export const DEFAULT_TRACKER_DATA: TrackerData = {
     paletteName: "default",
   },
   insights: [],
+  hideYear: false,
+  hideTabs: false,
+  hideTitle: false,
 };

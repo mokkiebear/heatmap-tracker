@@ -8,11 +8,16 @@ interface HeatmapHeaderProps {
 }
 
 export function HeatmapHeader({
-  hideTabs = false,
+  hideTabs: hideTabsOverride = false,
   hideSubtitle = false,
 }: HeatmapHeaderProps) {
   const { t } = useTranslation();
   const { currentYear, setCurrentYear, trackerData } = useHeatmapContext();
+
+  // Use trackerData properties if they exist, otherwise fallback to props
+  const hideYear = trackerData?.hideYear ?? false;
+  const hideTabs = hideTabsOverride || (trackerData?.hideTabs ?? false);
+  const hideTitle = trackerData?.hideTitle ?? false;
 
   function onArrowBackClick() {
     setCurrentYear(currentYear - 1);
@@ -25,27 +30,31 @@ export function HeatmapHeader({
   return (
     <div className="heatmap-tracker-header">
       <div className="heatmap-tracker-header__main-row">
-        <div className="heatmap-tracker-header__navigation">
-          <button
-            className="heatmap-tracker-arrow left clickable-icon"
-            aria-label={t("header.previousYear")}
-            onClick={onArrowBackClick}
-          >
-            ◀
-          </button>
-          <div className="heatmap-tracker-year-display">{currentYear}</div>
-          <button
-            className="heatmap-tracker-arrow right clickable-icon"
-            aria-label={t("header.nextYear")}
-            onClick={onArrowForwardClick}
-          >
-            ▶
-          </button>
-        </div>
-        <div
-          className="heatmap-tracker-header__title"
-          dangerouslySetInnerHTML={{ __html: trackerData?.heatmapTitle ?? "" }}
-        />
+        {hideYear ? null : (
+          <div className="heatmap-tracker-header__navigation">
+            <button
+              className="heatmap-tracker-arrow left clickable-icon"
+              aria-label={t("header.previousYear")}
+              onClick={onArrowBackClick}
+            >
+              ◀
+            </button>
+            <div className="heatmap-tracker-year-display">{currentYear}</div>
+            <button
+              className="heatmap-tracker-arrow right clickable-icon"
+              aria-label={t("header.nextYear")}
+              onClick={onArrowForwardClick}
+            >
+              ▶
+            </button>
+          </div>
+        )}
+        {hideTitle ? null : (
+          <div
+            className="heatmap-tracker-header__title"
+            dangerouslySetInnerHTML={{ __html: trackerData?.heatmapTitle ?? "" }}
+          />
+        )}
         {hideTabs ? null : <HeatmapTabs />}
       </div>
       {hideSubtitle ? null : trackerData?.heatmapSubtitle ? (

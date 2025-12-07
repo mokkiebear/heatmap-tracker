@@ -35,4 +35,16 @@ export const TrackerDataSchema = z.strictObject({
    * Disables the creation of a new file when clicking on a heatmap box that doesn't have a corresponding file.
    */
   disableFileCreation: z.boolean().optional(),
+  /**
+   * Hide the year navigation controls (arrows and year display).
+   */
+  hideYear: z.boolean().optional(),
+  /**
+   * Hide the view tabs (heatmap, statistics, legend, documentation).
+   */
+  hideTabs: z.boolean().optional(),
+  /**
+   * Hide the heatmap title.
+   */
+  hideTitle: z.boolean().optional(),
 });

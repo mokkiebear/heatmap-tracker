@@ -38,6 +38,10 @@ const trackerAllowedKeys = [
   "heatmapTitle",
   "heatmapSubtitle",
   "insights",
+  "disableFileCreation",
+  "hideYear",
+  "hideTabs",
+  "hideTitle",
 ];
 
 function suggestKeyName(badKey: string): string | null {
