@@ -114,15 +114,37 @@ export default class HeatmapTrackerPlugin extends Plugin {
     );
 
     window.renderHeatmapTrackerLegend = (el: HTMLElement) => {
-      el.appendChild(document.createTextNode("HeatmapTracker Plugin"));
-      el.appendChild(document.createTextNode("renderHeatmapTrackerLegend is not supported anymore."));
-      el.appendChild(document.createTextNode("use `defaultView` instead"));
+      el.innerHTML = `
+        <p>⚠️ <strong>Deprecation Warning</strong>: <code>renderHeatmapTrackerLegend</code> is deprecated.</p>
+        <p>Please use <code>renderHeatmapTracker</code> with <code>ui.defaultView</code> set to <code>'legend'</code> instead.</p>
+        <p><strong>Example:</strong></p>
+        <pre><code class="language-javascript">
+        const trackerData = {
+          // ... other properties,
+          ui: {
+            defaultView: 'legend'
+          }
+        }
+        renderHeatmapTracker(this.container, trackerData);
+        </code></pre>
+      `;
     };
 
-     window.renderHeatmapTrackerStatistics = (el: HTMLElement) => {
-      el.appendChild(document.createTextNode("HeatmapTracker Plugin"));
-      el.appendChild(document.createTextNode("renderHeatmapTrackerStatistics is not supported anymore."));
-      el.appendChild(document.createTextNode("use `defaultView` instead"));
+    window.renderHeatmapTrackerStatistics = (el: HTMLElement) => {
+      el.innerHTML = `
+        <p>⚠️ <strong>Deprecation Warning</strong>: <code>renderHeatmapTrackerStatistics</code> is deprecated.</p>
+        <p>Please use <code>renderHeatmapTracker</code> with <code>ui.defaultView</code> set to <code>'heatmap-tracker-statistics'</code> instead.</p>
+        <p><strong>Example:</strong></p>
+        <pre><code class="language-javascript">
+        const trackerData = {
+          // ... other properties,
+          ui: {
+            defaultView: 'heatmap-tracker-statistics'
+          }
+        }
+        renderHeatmapTracker(this.container, trackerData);
+        </code></pre>
+      `;
     };
   }
 

@@ -1,4 +1,4 @@
-Since `1.19.1` use `ui` and `defaultView` to display statistics separately. Example:
+Since `1.19.2` use `ui` and `defaultView` to display statistics separately. Example:
 ```dataviewjs
 
 var trackerData = {

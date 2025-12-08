@@ -1,5 +1,5 @@
 
-Since `1.19.1` use `ui` and `defaultView` to display legend separately. Example:
+Since `1.19.2` use `ui` and `defaultView` to display legend separately. Example:
 
 ```dataviewjs
 
