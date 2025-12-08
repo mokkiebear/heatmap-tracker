@@ -7,11 +7,7 @@ import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
 
 import "./localization/i18n";
 
-import {
-  getRenderHeatmapTracker,
-  getRenderHeatmapTrackerLegend,
-  getRenderHeatmapTrackerStatistics,
-} from "./render";
+import { getRenderHeatmapTracker } from "./render";
 import { DEFAULT_SETTINGS } from "./constants/defaultSettings";
 import { DEFAULT_TRACKER_DATA } from "./constants/defaultTrackerData";
 
@@ -21,14 +17,6 @@ declare global {
       el: HTMLElement,
       trackerData: TrackerData,
       settings: TrackerSettings
-    ) => void;
-    renderHeatmapTrackerLegend?: (
-      el: HTMLElement,
-      trackerData: TrackerData
-    ) => void;
-    renderHeatmapTrackerStatistics?: (
-      el: HTMLElement,
-      trackerData: TrackerData
     ) => void;
   }
 }
@@ -114,29 +102,11 @@ export default class HeatmapTrackerPlugin extends Plugin {
       this.app,
       this.settings
     );
-
-    window.renderHeatmapTrackerLegend = getRenderHeatmapTrackerLegend(
-      this.app,
-      this.settings
-    );
-
-    window.renderHeatmapTrackerStatistics = getRenderHeatmapTrackerStatistics(
-      this.app,
-      this.settings
-    );
   }
 
   onunload() {
     if (window.renderHeatmapTracker) {
       delete window.renderHeatmapTracker;
-    }
-
-    if (window.renderHeatmapTrackerLegend) {
-      delete window.renderHeatmapTrackerLegend;
-    }
-
-    if (window.renderHeatmapTrackerStatistics) {
-      delete window.renderHeatmapTrackerStatistics;
     }
   }
 

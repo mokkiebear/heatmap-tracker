@@ -78,6 +78,17 @@ describe('mergeTrackerData', () => {
         showOutOfRange: true,
       },
       insights: [],
+      basePath: undefined,
+      disableFileCreation: false,
+      heatmapTitle: undefined,
+      heatmapSubtitle: undefined,
+      ui: {
+        defaultView: 'heatmap-tracker',
+        hideTabs: false,
+        hideYear: false,
+        hideTitle: false,
+        hideSubtitle: false,
+      }
     };
 
     const result = mergeTrackerData(DEFAULT_TRACKER_DATA, userConfig as any);

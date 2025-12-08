@@ -26,7 +26,7 @@ export function HeatmapProvider({
   trackerData,
   settings,
 }: HeatmapProviderProps) {
-  const [view, setView] = useState(IHeatmapView.HeatmapTracker);
+  const [view, setView] = useState(trackerData.ui?.defaultView || IHeatmapView.HeatmapTracker);
 
   const _defaultYear = useMemo(
     () => trackerData.year ?? getCurrentFullYear(),
