@@ -21,7 +21,8 @@ for(let page of dv.pages(`"${PATH_TO_FOLDER}"`).where(p=>p.steps)){
 
 trackerData.basePath = PATH_TO_FOLDER;
 
-renderHeatmapTracker(this.container, trackerData)
+renderHeatmapTracker(this.container, trackerData);
+renderHeatmapTrackerLegend(this.container, trackerData);
 ```
 
 ```dataviewjs

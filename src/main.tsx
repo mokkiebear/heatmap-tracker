@@ -18,6 +18,16 @@ declare global {
       trackerData: TrackerData,
       settings: TrackerSettings
     ) => void;
+
+    renderHeatmapTrackerLegend?: (
+      el: HTMLElement,
+      trackerData: TrackerData
+    ) => void;
+
+    renderHeatmapTrackerStatistics?: (
+      el: HTMLElement,
+      trackerData: TrackerData
+    ) => void;
   }
 }
 
@@ -102,11 +112,31 @@ export default class HeatmapTrackerPlugin extends Plugin {
       this.app,
       this.settings
     );
+
+    window.renderHeatmapTrackerLegend = (el: HTMLElement) => {
+      el.appendChild(document.createTextNode("HeatmapTracker Plugin"));
+      el.appendChild(document.createTextNode("renderHeatmapTrackerLegend is not supported anymore."));
+      el.appendChild(document.createTextNode("use `defaultView` instead"));
+    };
+
+     window.renderHeatmapTrackerStatistics = (el: HTMLElement) => {
+      el.appendChild(document.createTextNode("HeatmapTracker Plugin"));
+      el.appendChild(document.createTextNode("renderHeatmapTrackerStatistics is not supported anymore."));
+      el.appendChild(document.createTextNode("use `defaultView` instead"));
+    };
   }
 
   onunload() {
     if (window.renderHeatmapTracker) {
       delete window.renderHeatmapTracker;
+    }
+
+      if (window.renderHeatmapTrackerLegend) {
+      delete window.renderHeatmapTrackerLegend;
+    }
+
+    if (window.renderHeatmapTrackerStatistics) {
+      delete window.renderHeatmapTrackerStatistics;
     }
   }
 
