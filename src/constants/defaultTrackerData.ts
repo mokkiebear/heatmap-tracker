@@ -1,4 +1,4 @@
-import { TrackerData } from "src/types";
+import { IHeatmapView, TrackerData } from "src/types";
 import { getCurrentFullYear } from "src/utils/date";
 
 export const DEFAULT_TRACKER_DATA: TrackerData = {
@@ -20,4 +20,15 @@ export const DEFAULT_TRACKER_DATA: TrackerData = {
     paletteName: "default",
   },
   insights: [],
+  disableFileCreation: false,
+  heatmapTitle: undefined,
+  heatmapSubtitle: undefined,
+  basePath: undefined,
+  ui: {
+      defaultView: IHeatmapView.HeatmapTracker,
+      hideTabs: false,
+      hideYear: false,
+      hideTitle: false,
+      hideSubtitle: false,
+  }
 };

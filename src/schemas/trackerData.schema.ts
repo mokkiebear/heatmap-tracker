@@ -4,6 +4,7 @@ import { EntrySchema } from "./entry.schema";
 import { IntensityConfigSchema } from "./intensityConfig.schema";
 import { InsightSchema } from "./insight.schema";
 import { ColorSchemeSchema } from "./colorScheme.schema";
+import { UISchema } from "./ui.schema";
 
 // TODO: change to strict when I know how to handle `property` and `path`.
 // Issue: https://github.com/mokkiebear/heatmap-tracker/issues/64
@@ -37,4 +38,5 @@ export const TrackerDataSchema = z.object({
    * Disables the creation of a new file when clicking on a heatmap box that doesn't have a corresponding file.
    */
   disableFileCreation: z.boolean().optional(),
+  ui: UISchema.optional(),
 });

@@ -8,10 +8,7 @@ import ReactApp from "./App";
 import { HeatmapProvider } from "./context/heatmap/heatmap.context";
 
 import { mergeTrackerData } from "./utils/core";
-import LegendView from "./views/LegendView/LegendView";
-import StatisticsView from "./views/StatisticsView/StatisticsView";
 
-import { HeatmapHeader } from "./components/HeatmapHeader/HeatmapHeader";
 import { notify } from "./utils/notify";
 import { validateTrackerData } from "./schemas/validation";
 import { AppContext } from "./context/app/app.context";
@@ -64,69 +61,11 @@ export function getRenderHeatmapTracker(
   ) {
     const container = el.createDiv({
       cls: "heatmap-tracker-container",
-      attr: { "data-htp-name": (inputTrackerData as TrackerData)?.heatmapTitle ?? "" },
+      attr: {
+        "data-htp-name": (inputTrackerData as TrackerData)?.heatmapTitle ?? "",
+      },
     });
 
     return renderApp(container, app, settings, inputTrackerData, <ReactApp />);
-  };
-}
-
-export function getRenderHeatmapTrackerLegend(
-  app: App,
-  pluginSettings: TrackerSettings
-) {
-  return function renderHeatmapTrackerLegend(
-    el: HTMLElement,
-    trackerData: TrackerData = DEFAULT_TRACKER_DATA
-  ) {
-    const container = el.createDiv({
-      cls: "heatmap-tracker-legend",
-      attr: {
-        "data-htp-name": trackerData?.heatmapTitle
-          ? `${trackerData?.heatmapTitle}-legend`
-          : "",
-      },
-    });
-
-    return renderApp(
-      container,
-      app,
-      pluginSettings,
-      trackerData,
-      <>
-        <HeatmapHeader hideTabs hideSubtitle />
-        <LegendView />
-      </>
-    );
-  };
-}
-
-export function getRenderHeatmapTrackerStatistics(
-  app: App,
-  pluginSettings: TrackerSettings
-) {
-  return function renderHeatmapTrackerStatistics(
-    el: HTMLElement,
-    trackerData: TrackerData = DEFAULT_TRACKER_DATA
-  ) {
-    const container = el.createDiv({
-      cls: "heatmap-tracker-statistics",
-      attr: {
-        "data-htp-name": trackerData?.heatmapTitle
-          ? `${trackerData?.heatmapTitle}-statistics`
-          : "",
-      },
-    });
-
-    return renderApp(
-      container,
-      app,
-      pluginSettings,
-      trackerData,
-      <>
-        <HeatmapHeader hideTabs hideSubtitle />
-        <StatisticsView />
-      </>
-    );
   };
 }

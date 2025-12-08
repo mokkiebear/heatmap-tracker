@@ -7,11 +7,7 @@ import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
 
 import "./localization/i18n";
 
-import {
-  getRenderHeatmapTracker,
-  getRenderHeatmapTrackerLegend,
-  getRenderHeatmapTrackerStatistics,
-} from "./render";
+import { getRenderHeatmapTracker } from "./render";
 import { DEFAULT_SETTINGS } from "./constants/defaultSettings";
 import { DEFAULT_TRACKER_DATA } from "./constants/defaultTrackerData";
 
@@ -22,10 +18,12 @@ declare global {
       trackerData: TrackerData,
       settings: TrackerSettings
     ) => void;
+
     renderHeatmapTrackerLegend?: (
       el: HTMLElement,
       trackerData: TrackerData
     ) => void;
+
     renderHeatmapTrackerStatistics?: (
       el: HTMLElement,
       trackerData: TrackerData
@@ -115,15 +113,39 @@ export default class HeatmapTrackerPlugin extends Plugin {
       this.settings
     );
 
-    window.renderHeatmapTrackerLegend = getRenderHeatmapTrackerLegend(
-      this.app,
-      this.settings
-    );
+    window.renderHeatmapTrackerLegend = (el: HTMLElement) => {
+      el.innerHTML = `
+        <p>⚠️ <strong>Deprecation Warning</strong>: <code>renderHeatmapTrackerLegend</code> is deprecated.</p>
+        <p>Please use <code>renderHeatmapTracker</code> with <code>ui.defaultView</code> set to <code>'legend'</code> instead.</p>
+        <p><strong>Example:</strong></p>
+        <pre><code class="language-javascript">
+        const trackerData = {
+          // ... other properties,
+          ui: {
+            defaultView: 'legend'
+          }
+        }
+        renderHeatmapTracker(this.container, trackerData);
+        </code></pre>
+      `;
+    };
 
-    window.renderHeatmapTrackerStatistics = getRenderHeatmapTrackerStatistics(
-      this.app,
-      this.settings
-    );
+    window.renderHeatmapTrackerStatistics = (el: HTMLElement) => {
+      el.innerHTML = `
+        <p>⚠️ <strong>Deprecation Warning</strong>: <code>renderHeatmapTrackerStatistics</code> is deprecated.</p>
+        <p>Please use <code>renderHeatmapTracker</code> with <code>ui.defaultView</code> set to <code>'heatmap-tracker-statistics'</code> instead.</p>
+        <p><strong>Example:</strong></p>
+        <pre><code class="language-javascript">
+        const trackerData = {
+          // ... other properties,
+          ui: {
+            defaultView: 'heatmap-tracker-statistics'
+          }
+        }
+        renderHeatmapTracker(this.container, trackerData);
+        </code></pre>
+      `;
+    };
   }
 
   onunload() {
@@ -131,7 +153,7 @@ export default class HeatmapTrackerPlugin extends Plugin {
       delete window.renderHeatmapTracker;
     }
 
-    if (window.renderHeatmapTrackerLegend) {
+      if (window.renderHeatmapTrackerLegend) {
       delete window.renderHeatmapTrackerLegend;
     }
 

@@ -1,7 +1,4 @@
-To display statistics separately all you need to do is to call `renderHeatmapTrackerStatistics(this.container, trackerData)`.
-
-Check example below:
-
+Since `1.19.2` use `ui` and `defaultView` to display statistics separately. Example:
 ```dataviewjs
 
 var trackerData = {
@@ -23,8 +20,32 @@ for(let page of dv.pages('"daily notes"').where(p=>p.steps)){
 trackerData.basePath = 'daily notes';
 
 renderHeatmapTracker(this.container, trackerData)
+```
 
-dv.span('Steps tracker statistics:')
+```dataviewjs
 
-renderHeatmapTrackerStatistics(this.container, trackerData)
+var trackerData = {
+    year: 2024, // optional, remove this line to autoswitch year
+    entries: [],
+    heatmapTitle: "👣 Steps Tracker 👣",
+    ui: {
+        defaultView: 'heatmap-tracker-statistics',
+        hideTabs: true,
+        hideSubtitle: true
+    }
+}
+
+ 
+for(let page of dv.pages('"daily notes"').where(p=>p.steps)){
+
+    trackerData.entries.push({
+        date: page.file.name,
+        filePath: page.file.path,
+        intensity: page.steps
+    })  
+}
+
+trackerData.basePath = 'daily notes';
+
+renderHeatmapTracker(this.container, trackerData)
 ```
