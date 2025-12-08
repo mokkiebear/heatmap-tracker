@@ -5,7 +5,9 @@ import { IntensityConfigSchema } from "./intensityConfig.schema";
 import { InsightSchema } from "./insight.schema";
 import { ColorSchemeSchema } from "./colorScheme.schema";
 
-export const TrackerDataSchema = z.strictObject({
+// TODO: change to strict when I know how to handle `property` and `path`.
+// Issue: https://github.com/mokkiebear/heatmap-tracker/issues/64
+export const TrackerDataSchema = z.object({
   year: z.number(),
   colorScheme: ColorSchemeSchema,
   entries: z.array(EntrySchema),
