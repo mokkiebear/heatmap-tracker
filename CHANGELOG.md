@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.19.2] - 2025-12-08
+### Added
+- Add `ui` option with `defaultView` property to display legend or statistics separately.
+
 ## [1.19.1] - 2025-12-08
 ### Fixed
 - Schema changed to not strict.
