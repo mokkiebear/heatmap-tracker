@@ -19,6 +19,10 @@ export const UISchema = z.strictObject({
    */
   hideSubtitle: z.boolean().optional(),
   /**
+   * Shows week numbers below the heatmap.
+   */
+  showWeekNums: z.boolean().optional(),
+  /**
    * The default view to show when opening the heatmap tracker.
    * Default: IHeatmapView.HeatmapTracker
    */

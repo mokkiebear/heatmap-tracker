@@ -9,6 +9,7 @@
 @use './styles/heatmap-tracker-days.scss';
 @use './styles/heatmap-tracker-box.scss';
 @use './styles/heatmap-tracker-boxes.scss';
+@use './styles/heatmap-tracker-week-nums.scss';
 
 .heatmap-tracker__container,
 .heatmap-tracker-legend,
@@ -84,7 +85,7 @@
   font-size: 0.65em;
   display: grid;
   grid-template-columns: auto;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto 1fr auto;
   width: max-content;
 }
 

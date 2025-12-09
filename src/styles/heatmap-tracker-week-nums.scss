@@ -1,0 +1,28 @@
+/* Week Numbers */
+.heatmap-tracker-week-nums {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-columns: repeat(53, var(--heatmap-tracker-box-size));
+  grid-column: 1;
+  margin: 4px 0 2px;
+  grid-gap: 0;
+  justify-items: center;
+  font-size: 0.8em;
+  color: var(--text-muted);
+  
+  /* Match the gap from boxes */
+  column-gap: var(--heatmap-tracker-box-gap);
+}
+
+.heatmap-tracker-week-nums.separate-months {
+  grid-template-columns: repeat(64, var(--heatmap-tracker-box-size));
+}
+
+.heatmap-tracker-week-nums div {
+  width: var(--heatmap-tracker-box-size);
+  text-align: center;
+  /* Ensure number is centered if box size is small */
+  display: flex;
+  justify-content: center;
+  align-items: center; 
+}

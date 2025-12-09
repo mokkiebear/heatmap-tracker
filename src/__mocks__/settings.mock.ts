@@ -13,6 +13,7 @@ export const settingsMock: TrackerSettings = {
     "heatmap-tracker-statistics": true,
     "documentation": true,
     "legend": true
-  }
+  },
+  "showWeekNums": false
 };
 

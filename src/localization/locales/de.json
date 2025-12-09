@@ -21,7 +21,9 @@
     },
     "tabsVisibility": "Sichtbarkeit der Registerkarten",
     "tabsVisibilityDescription": "Eine Registerkarte für die Ansicht „{{viewKey}}“ ein-/ausblenden",
-    "saveColor": "Farbe speichern"
+    "saveColor": "Farbe speichern",
+    "showWeekNums": "Wochennummern anzeigen",
+    "showWeekNumsDescription": "Wochennummern (1-53) unter der Heatmap anzeigen."
   },
   "statistics": {
     "title": "Statistiken",
@@ -80,7 +82,6 @@
     "heatmap-tracker-statistics": "Statistiken",
     "legend": "Legende"
   },
-
   "support.header": "☕️ Hey!",
   "support.text1": "Wenn dieses Plugin deinen Alltag ein bisschen reibungsloser macht oder dir beim Organisieren hilft, freut mich das riesig ❤️",
   "support.text2": "Ich habe Dutzende Stunden in Entwicklung und Verbesserungen gesteckt – deine Unterstützung hilft mir, weiter neue Ideen und Updates zu liefern ✨",

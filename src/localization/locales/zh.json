@@ -21,7 +21,9 @@
       "description": "选择要显示一周中的哪些天：偶数天（例如：星期二、星期四、星期六）、奇数天（例如：星期一、星期三、星期五、星期日）、无（不显示任何天数）或全部（显示一周中的所有七天）。"
     },
     "tabsVisibility": "标签页可见性",
-    "tabsVisibilityDescription": "显示/隐藏 {{viewKey}} 视图的标签页"
+    "tabsVisibilityDescription": "显示/隐藏 {{viewKey}} 视图的标签页",
+    "showWeekNums": "显示周数",
+    "showWeekNumsDescription": "在热力图下方显示周数（1-53）。"
   },
   "statistics": {
     "title": "统计",
@@ -80,7 +82,6 @@
     "legend": "图例"
   },
   "tab": "标签页",
-
   "support.header": "☕️ 你好！",
   "support.text1": "如果这个插件能让你的日子顺畅一点，或者帮你更好地保持条理，那真的让我很开心 ❤️",
   "support.text2": "我已经投入了数十个小时来构建和改进它 —— 你的支持能帮助我持续添加新的想法和更新 ✨",

@@ -21,7 +21,9 @@
       "description": "Wybierz, które dni tygodnia mają być wyświetlane: Parzyste dni (np. wtorek, czwartek, sobota), Nieparzyste dni (np. poniedziałek, środa, piątek, niedziela), Brak (nie wyświetlaj żadnych dni) lub Wszystkie (wyświetl wszystkie siedem dni tygodnia)."
     },
     "tabsVisibility": "Widoczność zakładek",
-    "tabsVisibilityDescription": "Pokaż/Ukryj zakładkę dla widoku {{viewKey}}"
+    "tabsVisibilityDescription": "Pokaż/Ukryj zakładkę dla widoku {{viewKey}}",
+    "showWeekNums": "Pokaż numery tygodni",
+    "showWeekNumsDescription": "Wyświetlaj numery tygodni (1-53) pod mapą cieplną."
   },
   "statistics": {
     "title": "Statystyki",
@@ -80,7 +82,6 @@
     "legend": "Legenda"
   },
   "tab": "Zakładka",
-
   "support.header": "☕️ Hej!",
   "support.text1": "Jeśli ta wtyczka sprawia, że Twój dzień jest choć trochę łatwiejszy albo pomaga Ci się lepiej zorganizować, to daje mi ogromną radość ❤️",
   "support.text2": "W rozwój i ulepszanie włożyłem dziesiątki godzin — Twoje wsparcie pomaga mi dostarczać kolejne pomysły i aktualizacje ✨",

@@ -27,6 +27,7 @@ export interface TrackerSettings {
   weekStartDay: number;
   weekDisplayMode: WeekDisplayMode;
   separateMonths: boolean;
+  showWeekNums: boolean;
   language: string;
   viewTabsVisibility: Partial<Record<IHeatmapView, boolean>>;
 }

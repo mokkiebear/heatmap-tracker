@@ -6,6 +6,7 @@ import {
   getLastDayOfYear,
   getShiftedWeekdays,
   formatDateToISO8601,
+  getISOWeekNumber,
 } from '../date';
 
 describe('getShiftedWeekdays', () => {
@@ -192,4 +193,33 @@ describe('formatDateToISO8601', () => {
     const utcDate = new Date(localDate.toISOString());
     expect(formatDateToISO8601(localDate)).toBe(formatDateToISO8601(utcDate));
   });
+});
+
+describe('getISOWeekNumber', () => {
+    it('should return 1 for the first week of 2024 (Jan 1, 2024 is Monday)', () => {
+        const date = new Date('2024-01-01T00:00:00Z');
+        expect(getISOWeekNumber(date)).toBe(1);
+    });
+
+    it('should return 53 for the last week of 2020 (Dec 31, 2020 is Thursday, leap year)', () => {
+        const date = new Date('2020-12-31T00:00:00Z');
+        expect(getISOWeekNumber(date)).toBe(53);
+    });
+
+    it('should return 52 for the last week of 2023 (Dec 31, 2023 is Sunday)', () => {
+        const date = new Date('2023-12-31T00:00:00Z');
+        expect(getISOWeekNumber(date)).toBe(52);
+    });
+    
+    it('should handle week spanning across years (Jan 1, 2023 is Sunday, so part of last week of 2022)', () => {
+         // ISO weeks start on Monday. 
+         // Jan 1 2023 is Sunday. It belongs to week 52 of 2022.
+         const date = new Date('2023-01-01T00:00:00Z');
+         expect(getISOWeekNumber(date)).toBe(52);
+    });
+
+    it('should return correct week number for mid-year', () => {
+        const date = new Date('2024-07-01T00:00:00Z'); // Monday
+        expect(getISOWeekNumber(date)).toBe(27);
+    });
 });

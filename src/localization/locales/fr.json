@@ -21,7 +21,9 @@
     },
     "tabsVisibility": "Visibilité des onglets",
     "tabsVisibilityDescription": "Afficher/Masquer un onglet pour la vue {{viewKey}}",
-    "saveColor": "Sauver la couleur"
+    "saveColor": "Sauver la couleur",
+    "showWeekNums": "Afficher les numéros de semaine",
+    "showWeekNumsDescription": "Afficher les numéros de semaine (1-53) sous la carte thermique."
   },
   "statistics": {
     "title": "Statistiques",
@@ -80,7 +82,6 @@
     "heatmap-tracker-statistics": "Statistiques",
     "legend": "Légende"
   },
-
   "support.header": "☕️ Salut !",
   "support.text1": "Si ce plugin rend votre journée un peu plus fluide ou vous aide à vous organiser, ça me fait super plaisir ❤️",
   "support.text2": "J’y ai consacré des dizaines d’heures — votre soutien m’aide à continuer avec de nouvelles idées et mises à jour ✨",

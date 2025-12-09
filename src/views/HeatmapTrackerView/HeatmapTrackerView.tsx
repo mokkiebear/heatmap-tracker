@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { HeatmapBoxesList } from "src/components/HeatmapBoxesList/HeatmapBoxesList";
 import { HeatmapMonthsList } from "src/components/HeatmapMonthsList/HeatmapMonthsList";
 import { HeatmapWeekDays } from "src/components/HeatmapWeekDays/HeatmapWeekDays";
+import { HeatmapWeekNums } from "src/components/HeatmapWeekNums/HeatmapWeekNums";
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
 
 function HeatmapTrackerView() {
@@ -33,6 +34,7 @@ function HeatmapTrackerView() {
         <HeatmapMonthsList />
 
         <HeatmapBoxesList boxes={boxes} />
+        <HeatmapWeekNums />
       </div>
     </div>
   );

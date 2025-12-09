@@ -91,6 +91,19 @@ export default class HeatmapTrackerSettingsTab extends PluginSettingTab {
         }));
   }
 
+  private displayShowWeekNumsSettings() {
+    const { containerEl } = this;
+    new Setting(containerEl)
+      .setName(i18n.t('settings.showWeekNums'))
+      .setDesc(i18n.t('settings.showWeekNumsDescription'))
+      .addToggle(toggle => toggle
+        .setValue(this.plugin.settings.showWeekNums)
+        .onChange(async (value) => {
+          this.plugin.settings.showWeekNums = value;
+          await this.plugin.saveSettings();
+        }));
+  }
+
   private displayViewTabsSettings() {
     const { containerEl } = this;
 
@@ -160,6 +173,7 @@ export default class HeatmapTrackerSettingsTab extends PluginSettingTab {
     this.displayWeekStartDaySettings();
     this.displayWeekDisplayModeSettings();
     this.displaySeparateMonthsSettings();
+    this.displayShowWeekNumsSettings();
 
     this.displaySupportSection();
 

@@ -6,6 +6,7 @@ export const DEFAULT_SETTINGS: TrackerSettings = {
     danger: ["#fff33b", "#fdc70c", "#f3903f", "#ed683c", "#e93e3a"],
   },
   weekStartDay: 1,
+  showWeekNums: false,
   weekDisplayMode: "even",
   separateMonths: true,
   language: "en",

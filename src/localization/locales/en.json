@@ -21,7 +21,9 @@
       "description": "Choose which days of the week to display: Even days (e.g., Tuesday, Thursday, Saturday), Odd days (e.g., Monday, Wednesday, Friday, Sunday), None (Do not display any days), or All (Display all seven days of the week)."
     },
     "tabsVisibility": "Tabs visibility",
-    "tabsVisibilityDescription": "Show/Hide a tab for {{viewKey}} view"
+    "tabsVisibilityDescription": "Show/Hide a tab for {{viewKey}} view",
+    "showWeekNums": "Show week numbers",
+    "showWeekNumsDescription": "Display week numbers (1-53) below the heatmap."
   },
   "statistics": {
     "title": "Statistics",
@@ -80,7 +82,6 @@
     "legend": "Legend"
   },
   "tab": "Tab",
-
   "support.header": "☕️ Hey there!",
   "support.text1": "If this plugin makes your day a bit smoother or helps you stay organized, that honestly makes me so happy ❤️",
   "support.text2": "I’ve poured dozens of hours into building and improving it — your support helps me keep adding new ideas and updates ✨",
