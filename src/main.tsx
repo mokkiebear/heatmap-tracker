@@ -70,17 +70,21 @@ export default class HeatmapTrackerPlugin extends Plugin {
             .pages(`"${params.path}"`)
             .where((p: Record<string, Literal>) => {
               if (typeof params.property === "string") {
-                return p[params.property];
+                return p[params.property] !== undefined;
               }
+
               for (const property of params.property) {
-                if (p[property]) {
+                if (p[property] !== undefined) {
                   return true;
                 }
               }
+
               return false;
             });
+
           for (const page of pages) {
             let intensity = 0;
+
             if (typeof params.property === "string") {
               intensity = page[params.property];
             } else {
@@ -88,6 +92,7 @@ export default class HeatmapTrackerPlugin extends Plugin {
                 sum + page[str];
               }, 0);
             }
+
             trackerData.entries.push({
               date: page.file.name,
               filePath: page.file.path,
@@ -95,6 +100,7 @@ export default class HeatmapTrackerPlugin extends Plugin {
               content: el.createSpan(`[](${page.file.name})`),
             });
           }
+
           if (window.renderHeatmapTracker) {
             // Append codeblock parameters to TrackerSettings object
             window.renderHeatmapTracker(el, trackerData, {
