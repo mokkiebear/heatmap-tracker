@@ -223,7 +223,18 @@ To be used with [Obsidian Dataview](https://blacksmithgu.github.io/obsidian-data
 </details>
 
 <details>
-    <summary>7. <b>Customizable Font.</b> Use your favorite font with this plugin.</summary>
+    <summary>7. <b>Display Week Numbers.</b> View week numbers alongside the heatmap for better time tracking.</summary>
+    <p></p>
+</details>
+
+
+<details>
+    <summary>8. <b>Insert Heatmap Tracker.</b> Easily add a heatmap tracker to your notes using a simple command.</summary>
+    <p></p>
+</details>
+
+<details>
+    <summary>9. <b>Customizable Font.</b> Use your favorite font with this plugin.</summary>
     <p>Additionally, you can use <code>HTML</code> to further customize the plugin's appearance.</p>
     <img width="400" alt="Font Customization" src="https://github.com/user-attachments/assets/09f79cbe-45e8-477e-8111-631f34b98cdb" />
 </details>
