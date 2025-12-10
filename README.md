@@ -1,6 +1,6 @@
 # Heatmap Tracker plugin for Obsidian
 
-<img alt="Heatmap Tracker Plugin" src="https://github.com/user-attachments/assets/fadbc2eb-8bf3-4e6a-bdf4-31b2dce6dcc6" />
+<img alt="Heatmap Tracker Plugin" src="https://github.com/user-attachments/assets/fbfb9a6a-531d-4f5d-a3ca-14a5c61eedf5" />
 
 <a href="https://www.buymeacoffee.com/mrubanau" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 42px !important;width: 150px !important;" ></a>
 
