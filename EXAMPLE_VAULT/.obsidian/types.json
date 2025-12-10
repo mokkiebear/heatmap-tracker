@@ -4,6 +4,7 @@
     "cssclasses": "multitext",
     "tags": "tags",
     "tracking": "checkbox",
-    "status": "multitext"
+    "status": "multitext",
+    "issue_62": "number"
   }
 }

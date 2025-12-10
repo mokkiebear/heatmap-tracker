@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.19.3] - 2025-12-09
+### Fixed
+- Fix issue with zero intensity not displaying correct color.
+
 ## [1.19.2] - 2025-12-08
 ### Added
 - Add `ui` option with `defaultView` property to display legend or statistics separately.
