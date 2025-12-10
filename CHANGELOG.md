@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.20.0] - 2025-12-10
+### Added
+- Add week numbers under the heatmap.
+
 ## [1.19.3] - 2025-12-09
 ### Fixed
 - Fix issue with zero intensity not displaying correct color.

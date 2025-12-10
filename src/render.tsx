@@ -38,7 +38,7 @@ function renderApp(
     <StrictMode>
       <AppContext.Provider value={app}>
         <HeatmapProvider
-          trackerData={mergeTrackerData(DEFAULT_TRACKER_DATA, trackerData)}
+          trackerData={trackerData}
           settings={pluginSettings}
         >
           {component}
