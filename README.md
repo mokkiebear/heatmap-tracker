@@ -36,6 +36,9 @@ This will aggregate the values of all specified properties on the heatmap.
 ## Basic Usage 2.0
 You can add a heatmap tracker using command: `Insert Heatmap Tracker`. This is the easiest way to get started.
 
+<img alt="Modal to insert Heatmap Tracker to the note" src="https://github.com/user-attachments/assets/c41b5f2f-56d3-4cd3-9566-37e0390896af" />
+
+
 ## Advanced Usage
 
 If you want something more involved, you may use a `dataviewjs` codeblock as such (update `trackerData` with your own dataset to visualize custom data points):
