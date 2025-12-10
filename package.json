@@ -1,6 +1,6 @@
 {
   "name": "heatmap-tracker",
-  "version": "1.19.3",
+  "version": "1.20.0",
   "description": "A heatmap tracker plugin for Obsidian",
   "main": "/build/main.js",
   "scripts": {
