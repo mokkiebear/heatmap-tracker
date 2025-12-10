@@ -10,10 +10,6 @@ The **Heatmap Tracker plugin for Obsidian** is a powerful and customizable tool 
 
 > **Tip:** Check [Example Vault](https://github.com/mokkiebear/heatmap-tracker/tree/main/EXAMPLE_VAULT). There're lots of good examples (and I update it often).
 
-## Watch video to start using this plugin in 30 seconds
-
-<img src="https://raw.githubusercontent.com/mokkiebear/heatmap-tracker/refs/heads/main/public/heatmap-how-to.gif" />
-
 ## Basic Usage
 
 This plugin comes with frontmatter tracking out of the box. You can use the `heatmap-tracker` codeblock with the following parameters:
