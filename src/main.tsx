@@ -1,4 +1,10 @@
-import { MarkdownPostProcessorContext, parseYaml, Plugin } from "obsidian";
+import {
+  MarkdownPostProcessorContext,
+  MarkdownView,
+  parseYaml,
+  Plugin,
+  stringifyYaml,
+} from "obsidian";
 import { getAPI, Literal } from "obsidian-dataview";
 import HeatmapTrackerSettingsTab from "./settings";
 import { TrackerData, TrackerParams, TrackerSettings } from "./types";
@@ -9,7 +15,7 @@ import "./localization/i18n";
 
 import { getRenderHeatmapTracker } from "./render";
 import { DEFAULT_SETTINGS } from "./constants/defaultSettings";
-import { DEFAULT_TRACKER_DATA } from "./constants/defaultTrackerData";
+import { HeatmapModal } from "./modals/HeatmapModal";
 
 declare global {
   interface Window {
@@ -39,6 +45,26 @@ export default class HeatmapTrackerPlugin extends Plugin {
   async onload() {
     await this.loadSettings();
     this.addSettingTab(new HeatmapTrackerSettingsTab(this.app, this));
+
+    this.addCommand({
+      id: "insert-heatmap-tracker",
+      name: "Insert Heatmap Tracker",
+      editorCallback: (editor, ctx) => {
+        new HeatmapModal(this.app, this.settings, (result) => {
+          const markdownView =
+            this.app.workspace.getActiveViewOfType(MarkdownView);
+
+          if (!markdownView) {
+            return;
+          }
+
+          const codeblock = `\`\`\`heatmap-tracker\n${stringifyYaml(
+            result
+          )}\`\`\`\n`;
+          editor.replaceSelection(codeblock);
+        }).open();
+      },
+    });
 
     this.registerMarkdownCodeBlockProcessor(
       "heatmap-tracker",
@@ -157,7 +183,7 @@ export default class HeatmapTrackerPlugin extends Plugin {
       delete window.renderHeatmapTracker;
     }
 
-      if (window.renderHeatmapTrackerLegend) {
+    if (window.renderHeatmapTrackerLegend) {
       delete window.renderHeatmapTrackerLegend;
     }
 

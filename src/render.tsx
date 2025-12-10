@@ -14,7 +14,7 @@ import { validateTrackerData } from "./schemas/validation";
 import { AppContext } from "./context/app/app.context";
 import { DEFAULT_TRACKER_DATA } from "./constants/defaultTrackerData";
 
-function renderApp(
+export function renderApp(
   container: HTMLDivElement,
   app: App,
   pluginSettings: TrackerSettings,

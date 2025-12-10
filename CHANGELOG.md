@@ -4,6 +4,10 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.0.0] - 2025-12-11
+### Added
+- Add UI (modal) for generating heatmap tracker 🔥
+
 ## [1.20.0] - 2025-12-10
 ### Added
 - Add week numbers under the heatmap.
