@@ -21,7 +21,9 @@
     },
     "tabsVisibility": "Visibilidad de pestañas",
     "tabsVisibilityDescription": "Mostrar/Ocultar una pestaña para la vista {{viewKey}}",
-    "saveColor": "Guardar color"
+    "saveColor": "Guardar color",
+    "showWeekNums": "Mostrar números de semana",
+    "showWeekNumsDescription": "Mostrar números de semana (1-53) debajo del mapa de calor."
   },
   "statistics": {
     "title": "Estadísticas",
@@ -80,7 +82,6 @@
     "heatmap-tracker-statistics": "Estadística",
     "legend": "Leyenda"
   },
-
   "support.header": "☕️ ¡Hola!",
   "support.text1": "Si este plugin hace tu día un poco más fácil o te ayuda a organizarte, me hace muy feliz ❤️",
   "support.text2": "He invertido decenas de horas en crearlo y mejorarlo — tu apoyo me ayuda a seguir trayendo nuevas ideas y actualizaciones ✨",

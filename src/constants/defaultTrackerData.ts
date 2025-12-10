@@ -3,9 +3,7 @@ import { getCurrentFullYear } from "src/utils/date";
 
 export const DEFAULT_TRACKER_DATA: TrackerData = {
   year: getCurrentFullYear(),
-  entries: [
-    { date: "1900-01-01", customColor: "#7bc96f", intensity: 5, content: "" },
-  ],
+  entries: [],
   showCurrentDayBorder: true,
   intensityConfig: {
     scaleStart: undefined,

@@ -19,11 +19,13 @@ declare global {
       settings: TrackerSettings
     ) => void;
 
+    // @deprecated
     renderHeatmapTrackerLegend?: (
       el: HTMLElement,
       trackerData: TrackerData
     ) => void;
 
+    // @deprecated
     renderHeatmapTrackerStatistics?: (
       el: HTMLElement,
       trackerData: TrackerData
@@ -60,7 +62,6 @@ export default class HeatmapTrackerPlugin extends Plugin {
         try {
           // Append codeblock parameters to TrackerData object
           const trackerData: TrackerData = {
-            ...DEFAULT_TRACKER_DATA,
             entries: [],
             ...params,
           };
@@ -103,10 +104,7 @@ export default class HeatmapTrackerPlugin extends Plugin {
 
           if (window.renderHeatmapTracker) {
             // Append codeblock parameters to TrackerSettings object
-            window.renderHeatmapTracker(el, trackerData, {
-              ...this.settings,
-              ...params,
-            });
+            window.renderHeatmapTracker(el, trackerData, this.settings);
           }
         } catch (e) {
           console.warn(e);
