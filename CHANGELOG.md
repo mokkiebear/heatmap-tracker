@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.0.1] - 2025-12-26
+### Fixed
+- Possible fix for these issues:
+- - https://github.com/mokkiebear/heatmap-tracker/issues/7
+- - https://github.com/mokkiebear/heatmap-tracker/issues/25
+- - https://github.com/mokkiebear/heatmap-tracker/issues/35
+
 ## [2.0.0] - 2025-12-11
 ### Added
 - Add UI (modal) for generating heatmap tracker 🔥

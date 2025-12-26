@@ -2,6 +2,20 @@ import { ColorsList, Entry, IntensityConfig } from "src/types";
 import { mapRange } from "./core";
 import { getDayOfYear } from "./date";
 
+/**
+ * Returns an array of unique intensities from the given entries.
+ *
+ * @param entries - The entries to extract intensities from.
+ * @returns An array of unique intensities.
+ *
+ * @example
+ * ```typescript
+ * const intensities = getEntriesIntensities(entries);
+ * console.log(intensities);
+ * Output:
+ * [1, 2, 3]
+ * ```
+ */
 export function getEntriesIntensities(entries: Entry[]): number[] {
   const allDefined = entries.filter((e) => e.intensity !== undefined && e.intensity !== null).map((e) => e.intensity as number);
 
@@ -58,12 +72,46 @@ export function fillEntriesWithIntensity(
 ): Record<number, Entry> {
   const entriesByDay: Record<number, Entry> = {};
 
-  const intensities = getEntriesIntensities(entries);
+  // Group and aggregate entries by day first
+  const aggregatedEntries: Record<number, Entry> = {};
+  
+  entries.forEach((e) => {
+    // Standardize date string to avoid local timezone parsing
+    // Robustly extract YYYY, MM, DD regardless of separator (/ or -)
+    const match = e.date.match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
+    let utcDate: Date;
+    
+    if (match) {
+      const [, year, month, day] = match;
+      utcDate = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
+    } else {
+      // Fallback for other formats, try to force UTC by appending T00:00:00Z if missing
+      const dateStr = e.date.includes('T') ? e.date : `${e.date.replace(/\//g, '-')}T00:00:00Z`;
+      const date = new Date(dateStr);
+      utcDate = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+    }
+
+    const day = getDayOfYear(utcDate);
+
+    if (aggregatedEntries[day]) {
+      const existing = aggregatedEntries[day];
+      aggregatedEntries[day] = {
+        ...existing,
+        intensity: (existing.intensity || 0) + (e.intensity || 0),
+        content: existing.content && e.content ? `${existing.content}\n${e.content}` : (existing.content || e.content),
+      };
+    } else {
+      aggregatedEntries[day] = { ...e };
+    }
+  });
+
+  const intensities = getEntriesIntensities(Object.values(aggregatedEntries));
   const intensitiesMap = getIntensitiesInfo(intensities, intensityConfig, colorsList);
 
   const [minimumIntensity, maximumIntensity] = getMinMaxIntensities(intensities, intensityConfig);
 
-  entries.forEach((e) => {
+  Object.entries(aggregatedEntries).forEach(([dayStr, e]) => {
+    const day = parseInt(dayStr);
     const currentIntensity = e.intensity ?? intensityConfig.defaultIntensity;
     const foundIntensityInfo = intensitiesMap.find((o) => currentIntensity >= o.min && currentIntensity <= o.max);
 
@@ -78,9 +126,6 @@ export function fillEntriesWithIntensity(
       value: e.intensity,
       intensity: newIntensity,
     };
-
-    // const day = getDayOfYear(parseDateOnly(e.date));
-    const day = getDayOfYear(new Date(e.date));
 
     entriesByDay[day] = newEntry;
   });

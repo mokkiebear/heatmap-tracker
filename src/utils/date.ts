@@ -55,19 +55,24 @@ export function getLastDayOfYear(year: number): Date {
 }
 
 export function getToday() {
-  const todayUTC = new Date();
-
-  return todayUTC;
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 }
 
 export function formatDateToISO8601(date: Date | null): string | null {
-  if (!date) {
+  if (date === null || date === undefined) {
     return null;
   }
 
-  const formattedDate = date?.toISOString?.()?.split('T')?.[0];
+  if (!(date instanceof Date) || isNaN(date.getTime())) {
+    return null;
+  }
 
-  return formattedDate;
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
 }
 
 export function getFullYear(date: string) {

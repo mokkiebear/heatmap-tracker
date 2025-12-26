@@ -183,9 +183,9 @@ describe('formatDateToISO8601', () => {
   });
 
   it('should return null when the input is not a Date object', () => {
-    expect(formatDateToISO8601('2025-04-15' as unknown as Date)).toBeUndefined();
-    expect(formatDateToISO8601(123456789 as unknown as Date)).toBeUndefined();
-    expect(formatDateToISO8601({} as unknown as Date)).toBeUndefined();
+    expect(formatDateToISO8601('2025-04-15' as unknown as Date)).toBeNull();
+    expect(formatDateToISO8601(123456789 as unknown as Date)).toBeNull();
+    expect(formatDateToISO8601({} as unknown as Date)).toBeNull();
   });
 
   it('should correctly format dates in local time', () => {
