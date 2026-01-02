@@ -76,11 +76,16 @@ export function fillEntriesWithIntensity(
   const aggregatedEntries: Record<number, Entry> = {};
   
   entries.forEach((e) => {
+    // Skip entries with falsy values if excludeFalsy is enabled
+    if (intensityConfig.excludeFalsy && !e.intensity) {
+      return;
+    }
+
     // Standardize date string to avoid local timezone parsing
     // Robustly extract YYYY, MM, DD regardless of separator (/ or -)
     const match = e.date.match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
     let utcDate: Date;
-    
+
     if (match) {
       const [, year, month, day] = match;
       utcDate = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));

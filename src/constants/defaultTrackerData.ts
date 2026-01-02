@@ -10,6 +10,7 @@ export const DEFAULT_TRACKER_DATA: TrackerData = {
     scaleEnd: undefined,
     defaultIntensity: 4,
     showOutOfRange: true,
+    excludeFalsy: undefined,
   },
   intensityScaleStart: undefined,
   intensityScaleEnd: undefined,
