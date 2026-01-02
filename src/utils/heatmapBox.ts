@@ -8,6 +8,7 @@ import {
 import moment from "moment";
 import { App, TFile } from "obsidian";
 import { notify } from "src/utils/notify";
+import { ConfirmModal } from "src/modals/ConfirmModal";
 
 /**
  * Opens a file in a new leaf.
@@ -30,9 +31,10 @@ export async function createNewFile(
   fileName: string,
   path: string
 ): Promise<boolean> {
-  const shouldCreate = window.confirm(
+  const shouldCreate = await new ConfirmModal(
+    app,
     `Do you want to create a new file '${fileName}' at '${path}'?`
-  );
+  ).openAndAwait();
 
   if (shouldCreate) {
     const createdFile = await app.vault.create(path, "");
@@ -148,9 +150,10 @@ async function tryOpenDailyNote(
       return true; // Handled by doing nothing
     }
 
-    const shouldCreate = window.confirm(
+    const shouldCreate = await new ConfirmModal(
+      app,
       `No page found for ${date.format(format)}.\nCreate at: ${expectedPath}?`
-    );
+    ).openAndAwait();
 
     if (!shouldCreate) {
       return true; // User cancelled, but we handled the attempt
