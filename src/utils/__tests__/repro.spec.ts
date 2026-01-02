@@ -33,6 +33,7 @@ describe('Issue Reproductions', () => {
         scaleEnd: 100,
         defaultIntensity: 1,
         showOutOfRange: true,
+        excludeFalsy: undefined,
       };
       
       const entries: Entry[] = [
@@ -53,6 +54,7 @@ describe('Issue Reproductions', () => {
         scaleEnd: 100,
         defaultIntensity: 1,
         showOutOfRange: true,
+        excludeFalsy: undefined,
       };
       
       const entries: Entry[] = [
@@ -73,6 +75,7 @@ describe('Issue Reproductions', () => {
         scaleEnd: 100,
         defaultIntensity: 1,
         showOutOfRange: true,
+        excludeFalsy: undefined,
       };
       
       const entries: Entry[] = [

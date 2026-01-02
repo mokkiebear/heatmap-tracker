@@ -5,4 +5,5 @@ export const IntensityConfigSchema = z.strictObject({
   scaleEnd: z.number().or(z.undefined()),
   defaultIntensity: z.number(),
   showOutOfRange: z.boolean(),
+  excludeFalsy: z.boolean().or(z.undefined()),
 });

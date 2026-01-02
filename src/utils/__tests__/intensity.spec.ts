@@ -12,6 +12,7 @@ const createConfig = (overrides: Partial<IntensityConfig> = {}): IntensityConfig
   scaleEnd: undefined,
   defaultIntensity: 1,
   showOutOfRange: false,
+  excludeFalsy: undefined,
   ...overrides,
 });
 
@@ -152,6 +153,96 @@ describe("fillEntriesWithIntensity", () => {
   });
 });
 
+describe("excludeFalsy configuration", () => {
+  it("should exclude entries with 0 intensity when excludeFalsy is true", () => {
+    const colors: ColorsList = ["#111", "#222", "#333"];
+    const config = createConfig({ excludeFalsy: true });
+    const entries: Entry[] = [
+      { date: "2024-01-01", intensity: 0, content: "zero value" },
+      { date: "2024-01-02", intensity: 5 },
+      { date: "2024-01-03", intensity: 10 },
+    ];
+
+    const result = fillEntriesWithIntensity(entries, config, colors);
+
+    // Day 1 should not be included due to 0 intensity
+    expect(result[1]).toBeUndefined();
+    // Days 2 and 3 should be present
+    expect(result[2]).toBeDefined();
+    expect(result[3]).toBeDefined();
+  });
+
+  it("should exclude entries with undefined intensity when excludeFalsy is true", () => {
+    const colors: ColorsList = ["#111", "#222", "#333"];
+    const config = createConfig({ excludeFalsy: true, defaultIntensity: 10 });
+    const entries: Entry[] = [
+      { date: "2024-01-01", content: "no intensity" },
+      { date: "2024-01-02", intensity: 5 },
+    ];
+
+    const result = fillEntriesWithIntensity(entries, config, colors);
+
+    // Day 1 should not be included due to undefined intensity
+    expect(result[1]).toBeUndefined();
+    // Day 2 should be present
+    expect(result[2]).toBeDefined();
+  });
+
+  it("should include entries with 0 intensity when excludeFalsy is false or undefined", () => {
+    const colors: ColorsList = ["#111", "#222", "#333"];
+    const configFalse = createConfig({ excludeFalsy: false });
+    const configUndefined = createConfig({ excludeFalsy: undefined });
+    const entries: Entry[] = [
+      { date: "2024-01-01", intensity: 0, content: "zero value" },
+      { date: "2024-01-02", intensity: 5 },
+    ];
+
+    const resultFalse = fillEntriesWithIntensity(entries, configFalse, colors);
+    const resultUndefined = fillEntriesWithIntensity(entries, configUndefined, colors);
+
+    // Both should include day 1 with 0 intensity
+    expect(resultFalse[1]).toBeDefined();
+    expect(resultFalse[1].value).toBe(0);
+    expect(resultUndefined[1]).toBeDefined();
+    expect(resultUndefined[1].value).toBe(0);
+  });
+
+  it("should still include entries with positive intensity when excludeFalsy is true", () => {
+    const colors: ColorsList = ["#111", "#222", "#333"];
+    const config = createConfig({ excludeFalsy: true });
+    const entries: Entry[] = [
+      { date: "2024-01-01", intensity: 1 },
+      { date: "2024-01-02", intensity: 50 },
+      { date: "2024-01-03", intensity: 100 },
+    ];
+
+    const result = fillEntriesWithIntensity(entries, config, colors);
+
+    // All entries should be present
+    expect(result[1]).toBeDefined();
+    expect(result[2]).toBeDefined();
+    expect(result[3]).toBeDefined();
+    expect(result[1].value).toBe(1);
+    expect(result[2].value).toBe(50);
+    expect(result[3].value).toBe(100);
+  });
+
+  it("should aggregate non-falsy values and exclude falsy values on the same day when excludeFalsy is true", () => {
+    const colors: ColorsList = ["#111", "#222", "#333"];
+    const config = createConfig({ excludeFalsy: true });
+    const entries: Entry[] = [
+      { date: "2024-01-01", intensity: 10 },
+      { date: "2024-01-01", intensity: 0 }, // Should be excluded
+      { date: "2024-01-01", intensity: 20 },
+    ];
+
+    const result = fillEntriesWithIntensity(entries, config, colors);
+
+    // Should only aggregate 10 + 20 = 30, excluding the 0
+    expect(result[1]).toBeDefined();
+    expect(result[1].value).toBe(30);
+  });
+});
 
 describe('some examples', () => {
   test('5 - 1 - 10', () => {
