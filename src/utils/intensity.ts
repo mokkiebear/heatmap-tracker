@@ -17,11 +17,11 @@ import { getDayOfYear } from "./date";
  * ```
  */
 export function getEntriesIntensities(entries: Entry[]): number[] {
-  const allDefined = entries.filter((e) => e.intensity !== undefined && e.intensity !== null).map((e) => e.intensity as number);
+  const allDefined = entries
+    .filter((e) => e.intensity !== undefined && e.intensity !== null)
+    .map((e) => e.intensity as number);
 
-  return Array.from(
-    new Set(allDefined)
-  );
+  return Array.from(new Set(allDefined));
 }
 
 /**
@@ -44,12 +44,28 @@ export function getEntriesIntensities(entries: Entry[]): number[] {
  * ]
  * ```
  */
-export function getIntensitiesRanges(numberOfIntensities: number, intensityStart: number, intensityEnd: number) {
+export function getIntensitiesRanges(
+  numberOfIntensities: number,
+  intensityStart: number,
+  intensityEnd: number
+) {
   const intensityRanges = [];
 
   for (let i = 0; i < numberOfIntensities; i++) {
-    const min = mapRange(i, 0, numberOfIntensities, intensityStart, intensityEnd);
-    const max = mapRange(i + 1, 0, numberOfIntensities, intensityStart, intensityEnd);
+    const min = mapRange(
+      i,
+      0,
+      numberOfIntensities,
+      intensityStart,
+      intensityEnd
+    );
+    const max = mapRange(
+      i + 1,
+      0,
+      numberOfIntensities,
+      intensityStart,
+      intensityEnd
+    );
 
     intensityRanges.push({ min, max, intensity: i + 1 });
   }
@@ -57,24 +73,35 @@ export function getIntensitiesRanges(numberOfIntensities: number, intensityStart
   return intensityRanges;
 }
 
-export function getIntensitiesInfo(intensities: number[], intensityConfig: IntensityConfig, colorsList: ColorsList) {
-  const [minimumIntensity, maximumIntensity] = getMinMaxIntensities(intensities, intensityConfig);
+export function getIntensitiesInfo(
+  intensities: number[],
+  intensityConfig: IntensityConfig,
+  colorsList: ColorsList
+) {
+  const [minimumIntensity, maximumIntensity] = getMinMaxIntensities(
+    intensities,
+    intensityConfig
+  );
 
   const numberOfColorIntensities = colorsList.length;
 
-  return getIntensitiesRanges(numberOfColorIntensities, minimumIntensity, maximumIntensity);
+  return getIntensitiesRanges(
+    numberOfColorIntensities,
+    minimumIntensity,
+    maximumIntensity
+  );
 }
 
 export function fillEntriesWithIntensity(
   entries: Entry[],
   intensityConfig: IntensityConfig,
-  colorsList: ColorsList,
+  colorsList: ColorsList
 ): Record<number, Entry> {
   const entriesByDay: Record<number, Entry> = {};
 
   // Group and aggregate entries by day first
   const aggregatedEntries: Record<number, Entry> = {};
-  
+
   entries.forEach((e) => {
     // Skip entries with falsy values if excludeFalsy is enabled
     if (intensityConfig.excludeFalsy && !e.intensity) {
@@ -88,12 +115,18 @@ export function fillEntriesWithIntensity(
 
     if (match) {
       const [, year, month, day] = match;
-      utcDate = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
+      utcDate = new Date(
+        Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day))
+      );
     } else {
       // Fallback for other formats, try to force UTC by appending T00:00:00Z if missing
-      const dateStr = e.date.includes('T') ? e.date : `${e.date.replace(/\//g, '-')}T00:00:00Z`;
+      const dateStr = e.date.includes("T")
+        ? e.date
+        : `${e.date.replace(/\//g, "-")}T00:00:00Z`;
       const date = new Date(dateStr);
-      utcDate = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+      utcDate = new Date(
+        Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+      );
     }
 
     const day = getDayOfYear(utcDate);
@@ -103,7 +136,10 @@ export function fillEntriesWithIntensity(
       aggregatedEntries[day] = {
         ...existing,
         intensity: (existing.intensity || 0) + (e.intensity || 0),
-        content: existing.content && e.content ? `${existing.content}\n${e.content}` : (existing.content || e.content),
+        content:
+          existing.content && e.content
+            ? `${existing.content}\n${e.content}`
+            : existing.content || e.content,
       };
     } else {
       aggregatedEntries[day] = { ...e };
@@ -111,20 +147,37 @@ export function fillEntriesWithIntensity(
   });
 
   const intensities = getEntriesIntensities(Object.values(aggregatedEntries));
-  const intensitiesMap = getIntensitiesInfo(intensities, intensityConfig, colorsList);
+  const intensitiesMap = getIntensitiesInfo(
+    intensities,
+    intensityConfig,
+    colorsList
+  );
 
-  const [minimumIntensity, maximumIntensity] = getMinMaxIntensities(intensities, intensityConfig);
+  const [minimumIntensity, maximumIntensity] = getMinMaxIntensities(
+    intensities,
+    intensityConfig
+  );
 
   Object.entries(aggregatedEntries).forEach(([dayStr, e]) => {
     const day = parseInt(dayStr);
     const currentIntensity = e.intensity ?? intensityConfig.defaultIntensity;
-    const foundIntensityInfo = intensitiesMap.find((o) => currentIntensity >= o.min && currentIntensity <= o.max);
+    const foundIntensityInfo = intensitiesMap.find(
+      (o) => currentIntensity >= o.min && currentIntensity <= o.max
+    );
 
     const newIntensity = foundIntensityInfo
       ? foundIntensityInfo.intensity
       : intensityConfig.showOutOfRange
-        ? Math.round(mapRange(currentIntensity, minimumIntensity, maximumIntensity, 1, colorsList.length))
-        : undefined;
+      ? Math.round(
+          mapRange(
+            currentIntensity,
+            minimumIntensity,
+            maximumIntensity,
+            1,
+            colorsList.length
+          )
+        )
+      : undefined;
 
     const newEntry = {
       ...e,
@@ -138,11 +191,13 @@ export function fillEntriesWithIntensity(
   return entriesByDay;
 }
 
-export function getMinMaxIntensities(intensities: number[], intensityConfig: IntensityConfig): [number, number] {
-  const [minimumIntensity, maximumIntensity] = intensities.length ? [
-    Math.min(...intensities),
-    Math.max(...intensities),
-  ] : [1, 5];
+export function getMinMaxIntensities(
+  intensities: number[],
+  intensityConfig: IntensityConfig
+): [number, number] {
+  const [minimumIntensity, maximumIntensity] = intensities.length
+    ? [Math.min(...intensities), Math.max(...intensities)]
+    : [1, 5];
 
   return [
     intensityConfig.scaleStart ?? minimumIntensity,
