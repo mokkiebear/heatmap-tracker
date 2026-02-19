@@ -152,7 +152,7 @@ Notes
 
 ---
 
-### `intensityExcludeFalsy`
+### `excludeFalsy`
 - **Type:** `boolean`
 - **Default:** `undefined` (falsy values are included)
 - **Description:** When set to `true`, entries with falsy intensity values (0, undefined, null, false) will be excluded from the heatmap.
