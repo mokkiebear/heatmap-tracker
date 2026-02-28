@@ -14,7 +14,11 @@
     "version": "node version-bump.mjs && git add manifest.json versions.json",
     "test": "jest",
     "test:utc": "TZ=utc jest",
-    "test:usa": "TZ=America/New_York jest"
+    "test:usa": "TZ=America/New_York jest",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --noEmit",
+    "format": "eslint . --fix"
   },
   "keywords": [
     "obsidian"
@@ -36,6 +40,7 @@
     "cpx": "^1.5.0",
     "esbuild": "0.25.8",
     "esbuild-sass-plugin": "^3.3.1",
+    "globals": "^17.3.0",
     "jest": "^30.0.5",
     "jest-environment-jsdom": "^30.0.5",
     "obsidian": "latest",
