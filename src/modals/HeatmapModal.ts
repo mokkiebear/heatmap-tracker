@@ -66,6 +66,7 @@ export class HeatmapModal extends Modal {
             hideSubtitle,
             showWeekNums,
             defaultView,
+            excludeFalsy,
           });
         })
       );
@@ -90,6 +91,7 @@ export class HeatmapModal extends Modal {
             hideSubtitle,
             showWeekNums,
             defaultView,
+            excludeFalsy,
           });
         })
       );
@@ -140,6 +142,7 @@ export class HeatmapModal extends Modal {
           hideSubtitle,
           showWeekNums,
           defaultView,
+          excludeFalsy,
         });
       });
     });
@@ -175,6 +178,7 @@ export class HeatmapModal extends Modal {
           hideSubtitle,
           showWeekNums,
           defaultView,
+          excludeFalsy,
         });
       });
     });
@@ -197,6 +201,7 @@ export class HeatmapModal extends Modal {
           hideSubtitle,
           showWeekNums,
           defaultView,
+          excludeFalsy,
         });
       });
     });
@@ -221,6 +226,7 @@ export class HeatmapModal extends Modal {
             hideSubtitle,
             showWeekNums,
             defaultView,
+            excludeFalsy,
           });
         });
       });
@@ -232,6 +238,33 @@ export class HeatmapModal extends Modal {
         toggle.setValue(disableFileCreation);
         toggle.onChange((value) => {
           disableFileCreation = value;
+        });
+      });
+
+    // Exclude Falsy
+    let excludeFalsy = false;
+    new Setting(contentEl)
+      .setName("Exclude zero/falsy values")
+      .setDesc("If enabled, 0 or blank values will be ignored and won't break streaks.")
+      .addToggle((toggle) => {
+        toggle.setValue(excludeFalsy);
+        toggle.onChange((value) => {
+          excludeFalsy = value;
+          this.updatePreview({
+            heatmapTitle,
+            heatmapSubtitle,
+            year,
+            separateMonths,
+            showCurrentDayBorder,
+            palette,
+            hideTabs,
+            hideYear,
+            hideTitle,
+            hideSubtitle,
+            showWeekNums,
+            defaultView,
+            excludeFalsy,
+          });
         });
       });
 
@@ -255,6 +288,7 @@ export class HeatmapModal extends Modal {
           hideSubtitle,
           showWeekNums,
           defaultView,
+          excludeFalsy,
         });
       });
     });
@@ -276,6 +310,7 @@ export class HeatmapModal extends Modal {
           hideSubtitle,
           showWeekNums,
           defaultView,
+          excludeFalsy,
         });
       });
     });
@@ -297,6 +332,7 @@ export class HeatmapModal extends Modal {
           hideSubtitle,
           showWeekNums,
           defaultView,
+          excludeFalsy,
         });
       });
     });
@@ -318,6 +354,7 @@ export class HeatmapModal extends Modal {
           hideSubtitle,
           showWeekNums,
           defaultView,
+          excludeFalsy,
         });
       });
     });
@@ -339,6 +376,7 @@ export class HeatmapModal extends Modal {
           hideSubtitle,
           showWeekNums,
           defaultView,
+          excludeFalsy,
         });
       });
     });
@@ -363,6 +401,7 @@ export class HeatmapModal extends Modal {
           hideSubtitle,
           showWeekNums,
           defaultView,
+          excludeFalsy,
         });
       });
     });
@@ -387,6 +426,7 @@ export class HeatmapModal extends Modal {
       hideSubtitle,
       showWeekNums,
       defaultView,
+      excludeFalsy,
     });
 
     // Submit Button
@@ -404,6 +444,7 @@ export class HeatmapModal extends Modal {
             separateMonths,
             showCurrentDayBorder,
             disableFileCreation,
+            excludeFalsy,
             colorScheme: { paletteName: palette },
             path: path ? path : undefined,
             ui: {
@@ -446,6 +487,7 @@ export class HeatmapModal extends Modal {
     hideSubtitle: boolean;
     showWeekNums: boolean;
     defaultView: IHeatmapView;
+    excludeFalsy: boolean;
   }) {
     if (!this.previewContainer) return;
 
@@ -473,6 +515,9 @@ export class HeatmapModal extends Modal {
           config.defaultView !== IHeatmapView.HeatmapTracker
             ? config.defaultView
             : undefined,
+      },
+      intensityConfig: {
+        excludeFalsy: config.excludeFalsy,
       },
     };
 

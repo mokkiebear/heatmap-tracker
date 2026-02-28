@@ -165,19 +165,21 @@ export function fillEntriesWithIntensity(
       (o) => currentIntensity >= o.min && currentIntensity <= o.max
     );
 
-    const newIntensity = foundIntensityInfo
-      ? foundIntensityInfo.intensity
-      : intensityConfig.showOutOfRange
-      ? Math.round(
-          mapRange(
-            currentIntensity,
-            minimumIntensity,
-            maximumIntensity,
-            1,
-            colorsList.length
-          )
+    let newIntensity: number | undefined;
+
+    if (foundIntensityInfo) {
+      newIntensity = foundIntensityInfo.intensity;
+    } else if (intensityConfig.showOutOfRange && currentIntensity !== 0) {
+      newIntensity = Math.round(
+        mapRange(
+          currentIntensity,
+          minimumIntensity,
+          maximumIntensity,
+          1,
+          colorsList.length
         )
-      : undefined;
+      );
+    }
 
     const newEntry = {
       ...e,

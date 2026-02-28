@@ -242,6 +242,29 @@ describe("excludeFalsy configuration", () => {
     expect(result[1]).toBeDefined();
     expect(result[1].value).toBe(30);
   });
+
+  it("should NOT color intensity 0 when scale starts at 1 and showOutOfRange is true (USER BUG)", () => {
+    const colors: ColorsList = ["#111", "#222", "#333"];
+    const config = createConfig({ 
+      scaleStart: 1, 
+      scaleEnd: 10,
+      showOutOfRange: true 
+    });
+    const entries: Entry[] = [
+      { date: "2024-01-01", intensity: 0 },
+      { date: "2024-01-02", intensity: 1 },
+      { date: "2024-01-03", intensity: 5 },
+    ];
+
+    const result = fillEntriesWithIntensity(entries, config, colors);
+
+    // Day 1 (intensity 0) currently gets colored as 1 due to showOutOfRange + mapRange
+    // The user expects it to be undefined
+    // Currently this test will FAIL if we expect undefined
+    expect(result[1].intensity).toBeUndefined();
+    expect(result[2].intensity).toBe(1);
+    expect(result[3].intensity).toBe(2); // (5-1)/(10-1) * 3 approx 1.3 -> 2
+  });
 });
 
 describe('some examples', () => {

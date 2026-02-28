@@ -29,3 +29,4 @@ const trackerData = {
 renderHeatmapTracker(this.container, trackerData)
 
 ```
+
