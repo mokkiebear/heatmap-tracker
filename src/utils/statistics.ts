@@ -59,6 +59,10 @@ export function calculateStreaks(entries: Entry[]): StreakResult {
     currentStreakEndDate = currDate;
   }
 
+  // After the loop, the final values of currentStreak and tempStreakStartDate
+  // represent the streak ending at the last entry.
+  currentStreakStartDate = tempStreakStartDate;
+
   const today = new Date();
   const lastEntryDate = new Date(sortedEntries[sortedEntries.length - 1].date);
   const diffWithToday = Math.abs(

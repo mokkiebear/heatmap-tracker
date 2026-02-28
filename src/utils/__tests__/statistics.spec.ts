@@ -55,6 +55,32 @@ describe('calculateStreaks', () => {
     expect(result.longestStreak).toBe(3);
   });
 
+  it('should identify the correct start date for the current streak when there are gaps', () => {
+    const today = new Date();
+    const d = (daysAgo: number) => {
+      const date = new Date(today);
+      date.setUTCDate(date.getUTCDate() - daysAgo);
+      return date.toISOString().split('T')[0];
+    };
+
+    // Gap between 10 days ago and 2 days ago
+    const entries: Entry[] = [
+      { date: d(12), intensity: 1 },
+      { date: d(11), intensity: 1 },
+      { date: d(10), intensity: 1 },
+      // Gap
+      { date: d(2), intensity: 1 },
+      { date: d(1), intensity: 1 },
+      { date: d(0), intensity: 1 },
+    ];
+    
+    const result = calculateStreaks(entries);
+    
+    expect(result.currentStreak).toBe(3);
+    expect(result.currentStreakStartDate?.toISOString().split('T')[0]).toBe(d(2));
+    expect(result.currentStreakEndDate?.toISOString().split('T')[0]).toBe(d(0));
+  });
+
   it('should simulate excludeFalsy by passing filtered entries', () => {
     // Imagine we have entries on 1st, 2nd, 3rd, but 2nd has intensity 0 and is filtered out
     const allEntries: Entry[] = [
