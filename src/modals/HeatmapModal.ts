@@ -112,7 +112,7 @@ export class HeatmapModal extends Modal {
 
     new Setting(contentEl)
       .setName("Property")
-      .setDesc("Frontmatter property to track")
+      .setDesc("The frontmatter key to track in your daily notes (e.g. 'exercise: 10' or 'reading: true').")
       .addDropdown((dropdown) => {
         dropdown.addOption("", "Select a property...");
         const sortedProps = [...props].sort();

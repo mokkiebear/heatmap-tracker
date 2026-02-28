@@ -4,9 +4,6 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [2.1.4] - 2026-02-28
-### Fixed
-- Internal typing fixes for `HeatmapModal`.
 
 ## [2.1.3] - 2026-02-28
 ### Added

@@ -8,6 +8,7 @@ import {
 import { getAPI, Literal } from "obsidian-dataview";
 import HeatmapTrackerSettingsTab from "./settings";
 import { TrackerData, TrackerParams, TrackerSettings } from "./types";
+import { parseIntensity } from "./utils/intensity";
 
 import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
 
@@ -113,10 +114,10 @@ export default class HeatmapTrackerPlugin extends Plugin {
             let intensity = 0;
 
             if (typeof params.property === "string") {
-              intensity = page[params.property];
+              intensity = parseIntensity(page[params.property]);
             } else {
               intensity = params.property.reduce((sum: number, str: string) => {
-                sum + page[str];
+                return sum + parseIntensity(page[str]);
               }, 0);
             }
 

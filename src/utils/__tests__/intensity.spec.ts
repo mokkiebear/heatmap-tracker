@@ -5,6 +5,7 @@ import {
   getIntensitiesInfo,
   getIntensitiesRanges,
   getMinMaxIntensities,
+  parseIntensity,
 } from "../intensity";
 
 const createConfig = (overrides: Partial<IntensityConfig> = {}): IntensityConfig => ({
@@ -321,5 +322,34 @@ describe('some examples', () => {
       { min: 3.333333333333334, max: 6.666666666666668, intensity: 5 },
       { min: 6.666666666666668, max: 10, intensity: 6 }
     ]);
+  });
+});
+
+describe("parseIntensity", () => {
+  it("should return the number as is", () => {
+    expect(parseIntensity(5)).toBe(5);
+    expect(parseIntensity(0)).toBe(0);
+    expect(parseIntensity(-1)).toBe(-1);
+  });
+
+  it("should parse numeric strings", () => {
+    expect(parseIntensity("10")).toBe(10);
+    expect(parseIntensity("2.5")).toBe(2.5);
+    expect(parseIntensity("0")).toBe(0);
+  });
+
+  it("should handle boolean values", () => {
+    expect(parseIntensity(true)).toBe(1);
+    expect(parseIntensity(false)).toBe(0);
+  });
+
+  it("should handle non-numeric strings", () => {
+    expect(parseIntensity("abc")).toBe(1); // truthy string -> 1
+    expect(parseIntensity("")).toBe(0);    // falsy string -> 0
+  });
+
+  it("should handle null and undefined", () => {
+    expect(parseIntensity(null)).toBe(0);
+    expect(parseIntensity(undefined)).toBe(0);
   });
 });

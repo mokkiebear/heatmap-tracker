@@ -11,6 +11,18 @@ The **Heatmap Tracker plugin for Obsidian** is a powerful and customizable tool 
 
 > **Tip:** Check [Example Vault](https://github.com/mokkiebear/heatmap-tracker/tree/main/EXAMPLE_VAULT). There're lots of good examples (and I update it often).
 
+## Prerequisites
+
+This plugin requires the [Obsidian Dataview](https://blacksmithgu.github.io/obsidian-dataview/) plugin to be installed and enabled to automatically fetch data from your notes.
+
+## Getting Started
+
+1.  **Install Dataview**: Ensure the Dataview plugin is active in your Obsidian vault.
+2.  **Add Data to Daily Notes**: Add a frontmatter property to your daily notes (e.g., `YYYY-MM-DD.md`) that you want to track.
+    *   **Numeric**: `photo-taking: 10`
+    *   **Boolean**: `photo-taking: true` (counts as 1)
+3.  **Insert Heatmap**: Use the command `Insert Heatmap Tracker` to generate a heatmap through the interactive modal.
+
 ## Basic Usage
 
 This plugin comes with frontmatter tracking out of the box. You can use the `heatmap-tracker` codeblock with the following parameters:

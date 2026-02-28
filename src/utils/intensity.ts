@@ -206,3 +206,19 @@ export function getMinMaxIntensities(
     intensityConfig.scaleEnd ?? maximumIntensity,
   ];
 }
+
+/**
+ * Parses a value into a numeric intensity.
+ * Supports numbers, numeric strings, and booleans.
+ *
+ * @param val - The value to parse.
+ * @returns The parsed numeric intensity.
+ */
+export function parseIntensity(val: any): number {
+  if (typeof val === "number") return val;
+  if (typeof val === "string") {
+    const num = parseFloat(val);
+    return isNaN(num) ? (val ? 1 : 0) : num;
+  }
+  return val ? 1 : 0;
+}
