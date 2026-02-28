@@ -35,9 +35,18 @@ export function HeatmapProvider({
 
   const [currentYear, setCurrentYear] = useState(_defaultYear);
 
+  const allFilteredEntries = useMemo(() => {
+    return trackerData.entries.filter((e) => {
+      if (trackerData.intensityConfig?.excludeFalsy && !e.intensity) {
+        return false;
+      }
+      return true;
+    });
+  }, [trackerData.entries, trackerData.intensityConfig?.excludeFalsy]);
+
   const currentYearEntries = useMemo(
-    () => getEntriesForYear(trackerData.entries, currentYear),
-    [trackerData.entries, currentYear]
+    () => getEntriesForYear(allFilteredEntries, currentYear),
+    [allFilteredEntries, currentYear]
   );
 
   const mergedTrackerData: TrackerData = useMemo(() => {
@@ -86,6 +95,7 @@ export function HeatmapProvider({
         setView,
         colorsList,
         entriesWithIntensity,
+        allFilteredEntries,
         boxes,
         intensityConfig: trackerData.intensityConfig,
       }}
@@ -106,6 +116,7 @@ interface HeatmapContextProps {
   setView: React.Dispatch<React.SetStateAction<IHeatmapView>>;
   colorsList: ColorsList;
   entriesWithIntensity: Record<number, Entry>;
+  allFilteredEntries: Entry[];
   boxes: Box[];
 }
 

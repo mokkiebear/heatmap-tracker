@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.1] - 2026-02-28
+### Fixed
+- Fix streak calculation when `excludeFalsy` is enabled.
+- Ensure "Total Tracking Days" and Legend reflect the `excludeFalsy` setting.
+- Extract streak calculation logic to a testable utility.
+- Issue: https://github.com/mokkiebear/heatmap-tracker/issues/80
+
 ## [2.1.0] - 2026-01-02
 ### Added
 - Add option to exclude zero/falsy values from heatmap.
