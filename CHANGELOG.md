@@ -5,6 +5,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 
+## [2.1.5] - 2026-02-28
+### Added
+- Prominent `Prerequisites` and `Getting Started` sections to README.
+- Better description for the `Property` field in the Heatmap creation modal.
+
+### Fixed
+- Fix bug where tracking multiple properties in a single heatmap failed to aggregate their values.
+- Improve data parsing to correctly handle boolean values and numeric strings in frontmatter.
+- Internal refactor: centralize `parseIntensity` logic and add unit tests.
+
+## [2.1.4] - 2026-02-28
+### Fixed
+- Internal typing fixes for `HeatmapModal`.
+
 ## [2.1.3] - 2026-02-28
 ### Added
 - Add `Exclude zero/falsy values` toggle to the `Create new Heatmap` modal for better discoverability.
