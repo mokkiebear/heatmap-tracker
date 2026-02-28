@@ -4,6 +4,23 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.4] - 2026-02-28
+### Fixed
+- Internal typing fixes for `HeatmapModal`.
+
+## [2.1.3] - 2026-02-28
+### Added
+- Add `Exclude zero/falsy values` toggle to the `Create new Heatmap` modal for better discoverability.
+
+### Fixed
+- Fix bug where intensity `0` was colored when `scaleStart` was greater than `0`.
+- Stability improvements for `HeatmapModal` preview.
+
+## [2.1.2] - 2026-02-28
+### Fixed
+- Fix bug where `currentStreakStartDate` was incorrectly calculated when gaps (missing daily notes) were present.
+- Issue: https://github.com/mokkiebear/heatmap-tracker/issues/80
+
 ## [2.1.1] - 2026-02-28
 ### Fixed
 - Fix streak calculation when `excludeFalsy` is enabled.
