@@ -12,9 +12,22 @@ import moment from "moment";
 // Mock dependencies
 jest.mock("obsidian-daily-notes-interface");
 jest.mock("../utils/notify");
+jest.mock("../modals/ConfirmModal");
 jest.mock("obsidian", () => ({
   App: jest.fn(),
   TFile: jest.fn(),
+  Modal: jest.fn(),
+  Setting: jest.fn().mockImplementation(() => ({
+    setName: jest.fn().mockReturnThis(),
+    setDesc: jest.fn().mockReturnThis(),
+    addText: jest.fn().mockReturnThis(),
+    addDropdown: jest.fn().mockReturnThis(),
+    addToggle: jest.fn().mockReturnThis(),
+    addButton: jest.fn().mockReturnThis(),
+    onClick: jest.fn().mockReturnThis(),
+    setCta: jest.fn().mockReturnThis(),
+    setButtonText: jest.fn().mockReturnThis(),
+  })),
 }));
 
 describe("heatmapBox utils", () => {
@@ -42,22 +55,24 @@ describe("heatmapBox utils", () => {
       vault: mockVault,
       workspace: mockWorkspace,
     } as unknown as App;
-
-    // Mock window.confirm
-    global.confirm = jest.fn();
   });
 
   describe("createNewFile", () => {
     it("should create and open a new file when user confirms", async () => {
-      (global.confirm as jest.Mock).mockReturnValue(true);
+      const { ConfirmModal } = require("../modals/ConfirmModal");
+      const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
+      ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
+      
       const mockFile = {} as TFile;
       mockVault.create.mockResolvedValue(mockFile);
 
       const result = await createNewFile(app, "test.md", "folder/test.md");
 
-      expect(global.confirm).toHaveBeenCalledWith(
+      expect(ConfirmModal).toHaveBeenCalledWith(
+        app,
         "Do you want to create a new file 'test.md' at 'folder/test.md'?"
       );
+      expect(mockOpenAndAwait).toHaveBeenCalled();
       expect(mockVault.create).toHaveBeenCalledWith("folder/test.md", "");
       expect(mockWorkspace.getLeaf).toHaveBeenCalledWith(true);
       expect(mockLeaf.openFile).toHaveBeenCalledWith(mockFile);
@@ -65,17 +80,21 @@ describe("heatmapBox utils", () => {
     });
 
     it("should return false when user cancels creation", async () => {
-      (global.confirm as jest.Mock).mockReturnValue(false);
+      const { ConfirmModal } = require("../modals/ConfirmModal");
+      const mockOpenAndAwait = jest.fn().mockResolvedValue(false);
+      ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
 
       const result = await createNewFile(app, "test.md", "folder/test.md");
 
-      expect(global.confirm).toHaveBeenCalled();
+      expect(ConfirmModal).toHaveBeenCalled();
       expect(mockVault.create).not.toHaveBeenCalled();
       expect(result).toBe(false);
     });
     
     it("should return true but not open file if creation fails (returns null/undefined)", async () => {
-        (global.confirm as jest.Mock).mockReturnValue(true);
+        const { ConfirmModal } = require("../modals/ConfirmModal");
+        const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
+        ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
         mockVault.create.mockResolvedValue(null);
   
         const result = await createNewFile(app, "test.md", "folder/test.md");
@@ -113,24 +132,29 @@ describe("heatmapBox utils", () => {
 
         await handleBoxClick(boxWithFile, app, { disableFileCreation: true } as any);
 
-        expect(global.confirm).not.toHaveBeenCalled();
         expect(mockVault.create).not.toHaveBeenCalled();
       });
 
       it("should prompt to create file if missing and creation enabled", async () => {
+        const { ConfirmModal } = require("../modals/ConfirmModal");
+        const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
+        ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
+        
         mockVault.getAbstractFileByPath.mockReturnValue(null);
-        (global.confirm as jest.Mock).mockReturnValue(true);
         mockVault.create.mockResolvedValue({} as TFile);
 
         await handleBoxClick(boxWithFile, app, { disableFileCreation: false } as any);
 
-        expect(global.confirm).toHaveBeenCalled();
+        expect(ConfirmModal).toHaveBeenCalled();
         expect(mockVault.create).toHaveBeenCalledWith("path/to/file.md", "");
       });
       
       it("should handle undefined trackerData when checking disableFileCreation with filePath", async () => {
+        const { ConfirmModal } = require("../modals/ConfirmModal");
+        const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
+        ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
+
         mockVault.getAbstractFileByPath.mockReturnValue(null);
-        (global.confirm as jest.Mock).mockReturnValue(true);
         mockVault.create.mockResolvedValue({} as TFile);
 
         await handleBoxClick(boxWithFile, app, undefined as any);
@@ -180,8 +204,11 @@ describe("heatmapBox utils", () => {
       });
 
       it("should prompt to create file if missing", async () => {
+        const { ConfirmModal } = require("../modals/ConfirmModal");
+        const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
+        ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
+
         mockVault.getAbstractFileByPath.mockReturnValue(null);
-        (global.confirm as jest.Mock).mockReturnValue(true);
 
         await handleBoxClick(mockBox, app, trackerData as any);
 
@@ -189,23 +216,16 @@ describe("heatmapBox utils", () => {
       });
       
       it("should handle undefined trackerData when checking disableFileCreation with basePath", async () => {
+        const { ConfirmModal } = require("../modals/ConfirmModal");
+        const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
+        ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
+
         mockVault.getAbstractFileByPath.mockReturnValue(null);
-        (global.confirm as jest.Mock).mockReturnValue(true);
+        mockVault.create.mockResolvedValue({} as TFile);
         
-        // We need basePath to enter this block, but we want to check disableFileCreation being undefined
-        // which comes from trackerData.
-        // But if we pass trackerData with basePath, it is defined.
-        // The code is: if (trackerData?.disableFileCreation)
-        // So we just need to pass trackerData without disableFileCreation property, which we did in "should prompt to create file if missing"
-        // But maybe we need to explicitly test that it doesn't crash if trackerData is somehow null inside? 
-        // No, if trackerData is null it won't enter the block.
-        // The branch coverage might be complaining about the optional chaining `?.` when trackerData IS defined.
-        // We've covered the case where it IS defined (and false/undefined property).
-        // Maybe we need to cover where `trackerData` is defined but `disableFileCreation` is missing (undefined).
-        // That is covered by "should prompt to create file if missing".
-        
-        // Let's just ensure we have covered the `trackerData?.disableFileCreation` branch fully.
-        // It evaluates to undefined (falsy) or true.
+        await handleBoxClick(mockBox, app, { basePath: "journal" } as any);
+
+        expect(mockVault.create).toHaveBeenCalled();
       });
     });
 
@@ -232,19 +252,24 @@ describe("heatmapBox utils", () => {
       });
 
       it("should prompt to create daily note if missing", async () => {
-        (global.confirm as jest.Mock).mockReturnValue(true);
+        const { ConfirmModal } = require("../modals/ConfirmModal");
+        const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
+        ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
+
         const mockFile = new TFile();
         (createDailyNote as jest.Mock).mockResolvedValue(mockFile);
 
         await handleBoxClick(mockBox, app, {} as any);
 
-        expect(global.confirm).toHaveBeenCalled();
+        expect(ConfirmModal).toHaveBeenCalled();
         expect(createDailyNote).toHaveBeenCalled();
         expect(mockLeaf.openFile).toHaveBeenCalledWith(mockFile);
       });
 
       it("should not create daily note if user cancels", async () => {
-        (global.confirm as jest.Mock).mockReturnValue(false);
+        const { ConfirmModal } = require("../modals/ConfirmModal");
+        const mockOpenAndAwait = jest.fn().mockResolvedValue(false);
+        ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
 
         await handleBoxClick(mockBox, app, {} as any);
 
@@ -252,20 +277,26 @@ describe("heatmapBox utils", () => {
       });
 
       it("should handle missing daily note settings (defaults)", async () => {
+        const { ConfirmModal } = require("../modals/ConfirmModal");
+        const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
+        ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
+
         (getDailyNoteSettings as jest.Mock).mockReturnValue(null);
-        (global.confirm as jest.Mock).mockReturnValue(true);
         const mockFile = new TFile();
         (createDailyNote as jest.Mock).mockResolvedValue(mockFile);
 
         await handleBoxClick(mockBox, app, {} as any);
 
-        expect(global.confirm).toHaveBeenCalled();
+        expect(ConfirmModal).toHaveBeenCalled();
         // Should use default format YYYY-MM-DD and empty folder
         expect(createDailyNote).toHaveBeenCalledWith(moment(mockBox.date));
       });
 
       it("should handle daily note creation failure", async () => {
-        (global.confirm as jest.Mock).mockReturnValue(true);
+        const { ConfirmModal } = require("../modals/ConfirmModal");
+        const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
+        ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
+
         (createDailyNote as jest.Mock).mockResolvedValue(null);
 
         await handleBoxClick(mockBox, app, {} as any);
@@ -275,8 +306,10 @@ describe("heatmapBox utils", () => {
       });
       
       it("should handle undefined trackerData for disableFileCreation check", async () => {
-         // This covers the optional chaining trackerData?.disableFileCreation
-         (global.confirm as jest.Mock).mockReturnValue(true);
+         const { ConfirmModal } = require("../modals/ConfirmModal");
+         const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
+         ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
+
          (createDailyNote as jest.Mock).mockResolvedValue({} as TFile);
          
          await handleBoxClick(mockBox, app, undefined as any);
@@ -299,9 +332,12 @@ describe("heatmapBox utils", () => {
          });
 
          it("should try to create new file if manual search fails", async () => {
+            const { ConfirmModal } = require("../modals/ConfirmModal");
+            const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
+            ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
+
             (getAllDailyNotes as jest.Mock).mockImplementation(() => { throw new Error("Daily notes error"); });
             mockVault.getFiles.mockReturnValue([]);
-            (global.confirm as jest.Mock).mockReturnValue(true);
             
             await handleBoxClick(mockBox, app, {} as any);
             
@@ -320,9 +356,12 @@ describe("heatmapBox utils", () => {
          });
 
          it("should handle undefined trackerData in manual fallback", async () => {
+            const { ConfirmModal } = require("../modals/ConfirmModal");
+            const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
+            ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
+
             (getAllDailyNotes as jest.Mock).mockImplementation(() => { throw new Error("Daily notes error"); });
             mockVault.getFiles.mockReturnValue([]);
-            (global.confirm as jest.Mock).mockReturnValue(true);
             
             await handleBoxClick(mockBox, app, undefined as any);
             
