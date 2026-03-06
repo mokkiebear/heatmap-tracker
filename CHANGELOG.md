@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 
+## [2.1.6] - 2026-03-06
+### Added
+- Implement `ConfirmModal` for user confirmation prompts.
+
+### Changed
+- Migrate ESLint configuration to flat config.
+- Internal cleanup: remove unused `trackerData` from `LegendView`.
+
 ## [2.1.5] - 2026-02-28
 ### Added
 - Prominent `Prerequisites` and `Getting Started` sections to README.
