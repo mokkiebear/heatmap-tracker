@@ -3,7 +3,7 @@ import { getISOWeekNumber } from "src/utils/date";
 
 export function HeatmapWeekNums() {
   const { trackerData, boxes, settings } = useHeatmapContext();
-  
+
   const showWeekNums = trackerData.ui?.showWeekNums ?? settings.showWeekNums;
 
   if (!showWeekNums) {
@@ -15,12 +15,12 @@ export function HeatmapWeekNums() {
   for (let i = 0; i < boxes.length; i += 7) {
     const chunk = boxes.slice(i, i + 7);
     const firstBoxWithDate = chunk.find((b) => b.date);
-    
+
     if (firstBoxWithDate && firstBoxWithDate.date) {
-        const weekNum = getISOWeekNumber(new Date(firstBoxWithDate.date));
-        columns.push(weekNum);
+      const weekNum = getISOWeekNumber(new Date(firstBoxWithDate.date));
+      columns.push(weekNum);
     } else {
-        columns.push(null);
+      columns.push(null);
     }
   }
 
@@ -35,17 +35,17 @@ export function HeatmapWeekNums() {
       {columns.map((weekNum, index) => {
         // If empty column, render nothing
         if (weekNum === null) {
-            lastWeekNum = null; // Reset if we hit a pure gap
-            return <div key={index}></div>;
+          lastWeekNum = null; // Reset if we hit a pure gap
+          return <div key={`week-empty-${index}`}></div>;
         }
 
         // If same as last week (split week), render nothing to avoid duplicate
         if (weekNum === lastWeekNum) {
-            return <div key={index}></div>;
+          return <div key={`week-dup-${index}`}></div>;
         }
 
         lastWeekNum = weekNum;
-        return <div key={index}>{weekNum}</div>;
+        return <div key={`week-${weekNum}-${index}`}>{weekNum}</div>;
       })}
     </div>
   );

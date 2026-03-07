@@ -7,11 +7,11 @@ export function HeatmapHeader() {
   const { currentYear, setCurrentYear, trackerData } = useHeatmapContext();
 
   function onArrowBackClick() {
-    setCurrentYear(currentYear - 1);
+    setCurrentYear((prev) => prev - 1);
   }
 
   function onArrowForwardClick() {
-    setCurrentYear(currentYear + 1);
+    setCurrentYear((prev) => prev + 1);
   }
 
   return (

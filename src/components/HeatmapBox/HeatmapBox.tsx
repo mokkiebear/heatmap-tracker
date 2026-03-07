@@ -21,8 +21,8 @@ export function HeatmapBox({ box }: HeatmapBoxProps) {
     box.hasData
       ? "hasData"
       : box.isSpaceBetweenBox
-      ? "space-between-box"
-      : "isEmpty",
+        ? "space-between-box"
+        : "isEmpty",
   ];
 
   // Prepare Obsidian internal-link or custom href; prefer customHref, then filePath, then date
@@ -66,6 +66,8 @@ export function HeatmapBox({ box }: HeatmapBoxProps) {
       style={{ backgroundColor: box.backgroundColor }}
       className={`${boxClassNames.filter(Boolean).join(" ")}`}
       aria-label={box.date}
+      role="button"
+      tabIndex={0}
       onClick={onBoxClick}
     >
       <a

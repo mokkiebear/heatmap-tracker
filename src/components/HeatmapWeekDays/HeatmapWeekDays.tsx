@@ -18,13 +18,11 @@ export function HeatmapWeekDays() {
         t("weekdaysShort.Friday"),
         t("weekdaysShort.Saturday"),
       ],
-      settings.weekStartDay
+      settings.weekStartDay,
     );
   }, [settings.weekStartDay, i18n.language]);
 
-  const classNames = useMemo(() => {
-    return `heatmap-tracker-days heatmap-tracker-days--${settings.weekDisplayMode}`;
-  }, [settings.weekDisplayMode]);
+  const classNames = `heatmap-tracker-days heatmap-tracker-days--${settings.weekDisplayMode}`;
 
   return (
     <div className={classNames}>

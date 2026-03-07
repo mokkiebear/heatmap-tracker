@@ -16,7 +16,7 @@ export function HeatmapBoxesList({ boxes }: HeatmapBoxesListProps) {
       }`}
     >
       {boxes.map((box, index) => {
-        return <HeatmapBox key={index} box={box} />;
+        return <HeatmapBox key={box.date || index} box={box} />;
       })}
     </div>
   );

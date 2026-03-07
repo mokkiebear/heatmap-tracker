@@ -2,14 +2,15 @@ import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
 import { getIntensitiesInfo, getEntriesIntensities } from "src/utils/intensity";
 
 function LegendView() {
-  const { colorsList, intensityConfig, allFilteredEntries } = useHeatmapContext();
+  const { colorsList, intensityConfig, allFilteredEntries } =
+    useHeatmapContext();
 
   const intensities = getEntriesIntensities(allFilteredEntries);
 
   const intensitiesInfo = getIntensitiesInfo(
     intensities,
     intensityConfig,
-    colorsList ?? []
+    colorsList ?? [],
   );
 
   return (
@@ -24,7 +25,7 @@ function LegendView() {
         </thead>
         <tbody>
           {intensitiesInfo.map((intensityInfo, index) => (
-            <tr key={index}>
+            <tr key={intensityInfo.intensity}>
               <td>{intensityInfo.intensity}</td>
               <td>
                 {intensityInfo.min.toFixed(2)} - {intensityInfo.max.toFixed(2)}
@@ -33,8 +34,8 @@ function LegendView() {
                 <div
                   style={{
                     backgroundColor: colorsList[index],
-                    width: '12px',
-                    height: '12px'
+                    width: "12px",
+                    height: "12px",
                   }}
                   className="heatmap-tracker-box"
                 ></div>

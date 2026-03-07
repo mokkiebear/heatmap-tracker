@@ -1,5 +1,20 @@
-import { Box, ColorsList, Entry, TrackerData, TrackerSettings } from "src/types";
-import { formatDateToISO8601, getDayOfYear, getFullYear, getLastDayOfYear, getNumberOfEmptyDaysBeforeYearStarts, getToday, isSameDate, isValidDate } from "src/utils/date";
+import {
+  Box,
+  ColorsList,
+  Entry,
+  TrackerData,
+  TrackerSettings,
+} from "src/types";
+import {
+  formatDateToISO8601,
+  getDayOfYear,
+  getFullYear,
+  getLastDayOfYear,
+  getNumberOfEmptyDaysBeforeYearStarts,
+  getToday,
+  isSameDate,
+  isValidDate,
+} from "src/utils/date";
 
 export function clamp(input: number, min: number, max: number): number {
   return input < min ? min : input > max ? max : input;
@@ -10,7 +25,7 @@ export function mapRange(
   inMin: number,
   inMax: number,
   outMin: number,
-  outMax: number
+  outMax: number,
 ): number {
   const mapped: number =
     ((current - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
@@ -27,9 +42,9 @@ export function getEntriesForYear(entries: Entry[], year: number): Entry[] {
   });
 }
 
-export function getPrefilledBoxes(numberOfEmptyDaysBeforeYearBegins: number): Box[] {
+function getPrefilledBoxes(numberOfEmptyDaysBeforeYearBegins: number): Box[] {
   if (isNaN(numberOfEmptyDaysBeforeYearBegins)) {
-    throw new Error('numberOfEmptyDaysBeforeYearBegins must be a number');
+    throw new Error("numberOfEmptyDaysBeforeYearBegins must be a number");
   }
 
   return Array(numberOfEmptyDaysBeforeYearBegins).fill({
@@ -43,7 +58,7 @@ export function getBoxes(
   entriesWithIntensity: Record<number, Entry>,
   colorsList: ColorsList,
   trackerData: TrackerData,
-  settings: TrackerSettings
+  settings: TrackerSettings,
 ): Box[] {
   const numberOfEmptyDaysBeforeYearStarts =
     getNumberOfEmptyDaysBeforeYearStarts(currentYear, settings.weekStartDay);
@@ -72,7 +87,10 @@ export function getBoxes(
       }
     }
 
-    const month = currentDate.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+    const month = currentDate.toLocaleString("en-US", {
+      month: "short",
+      timeZone: "UTC",
+    });
     box.name = `month-${month.toLowerCase()}`;
     box.date = formatDateToISO8601(currentDate) ?? undefined;
 
@@ -88,7 +106,11 @@ export function getBoxes(
       box.content = entry.content || undefined;
       box.filePath = entry.filePath || undefined;
       box.customHref = entry.customHref || undefined;
-      box.backgroundColor = entry.customColor ?? (entry.intensity !== undefined ? colorsList[entry.intensity - 1] : undefined);
+      box.backgroundColor =
+        entry.customColor ??
+        (entry.intensity !== undefined
+          ? colorsList[entry.intensity - 1]
+          : undefined);
     } else {
       box.hasData = false;
     }
@@ -99,7 +121,10 @@ export function getBoxes(
   return boxes;
 }
 
-export function mergeTrackerData(defaultTrackerData: TrackerData, userTrackerData: TrackerData): TrackerData {
+export function mergeTrackerData(
+  defaultTrackerData: TrackerData,
+  userTrackerData: TrackerData,
+): TrackerData {
   if (!userTrackerData) {
     return defaultTrackerData;
   }
@@ -117,7 +142,9 @@ export function mergeTrackerData(defaultTrackerData: TrackerData, userTrackerDat
 
       scaleStart: userTrackerData.intensityScaleStart,
       scaleEnd: userTrackerData.intensityScaleEnd,
-      defaultIntensity: userTrackerData.defaultEntryIntensity ?? defaultTrackerData.intensityConfig.defaultIntensity,
+      defaultIntensity:
+        userTrackerData.defaultEntryIntensity ??
+        defaultTrackerData.intensityConfig.defaultIntensity,
     },
   };
 }
