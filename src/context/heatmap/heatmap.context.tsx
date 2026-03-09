@@ -26,11 +26,13 @@ export function HeatmapProvider({
   trackerData,
   settings,
 }: HeatmapProviderProps) {
-  const [view, setView] = useState(trackerData.ui?.defaultView || IHeatmapView.HeatmapTracker);
+  const [view, setView] = useState(
+    trackerData.ui?.defaultView || IHeatmapView.HeatmapTracker,
+  );
 
   const _defaultYear = useMemo(
     () => trackerData.year ?? getCurrentFullYear(),
-    [trackerData.year]
+    [trackerData.year],
   );
 
   const [currentYear, setCurrentYear] = useState(_defaultYear);
@@ -46,7 +48,7 @@ export function HeatmapProvider({
 
   const currentYearEntries = useMemo(
     () => getEntriesForYear(allFilteredEntries, currentYear),
-    [allFilteredEntries, currentYear]
+    [allFilteredEntries, currentYear],
   );
 
   const mergedTrackerData: TrackerData = useMemo(() => {
@@ -58,7 +60,7 @@ export function HeatmapProvider({
 
   const colorsList = useMemo(
     () => getColors(trackerData.colorScheme, settings.palettes),
-    [trackerData, settings.palettes]
+    [trackerData, settings.palettes],
   );
 
   const entriesWithIntensity = useMemo(
@@ -66,9 +68,9 @@ export function HeatmapProvider({
       fillEntriesWithIntensity(
         currentYearEntries,
         mergedTrackerData.intensityConfig,
-        colorsList
+        colorsList,
       ),
-    [currentYearEntries, mergedTrackerData.intensityConfig, colorsList]
+    [currentYearEntries, mergedTrackerData.intensityConfig, colorsList],
   );
 
   const boxes = useMemo(
@@ -78,26 +80,32 @@ export function HeatmapProvider({
         entriesWithIntensity,
         colorsList,
         mergedTrackerData,
-        settings
+        settings,
       ),
-    [currentYear, entriesWithIntensity, colorsList, mergedTrackerData, settings]
+    [
+      currentYear,
+      entriesWithIntensity,
+      colorsList,
+      mergedTrackerData,
+      settings,
+    ],
   );
 
   return (
     <HeatmapContext.Provider
       value={{
         currentYear,
-        setCurrentYear,
         currentYearEntries,
         settings,
         trackerData: mergedTrackerData,
         view,
-        setView,
         colorsList,
         entriesWithIntensity,
         allFilteredEntries,
         boxes,
         intensityConfig: trackerData.intensityConfig,
+        setCurrentYear,
+        setView,
       }}
     >
       {children}
@@ -107,17 +115,17 @@ export function HeatmapProvider({
 
 interface HeatmapContextProps {
   currentYear: number;
-  setCurrentYear: React.Dispatch<React.SetStateAction<number>>;
   currentYearEntries: Entry[];
   trackerData: TrackerData;
   intensityConfig: IntensityConfig;
   settings: TrackerSettings;
   view: IHeatmapView;
-  setView: React.Dispatch<React.SetStateAction<IHeatmapView>>;
   colorsList: ColorsList;
   entriesWithIntensity: Record<number, Entry>;
   allFilteredEntries: Entry[];
   boxes: Box[];
+  setCurrentYear: React.Dispatch<React.SetStateAction<number>>;
+  setView: React.Dispatch<React.SetStateAction<IHeatmapView>>;
 }
 
 export function useHeatmapContext(): HeatmapContextProps {
