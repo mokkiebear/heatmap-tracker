@@ -27,6 +27,9 @@
 .heatmap-tracker-header__navigation {
   display: flex;
   align-items: center;
+  direction: ltr; /* Force LTR to keep [Decrease] [Year] [Increase] order regardless of system direction */
+  justify-self: start; /* Ensure it stays on the left in LTR and correctly flips to the right in RTL (logical start) */
+  width: max-content;
 }
 
 .heatmap-tracker-header__title {
@@ -71,7 +74,7 @@
 }
 
 .heatmap-tracker-header__tabs > *:not(:last-child) {
-  margin-right: 0.2em;
+  margin-inline-end: 0.2em;
 }
 
 .heatmap-tracker-tab {

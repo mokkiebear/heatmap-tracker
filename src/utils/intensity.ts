@@ -47,7 +47,7 @@ export function getEntriesIntensities(entries: Entry[]): number[] {
 export function getIntensitiesRanges(
   numberOfIntensities: number,
   intensityStart: number,
-  intensityEnd: number
+  intensityEnd: number,
 ) {
   const intensityRanges = [];
 
@@ -57,14 +57,14 @@ export function getIntensitiesRanges(
       0,
       numberOfIntensities,
       intensityStart,
-      intensityEnd
+      intensityEnd,
     );
     const max = mapRange(
       i + 1,
       0,
       numberOfIntensities,
       intensityStart,
-      intensityEnd
+      intensityEnd,
     );
 
     intensityRanges.push({ min, max, intensity: i + 1 });
@@ -76,11 +76,11 @@ export function getIntensitiesRanges(
 export function getIntensitiesInfo(
   intensities: number[],
   intensityConfig: IntensityConfig,
-  colorsList: ColorsList
+  colorsList: ColorsList,
 ) {
   const [minimumIntensity, maximumIntensity] = getMinMaxIntensities(
     intensities,
-    intensityConfig
+    intensityConfig,
   );
 
   const numberOfColorIntensities = colorsList.length;
@@ -88,14 +88,45 @@ export function getIntensitiesInfo(
   return getIntensitiesRanges(
     numberOfColorIntensities,
     minimumIntensity,
-    maximumIntensity
+    maximumIntensity,
   );
 }
 
+/**
+ * Groups entries by day, aggregates their intensities and content, and maps them to a color intensity level.
+ *
+ * This function performs several steps:
+ * 1. Groups multiple entries for the same day into a single entry.
+ * 2. Standardizes date strings to UTC to avoid timezone inconsistencies.
+ * 3. Aggregates `intensity` (by sum) and `content` (joined by newlines).
+ * 4. Maps the aggregated intensity to a color intensity level (1 to N) based on the provided `intensityConfig` and `colorsList`.
+ * 5. Returns a record where keys are the day of the year and values are the processed entries.
+ *
+ * @param entries - The raw entries to be processed.
+ * @param intensityConfig - Configuration for how intensities should be calculated and mapped.
+ * @param colorsList - The list of available colors, used to determine the number of intensity levels.
+ * @returns A record mapping the day of the year to a single aggregated entry with its mapped intensity.
+ *
+ * @example
+ * ```typescript
+ * const entries = [
+ *   { date: "2024-01-01", intensity: 5, content: "Task A" },
+ *   { date: "2024-01-01", intensity: 10, content: "Task B" }
+ * ];
+ * const config = { defaultIntensity: 1, showOutOfRange: true };
+ * const colors = ["#eee", "#d6e685", "#8cc665", "#44a340", "#1e6823"];
+ *
+ * const result = fillEntriesWithIntensity(entries, config, colors);
+ * // Day 1 of 2024 (Jan 1st) will have:
+ * // intensity: (Mapped value based on sum 15)
+ * // value: 15
+ * // content: "Task A\nTask B"
+ * ```
+ */
 export function fillEntriesWithIntensity(
   entries: Entry[],
   intensityConfig: IntensityConfig,
-  colorsList: ColorsList
+  colorsList: ColorsList,
 ): Record<number, Entry> {
   const entriesByDay: Record<number, Entry> = {};
 
@@ -116,7 +147,7 @@ export function fillEntriesWithIntensity(
     if (match) {
       const [, year, month, day] = match;
       utcDate = new Date(
-        Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day))
+        Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)),
       );
     } else {
       // Fallback for other formats, try to force UTC by appending T00:00:00Z if missing
@@ -125,7 +156,7 @@ export function fillEntriesWithIntensity(
         : `${e.date.replace(/\//g, "-")}T00:00:00Z`;
       const date = new Date(dateStr);
       utcDate = new Date(
-        Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+        Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
       );
     }
 
@@ -150,19 +181,19 @@ export function fillEntriesWithIntensity(
   const intensitiesMap = getIntensitiesInfo(
     intensities,
     intensityConfig,
-    colorsList
+    colorsList,
   );
 
   const [minimumIntensity, maximumIntensity] = getMinMaxIntensities(
     intensities,
-    intensityConfig
+    intensityConfig,
   );
 
   Object.entries(aggregatedEntries).forEach(([dayStr, e]) => {
     const day = parseInt(dayStr);
     const currentIntensity = e.intensity ?? intensityConfig.defaultIntensity;
     const foundIntensityInfo = intensitiesMap.find(
-      (o) => currentIntensity >= o.min && currentIntensity <= o.max
+      (o) => currentIntensity >= o.min && currentIntensity <= o.max,
     );
 
     let newIntensity: number | undefined;
@@ -176,8 +207,8 @@ export function fillEntriesWithIntensity(
           minimumIntensity,
           maximumIntensity,
           1,
-          colorsList.length
-        )
+          colorsList.length,
+        ),
       );
     }
 
@@ -195,7 +226,7 @@ export function fillEntriesWithIntensity(
 
 export function getMinMaxIntensities(
   intensities: number[],
-  intensityConfig: IntensityConfig
+  intensityConfig: IntensityConfig,
 ): [number, number] {
   const [minimumIntensity, maximumIntensity] = intensities.length
     ? [Math.min(...intensities), Math.max(...intensities)]

@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.7] - 2026-03-10
+### Added
+- Comprehensive RTL (Right-to-Left) support for improved usability in languages like Hebrew and Arabic.
+
+### Fixed
+- Year navigation buttons now maintain intuitive order `[◀] [Year] [▶]` even in RTL mode.
+- Corrected alignment and spacing for week day labels and settings using logical CSS properties.
 
 ## [2.1.6] - 2026-03-06
 ### Added
