@@ -1,0 +1,45 @@
+.heatmap-tracker.monthly-heatmap {
+  display: block;
+  width: 100%;
+  padding: 8px 4px;
+  overflow: hidden;
+}
+
+.monthly-heatmap-grid {
+  display: grid;
+  grid-template-columns: auto repeat(31, minmax(0, 1fr));
+  gap: 1px;
+  align-items: center;
+}
+
+.monthly-heatmap-label {
+  text-align: right;
+  padding-right: 0.4em;
+  font-size: clamp(0.55em, 1.5vw, 0.75em);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.monthly-heatmap-day-header {
+  text-align: center;
+  font-size: clamp(0.5em, 1.2vw, 0.65em);
+  color: var(--text-muted);
+  padding-bottom: 2px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.monthly-heatmap-empty {
+  aspect-ratio: 1;
+  width: 100%;
+}
+
+.monthly-heatmap .heatmap-tracker-box {
+  aspect-ratio: 1;
+  width: 100%;
+
+  &:hover {
+    transform: none;
+    opacity: 0.75;
+  }
+}

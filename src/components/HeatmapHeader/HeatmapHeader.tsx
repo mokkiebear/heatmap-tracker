@@ -4,7 +4,7 @@ import { HeatmapTabs } from "../HeatmapTabs/HeatmapTabs";
 
 export function HeatmapHeader() {
   const { t } = useTranslation();
-  const { currentYear, setCurrentYear, trackerData } = useHeatmapContext();
+  const { currentYear, setCurrentYear, trackerData, dateRange } = useHeatmapContext();
 
   function onArrowBackClick() {
     setCurrentYear((prev) => prev - 1);
@@ -18,7 +18,7 @@ export function HeatmapHeader() {
     <div className="heatmap-tracker-header">
       <div className="heatmap-tracker-header__main-row">
         <div className="heatmap-tracker-header__navigation">
-          {trackerData?.ui?.hideYear ? null : (
+          {trackerData?.ui?.hideYear || dateRange ? null : (
             <>
               <button
                 className="heatmap-tracker-arrow left clickable-icon"

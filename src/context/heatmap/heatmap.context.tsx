@@ -10,8 +10,8 @@ import {
 } from "src/types";
 import { getColors } from "src/utils/colors";
 import { getBoxes, getEntriesForYear } from "src/utils/core";
-import { getCurrentFullYear } from "src/utils/date";
-import { fillEntriesWithIntensity } from "src/utils/intensity";
+import { DateRange, getCurrentFullYear, resolveDateRange } from "src/utils/date";
+import { fillEntriesWithIntensity, fillEntriesWithIntensityByDate } from "src/utils/intensity";
 
 export const HeatmapContext = createContext<HeatmapContextProps | null>(null);
 
@@ -37,6 +37,13 @@ export function HeatmapProvider({
 
   const [currentYear, setCurrentYear] = useState(_defaultYear);
 
+  const isMonthlyLayout = trackerData.layout === "monthly";
+
+  const dateRange = useMemo<DateRange | null>(
+    () => resolveDateRange(trackerData.startDate, trackerData.endDate, trackerData.daysToShow, trackerData.monthsToShow),
+    [trackerData.startDate, trackerData.endDate, trackerData.daysToShow, trackerData.monthsToShow],
+  );
+
   const allFilteredEntries = useMemo(() => {
     return trackerData.entries.filter((e) => {
       if (trackerData.intensityConfig?.excludeFalsy && !e.intensity) {
@@ -47,8 +54,10 @@ export function HeatmapProvider({
   }, [trackerData.entries, trackerData.intensityConfig?.excludeFalsy]);
 
   const currentYearEntries = useMemo(
-    () => getEntriesForYear(allFilteredEntries, currentYear),
-    [allFilteredEntries, currentYear],
+    () => (isMonthlyLayout && dateRange)
+      ? allFilteredEntries
+      : getEntriesForYear(allFilteredEntries, currentYear),
+    [allFilteredEntries, currentYear, isMonthlyLayout, dateRange],
   );
 
   const mergedTrackerData: TrackerData = useMemo(() => {
@@ -73,16 +82,31 @@ export function HeatmapProvider({
     [currentYearEntries, mergedTrackerData.intensityConfig, colorsList],
   );
 
+  const entriesWithIntensityByDate = useMemo(
+    () =>
+      isMonthlyLayout
+        ? fillEntriesWithIntensityByDate(
+            currentYearEntries,
+            mergedTrackerData.intensityConfig,
+            colorsList,
+          )
+        : {},
+    [isMonthlyLayout, currentYearEntries, mergedTrackerData.intensityConfig, colorsList],
+  );
+
   const boxes = useMemo(
     () =>
-      getBoxes(
-        currentYear,
-        entriesWithIntensity,
-        colorsList,
-        mergedTrackerData,
-        settings,
-      ),
+      isMonthlyLayout
+        ? [] // Monthly layout builds its own grid, not boxes
+        : getBoxes(
+            currentYear,
+            entriesWithIntensity,
+            colorsList,
+            mergedTrackerData,
+            settings,
+          ),
     [
+      isMonthlyLayout,
       currentYear,
       entriesWithIntensity,
       colorsList,
@@ -101,8 +125,10 @@ export function HeatmapProvider({
         view,
         colorsList,
         entriesWithIntensity,
+        entriesWithIntensityByDate,
         allFilteredEntries,
         boxes,
+        dateRange,
         intensityConfig: trackerData.intensityConfig,
         setCurrentYear,
         setView,
@@ -122,8 +148,10 @@ interface HeatmapContextProps {
   view: IHeatmapView;
   colorsList: ColorsList;
   entriesWithIntensity: Record<number, Entry>;
+  entriesWithIntensityByDate: Record<string, Entry>;
   allFilteredEntries: Entry[];
   boxes: Box[];
+  dateRange: DateRange | null;
   setCurrentYear: React.Dispatch<React.SetStateAction<number>>;
   setView: React.Dispatch<React.SetStateAction<IHeatmapView>>;
 }
