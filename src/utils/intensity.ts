@@ -1,6 +1,6 @@
 import { ColorsList, Entry, IntensityConfig } from "src/types";
 import { mapRange } from "./core";
-import { getDayOfYear } from "./date";
+import { formatDateToISO8601, getDayOfYear, parseUTCDate } from "./date";
 
 /**
  * Returns an array of unique intensities from the given entries.
@@ -222,6 +222,69 @@ export function fillEntriesWithIntensity(
   });
 
   return entriesByDay;
+}
+
+/**
+ * Like fillEntriesWithIntensity but keyed by ISO date string (YYYY-MM-DD)
+ * instead of day-of-year. Supports date ranges spanning multiple years.
+ */
+export function fillEntriesWithIntensityByDate(
+  entries: Entry[],
+  intensityConfig: IntensityConfig,
+  colorsList: ColorsList,
+): Record<string, Entry> {
+  const entriesByDate: Record<string, Entry> = {};
+  const aggregated: Record<string, Entry> = {};
+
+  entries.forEach((e) => {
+    if (intensityConfig.excludeFalsy && !e.intensity) return;
+
+    const utcDate = parseUTCDate(e.date);
+    const dateKey = formatDateToISO8601(utcDate);
+    if (!dateKey) return;
+
+    if (aggregated[dateKey]) {
+      const existing = aggregated[dateKey];
+      aggregated[dateKey] = {
+        ...existing,
+        intensity: (existing.intensity || 0) + (e.intensity || 0),
+        content:
+          existing.content && e.content
+            ? `${existing.content}\n${e.content}`
+            : existing.content || e.content,
+      };
+    } else {
+      aggregated[dateKey] = { ...e };
+    }
+  });
+
+  const intensities = getEntriesIntensities(Object.values(aggregated));
+  const intensitiesMap = getIntensitiesInfo(intensities, intensityConfig, colorsList);
+  const [minimumIntensity, maximumIntensity] = getMinMaxIntensities(intensities, intensityConfig);
+
+  Object.entries(aggregated).forEach(([dateKey, e]) => {
+    const currentIntensity = e.intensity ?? intensityConfig.defaultIntensity;
+    const foundIntensityInfo = intensitiesMap.find(
+      (o) => currentIntensity >= o.min && currentIntensity <= o.max,
+    );
+
+    let newIntensity: number | undefined;
+    if (foundIntensityInfo) {
+      newIntensity = foundIntensityInfo.intensity;
+    } else if (intensityConfig.showOutOfRange && currentIntensity !== 0) {
+      newIntensity = Math.round(
+        mapRange(currentIntensity, minimumIntensity, maximumIntensity, 1, colorsList.length),
+      );
+    }
+
+    entriesByDate[dateKey] = {
+      ...e,
+      value: e.intensity,
+      intensity: newIntensity,
+    };
+  });
+
+  return entriesByDate;
 }
 
 export function getMinMaxIntensities(

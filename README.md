@@ -190,6 +190,41 @@ Notes
 - **Default:** `[]`
 - **Description:** Powerful property for calculating and displaying your own insights in `Statistics`. Check this [example](https://github.com/mokkiebear/heatmap-tracker/blob/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters/6.%20insights.md).
 
+---
+
+### `layout`
+- **Type:** `"default" | "monthly"`
+- **Default:** `"default"`
+- **Description:** Controls the heatmap grid arrangement. `"default"` renders the traditional GitHub-style week-column grid. `"monthly"` renders one row per month with days 1–31 as columns, providing a compact calendar-style view.
+
+---
+
+### `monthsToShow`
+- **Type:** `number`
+- **Default:** `undefined` (shows full year)
+- **Description:** Show the current month plus the N previous months. For example, `monthsToShow: 3` displays 4 rows (current month + 3 prior). Takes precedence over `daysToShow` and `startDate`/`endDate`. Best used with `layout: "monthly"`.
+
+---
+
+### `daysToShow`
+- **Type:** `number`
+- **Default:** `undefined` (shows full year)
+- **Description:** Show the last N days from today. Takes precedence over `startDate`/`endDate` but is overridden by `monthsToShow`.
+
+---
+
+### `startDate`
+- **Type:** `string` (format: `YYYY-MM-DD`)
+- **Default:** `undefined`
+- **Description:** First date to display. Must be used together with `endDate`. Overridden by `daysToShow` or `monthsToShow`.
+
+---
+
+### `endDate`
+- **Type:** `string` (format: `YYYY-MM-DD`)
+- **Default:** `undefined`
+- **Description:** Last date to display. Must be used together with `startDate`. Overridden by `daysToShow` or `monthsToShow`.
+
 
 <img src="https://raw.githubusercontent.com/mokkiebear/heatmap-tracker/refs/heads/main/public/two-mac-mockup.png" />
 
@@ -256,6 +291,11 @@ To be used with [Obsidian Dataview](https://blacksmithgu.github.io/obsidian-data
     <summary>9. <b>Customizable Font.</b> Use your favorite font with this plugin.</summary>
     <p>Additionally, you can use <code>HTML</code> to further customize the plugin's appearance.</p>
     <img width="400" alt="Font Customization" src="https://github.com/user-attachments/assets/09f79cbe-45e8-477e-8111-631f34b98cdb" />
+</details>
+
+<details>
+    <summary>10. <b>Monthly Layout.</b> Display your heatmap as a compact calendar with one row per month.</summary>
+    <p>Set <code>layout: "monthly"</code> to switch from the default GitHub-style grid to a calendar-style view with days 1–31 as columns. Combine with <code>monthsToShow</code> to display only recent months.</p>
 </details>
 
 <img src="https://raw.githubusercontent.com/mokkiebear/heatmap-tracker/refs/heads/main/public/mac-mockup-dark.png" />

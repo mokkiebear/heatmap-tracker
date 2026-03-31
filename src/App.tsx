@@ -18,10 +18,13 @@ const DocumentationView = lazy(
 );
 
 const LegendView = lazy(() => import("./views/LegendView/LegendView"));
+const MonthlyHeatmapView = lazy(
+  () => import("./views/MonthlyHeatmapView/MonthlyHeatmapView")
+);
 
 function ReactApp() {
   const { i18n } = useTranslation();
-  const { currentYear, settings, view } = useHeatmapContext();
+  const { currentYear, settings, view, trackerData } = useHeatmapContext();
 
   useEffect(() => {
     i18n.changeLanguage(settings.language);
@@ -30,7 +33,9 @@ function ReactApp() {
   let content;
   switch (view) {
     case IHeatmapView.HeatmapTracker:
-      content = <HeatmapTrackerView />;
+      content = trackerData.layout === "monthly"
+        ? <MonthlyHeatmapView />
+        : <HeatmapTrackerView />;
       break;
     case IHeatmapView.HeatmapTrackerStatistics:
       content = <StatisticsView />;

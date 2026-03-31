@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+### Added
+- Monthly layout mode (`layout: "monthly"`) — renders one row per month with days 1–31 as columns.
+- Date range parameters: `monthsToShow`, `daysToShow`, `startDate`, `endDate` for partial year views.
+- Year navigation is automatically hidden when a date range is active.
+
 ## [2.1.7] - 2026-03-10
 ### Added
 - Comprehensive RTL (Right-to-Left) support for improved usability in languages like Hebrew and Arabic.

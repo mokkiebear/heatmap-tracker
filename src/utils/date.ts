@@ -90,3 +90,60 @@ export function isSameDate(d1: Date, d2: Date): boolean {
     d1.getUTCDate() === d2.getUTCDate()
   );
 }
+
+export function parseUTCDate(dateStr: string): Date {
+  const match = dateStr.match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
+  if (match) {
+    const [, year, month, day] = match;
+    return new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
+  }
+  const date = new Date(dateStr);
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+}
+
+export function addDays(date: Date, days: number): Date {
+  const result = new Date(date.getTime());
+  result.setUTCDate(result.getUTCDate() + days);
+  return result;
+}
+
+export interface DateRange {
+  start: Date;
+  end: Date;
+}
+
+export function resolveDateRange(
+  startDate?: string,
+  endDate?: string,
+  daysToShow?: number,
+  monthsToShow?: number,
+): DateRange | null {
+  if (monthsToShow !== undefined && monthsToShow >= 0) {
+    const today = getToday();
+    const endOfMonth = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, 0));
+    const startOfRange = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - monthsToShow, 1));
+    return { start: startOfRange, end: endOfMonth };
+  }
+
+  if (daysToShow !== undefined && daysToShow > 0) {
+    const today = getToday();
+    return {
+      start: addDays(today, -(daysToShow - 1)),
+      end: today,
+    };
+  }
+
+  if (startDate && endDate) {
+    const start = parseUTCDate(startDate);
+    const end = parseUTCDate(endDate);
+    if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && start <= end) {
+      return { start, end };
+    }
+  }
+
+  return null;
+}
+
+export function getDaysInMonth(year: number, month: number): number {
+  return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+}
