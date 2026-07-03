@@ -5,6 +5,22 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Removed
+- Deprecated `defaultEntryIntensity`, `intensityScaleStart`, and `intensityScaleEnd` `trackerData` parameters. Use `intensityConfig` instead — old codeblocks/dataviewjs scripts using the deprecated fields keep working (they're migrated automatically).
+
+### Changed
+- Rewrote the "Insert Heatmap Tracker" modal (`HeatmapModal`) around a single form-state object instead of ~15 separate variables, cutting the file from 543 to 359 lines and removing a lot of duplicated preview-update code.
+- README's "Tracker Settings Documentation" is now the single source of truth for `trackerData` parameters (added missing `heatmapTitle`, `heatmapSubtitle`, `disableFileCreation`, and `intensityConfig` sections); EXAMPLE_VAULT's parameter doc pages now link back to it instead of duplicating definitions.
+- Documented the date-range precedence (`monthsToShow` > `daysToShow` > `startDate`/`endDate`) in one place, `resolveDateRange` in `src/utils/date.ts`, and added test coverage for it.
+
+### Fixed
+- `intensityConfig.scaleStart`/`scaleEnd` set directly by a user could be silently overwritten with `undefined` when the deprecated intensity fields weren't also set.
+- Fixed a missing comma in the `intensityConfig` example in EXAMPLE_VAULT that would throw if copy-pasted into a `dataviewjs` block.
+- `npm test` could fail non-deterministically due to Jest's haste module map crawling nested git worktrees under `.claude/worktrees/`.
+
+### Added
+- `ARCHITECTURE.md`: a one-page map of how data flows from a codeblock/dataviewjs script through validation, context, and views, for new contributors.
+- README's language list corrected from "English, German, and Russian" to all 9 currently supported languages.
 
 ## [2.3.0] - 2026-07-03
 ### Fixed

@@ -47,9 +47,6 @@ const docsInspiredTrackerData: Partial<TrackerData> = {
     scaleEnd: 10000,
     showOutOfRange: false,
   },
-  intensityScaleStart: 500,
-  intensityScaleEnd: 10000,
-  defaultEntryIntensity: 2,
   entries: [
     {
       date: "2024-01-01",
@@ -120,9 +117,6 @@ const extendedPaletteTrackerData: Partial<TrackerData> = {
     scaleEnd: 11000,
     showOutOfRange: true,
   },
-  intensityScaleStart: 1000,
-  intensityScaleEnd: 11000,
-  defaultEntryIntensity: 6,
   entries: Array.from({ length: 10 }).map((_, index) => ({
     date: `2023-${String(index + 1).padStart(2, "0")}-${String(
       (index % 3) + 1

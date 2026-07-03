@@ -6,11 +6,52 @@ import { Root } from "react-dom/client";
 import { renderApp } from "../render";
 import ReactApp from "../App";
 
+interface HeatmapModalFormState {
+  heatmapTitle: string;
+  heatmapSubtitle: string;
+  property: string;
+  path: string;
+  year: number;
+  separateMonths: boolean;
+  showCurrentDayBorder: boolean;
+  disableFileCreation: boolean;
+  excludeFalsy: boolean;
+  palette: string;
+  hideTabs: boolean;
+  hideYear: boolean;
+  hideTitle: boolean;
+  hideSubtitle: boolean;
+  showWeekNums: boolean;
+  defaultView: IHeatmapView;
+}
+
+function createInitialFormState(): HeatmapModalFormState {
+  return {
+    heatmapTitle: "",
+    heatmapSubtitle: "",
+    property: "",
+    path: "",
+    year: new Date().getFullYear(),
+    separateMonths: true,
+    showCurrentDayBorder: true,
+    disableFileCreation: false,
+    excludeFalsy: false,
+    palette: "default",
+    hideTabs: false,
+    hideYear: false,
+    hideTitle: false,
+    hideSubtitle: false,
+    showWeekNums: false,
+    defaultView: IHeatmapView.HeatmapTracker,
+  };
+}
+
 export class HeatmapModal extends Modal {
   private settings: TrackerSettings;
   private onSubmit: (result: any) => void;
   private previewContainer: HTMLDivElement | null = null;
   private previewRoot: Root | null = null;
+  private formState: HeatmapModalFormState = createInitialFormState();
 
   constructor(
     app: App,
@@ -25,26 +66,9 @@ export class HeatmapModal extends Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
+    this.formState = createInitialFormState();
 
     this.setTitle("Create new Heatmap Tracker (beta)");
-
-    let heatmapTitle = "";
-    let heatmapSubtitle = "";
-    let property = "";
-    let year = new Date().getFullYear();
-    let separateMonths = true; // Default from schema/constants usually
-    let showCurrentDayBorder = true;
-    let disableFileCreation = false;
-    let palette = "default";
-    let path = "";
-
-    // UI Schema
-    let hideTabs = false;
-    let hideYear = false;
-    let hideTitle = false;
-    let hideSubtitle = false;
-    let showWeekNums = false;
-    let defaultView = IHeatmapView.HeatmapTracker;
 
     // Title
     new Setting(contentEl)
@@ -52,22 +76,8 @@ export class HeatmapModal extends Modal {
       .setDesc('Values stored in "heatmapTitle"')
       .addText((text) =>
         text.onChange((value) => {
-          heatmapTitle = value;
-          this.updatePreview({
-            heatmapTitle,
-            heatmapSubtitle,
-            year,
-            separateMonths,
-            showCurrentDayBorder,
-            palette,
-            hideTabs,
-            hideYear,
-            hideTitle,
-            hideSubtitle,
-            showWeekNums,
-            defaultView,
-            excludeFalsy,
-          });
+          this.formState.heatmapTitle = value;
+          this.updatePreview();
         })
       );
 
@@ -77,22 +87,8 @@ export class HeatmapModal extends Modal {
       .setDesc('Values stored in "heatmapSubtitle"')
       .addText((text) =>
         text.onChange((value) => {
-          heatmapSubtitle = value;
-          this.updatePreview({
-            heatmapTitle,
-            heatmapSubtitle,
-            year,
-            separateMonths,
-            showCurrentDayBorder,
-            palette,
-            hideTabs,
-            hideYear,
-            hideTitle,
-            hideSubtitle,
-            showWeekNums,
-            defaultView,
-            excludeFalsy,
-          });
+          this.formState.heatmapSubtitle = value;
+          this.updatePreview();
         })
       );
 
@@ -119,31 +115,17 @@ export class HeatmapModal extends Modal {
         sortedProps.forEach((p) => dropdown.addOption(p, p));
 
         dropdown.onChange((value) => {
-          property = value;
+          this.formState.property = value;
         });
       });
 
     // Year
     new Setting(contentEl).setName("Year").addText((text) => {
       text.inputEl.type = "number";
-      text.setValue(String(year));
+      text.setValue(String(this.formState.year));
       text.onChange((value) => {
-        year = Number(value);
-        this.updatePreview({
-          heatmapTitle,
-          heatmapSubtitle,
-          year,
-          separateMonths,
-          showCurrentDayBorder,
-          palette,
-          hideTabs,
-          hideYear,
-          hideTitle,
-          hideSubtitle,
-          showWeekNums,
-          defaultView,
-          excludeFalsy,
-        });
+        this.formState.year = Number(value);
+        this.updatePreview();
       });
     });
 
@@ -153,7 +135,7 @@ export class HeatmapModal extends Modal {
       .setDesc("Folder to search in (optional)")
       .addText((text) =>
         text.onChange((value) => {
-          path = value;
+          this.formState.path = value;
         })
       );
 
@@ -162,47 +144,19 @@ export class HeatmapModal extends Modal {
       Object.keys(this.settings.palettes).forEach((p) => {
         dropdown.addOption(p, p);
       });
-      dropdown.setValue(palette);
+      dropdown.setValue(this.formState.palette);
       dropdown.onChange((value) => {
-        palette = value;
-        this.updatePreview({
-          heatmapTitle,
-          heatmapSubtitle,
-          year,
-          separateMonths,
-          showCurrentDayBorder,
-          palette,
-          hideTabs,
-          hideYear,
-          hideTitle,
-          hideSubtitle,
-          showWeekNums,
-          defaultView,
-          excludeFalsy,
-        });
+        this.formState.palette = value;
+        this.updatePreview();
       });
     });
 
     // Separate Months
     new Setting(contentEl).setName("Separate months").addToggle((toggle) => {
-      toggle.setValue(separateMonths);
+      toggle.setValue(this.formState.separateMonths);
       toggle.onChange((value) => {
-        separateMonths = value;
-        this.updatePreview({
-          heatmapTitle,
-          heatmapSubtitle,
-          year,
-          separateMonths,
-          showCurrentDayBorder,
-          palette,
-          hideTabs,
-          hideYear,
-          hideTitle,
-          hideSubtitle,
-          showWeekNums,
-          defaultView,
-          excludeFalsy,
-        });
+        this.formState.separateMonths = value;
+        this.updatePreview();
       });
     });
 
@@ -210,24 +164,10 @@ export class HeatmapModal extends Modal {
     new Setting(contentEl)
       .setName("Show current day border")
       .addToggle((toggle) => {
-        toggle.setValue(showCurrentDayBorder);
+        toggle.setValue(this.formState.showCurrentDayBorder);
         toggle.onChange((value) => {
-          showCurrentDayBorder = value;
-          this.updatePreview({
-            heatmapTitle,
-            heatmapSubtitle,
-            year,
-            separateMonths,
-            showCurrentDayBorder,
-            palette,
-            hideTabs,
-            hideYear,
-            hideTitle,
-            hideSubtitle,
-            showWeekNums,
-            defaultView,
-            excludeFalsy,
-          });
+          this.formState.showCurrentDayBorder = value;
+          this.updatePreview();
         });
       });
 
@@ -235,36 +175,21 @@ export class HeatmapModal extends Modal {
     new Setting(contentEl)
       .setName("Disable file creation")
       .addToggle((toggle) => {
-        toggle.setValue(disableFileCreation);
+        toggle.setValue(this.formState.disableFileCreation);
         toggle.onChange((value) => {
-          disableFileCreation = value;
+          this.formState.disableFileCreation = value;
         });
       });
 
     // Exclude Falsy
-    let excludeFalsy = false;
     new Setting(contentEl)
       .setName("Exclude zero/falsy values")
       .setDesc("If enabled, 0 or blank values will be ignored and won't break streaks.")
       .addToggle((toggle) => {
-        toggle.setValue(excludeFalsy);
+        toggle.setValue(this.formState.excludeFalsy);
         toggle.onChange((value) => {
-          excludeFalsy = value;
-          this.updatePreview({
-            heatmapTitle,
-            heatmapSubtitle,
-            year,
-            separateMonths,
-            showCurrentDayBorder,
-            palette,
-            hideTabs,
-            hideYear,
-            hideTitle,
-            hideSubtitle,
-            showWeekNums,
-            defaultView,
-            excludeFalsy,
-          });
+          this.formState.excludeFalsy = value;
+          this.updatePreview();
         });
       });
 
@@ -272,112 +197,42 @@ export class HeatmapModal extends Modal {
     contentEl.createEl("h3", { text: "UI Settings" });
 
     new Setting(contentEl).setName("Hide tabs").addToggle((toggle) => {
-      toggle.setValue(hideTabs);
+      toggle.setValue(this.formState.hideTabs);
       toggle.onChange((value) => {
-        hideTabs = value;
-        this.updatePreview({
-          heatmapTitle,
-          heatmapSubtitle,
-          year,
-          separateMonths,
-          showCurrentDayBorder,
-          palette,
-          hideTabs,
-          hideYear,
-          hideTitle,
-          hideSubtitle,
-          showWeekNums,
-          defaultView,
-          excludeFalsy,
-        });
+        this.formState.hideTabs = value;
+        this.updatePreview();
       });
     });
 
     new Setting(contentEl).setName("Hide year").addToggle((toggle) => {
-      toggle.setValue(hideYear);
+      toggle.setValue(this.formState.hideYear);
       toggle.onChange((value) => {
-        hideYear = value;
-        this.updatePreview({
-          heatmapTitle,
-          heatmapSubtitle,
-          year,
-          separateMonths,
-          showCurrentDayBorder,
-          palette,
-          hideTabs,
-          hideYear,
-          hideTitle,
-          hideSubtitle,
-          showWeekNums,
-          defaultView,
-          excludeFalsy,
-        });
+        this.formState.hideYear = value;
+        this.updatePreview();
       });
     });
 
     new Setting(contentEl).setName("Hide title").addToggle((toggle) => {
-      toggle.setValue(hideTitle);
+      toggle.setValue(this.formState.hideTitle);
       toggle.onChange((value) => {
-        hideTitle = value;
-        this.updatePreview({
-          heatmapTitle,
-          heatmapSubtitle,
-          year,
-          separateMonths,
-          showCurrentDayBorder,
-          palette,
-          hideTabs,
-          hideYear,
-          hideTitle,
-          hideSubtitle,
-          showWeekNums,
-          defaultView,
-          excludeFalsy,
-        });
+        this.formState.hideTitle = value;
+        this.updatePreview();
       });
     });
 
     new Setting(contentEl).setName("Hide subtitle").addToggle((toggle) => {
-      toggle.setValue(hideSubtitle);
+      toggle.setValue(this.formState.hideSubtitle);
       toggle.onChange((value) => {
-        hideSubtitle = value;
-        this.updatePreview({
-          heatmapTitle,
-          heatmapSubtitle,
-          year,
-          separateMonths,
-          showCurrentDayBorder,
-          palette,
-          hideTabs,
-          hideYear,
-          hideTitle,
-          hideSubtitle,
-          showWeekNums,
-          defaultView,
-          excludeFalsy,
-        });
+        this.formState.hideSubtitle = value;
+        this.updatePreview();
       });
     });
 
     new Setting(contentEl).setName("Show week numbers").addToggle((toggle) => {
-      toggle.setValue(showWeekNums);
+      toggle.setValue(this.formState.showWeekNums);
       toggle.onChange((value) => {
-        showWeekNums = value;
-        this.updatePreview({
-          heatmapTitle,
-          heatmapSubtitle,
-          year,
-          separateMonths,
-          showCurrentDayBorder,
-          palette,
-          hideTabs,
-          hideYear,
-          hideTitle,
-          hideSubtitle,
-          showWeekNums,
-          defaultView,
-          excludeFalsy,
-        });
+        this.formState.showWeekNums = value;
+        this.updatePreview();
       });
     });
 
@@ -385,24 +240,10 @@ export class HeatmapModal extends Modal {
       Object.values(IHeatmapView).forEach((v) => {
         dropdown.addOption(v, v);
       });
-      dropdown.setValue(defaultView);
+      dropdown.setValue(this.formState.defaultView);
       dropdown.onChange((value) => {
-        defaultView = value as IHeatmapView;
-        this.updatePreview({
-          heatmapTitle,
-          heatmapSubtitle,
-          year,
-          separateMonths,
-          showCurrentDayBorder,
-          palette,
-          hideTabs,
-          hideYear,
-          hideTitle,
-          hideSubtitle,
-          showWeekNums,
-          defaultView,
-          excludeFalsy,
-        });
+        this.formState.defaultView = value as IHeatmapView;
+        this.updatePreview();
       });
     });
 
@@ -413,21 +254,7 @@ export class HeatmapModal extends Modal {
     });
 
     // Initial preview render
-    this.updatePreview({
-      heatmapTitle,
-      heatmapSubtitle,
-      year,
-      separateMonths,
-      showCurrentDayBorder,
-      palette,
-      hideTabs,
-      hideYear,
-      hideTitle,
-      hideSubtitle,
-      showWeekNums,
-      defaultView,
-      excludeFalsy,
-    });
+    this.updatePreview();
 
     // Submit Button
     new Setting(contentEl).addButton((btn) =>
@@ -436,26 +263,27 @@ export class HeatmapModal extends Modal {
         .setCta()
         .onClick(() => {
           this.close();
+          const state = this.formState;
           this.onSubmit({
-            heatmapTitle,
-            heatmapSubtitle,
-            property,
-            year,
-            separateMonths,
-            showCurrentDayBorder,
-            disableFileCreation,
-            excludeFalsy,
-            colorScheme: { paletteName: palette },
-            path: path ? path : undefined,
+            heatmapTitle: state.heatmapTitle,
+            heatmapSubtitle: state.heatmapSubtitle,
+            property: state.property,
+            year: state.year,
+            separateMonths: state.separateMonths,
+            showCurrentDayBorder: state.showCurrentDayBorder,
+            disableFileCreation: state.disableFileCreation,
+            excludeFalsy: state.excludeFalsy,
+            colorScheme: { paletteName: state.palette },
+            path: state.path ? state.path : undefined,
             ui: {
-              hideTabs: hideTabs ? true : undefined,
-              hideYear: hideYear ? true : undefined,
-              hideTitle: hideTitle ? true : undefined,
-              hideSubtitle: hideSubtitle ? true : undefined,
-              showWeekNums: showWeekNums ? true : undefined,
+              hideTabs: state.hideTabs ? true : undefined,
+              hideYear: state.hideYear ? true : undefined,
+              hideTitle: state.hideTitle ? true : undefined,
+              hideSubtitle: state.hideSubtitle ? true : undefined,
+              showWeekNums: state.showWeekNums ? true : undefined,
               defaultView:
-                defaultView !== IHeatmapView.HeatmapTracker
-                  ? defaultView
+                state.defaultView !== IHeatmapView.HeatmapTracker
+                  ? state.defaultView
                   : undefined,
             },
           });
@@ -474,21 +302,7 @@ export class HeatmapModal extends Modal {
     contentEl.empty();
   }
 
-  private updatePreview(config: {
-    heatmapTitle: string;
-    heatmapSubtitle: string;
-    year: number;
-    separateMonths: boolean;
-    showCurrentDayBorder: boolean;
-    palette: string;
-    hideTabs: boolean;
-    hideYear: boolean;
-    hideTitle: boolean;
-    hideSubtitle: boolean;
-    showWeekNums: boolean;
-    defaultView: IHeatmapView;
-    excludeFalsy: boolean;
-  }) {
+  private updatePreview() {
     if (!this.previewContainer) return;
 
     // Clean up previous render
@@ -497,35 +311,37 @@ export class HeatmapModal extends Modal {
     }
     this.previewContainer.empty();
 
+    const state = this.formState;
+
     // Create tracker data for preview with empty entries
     const previewData = {
       entries: [],
-      year: config.year,
-      heatmapTitle: config.heatmapTitle || "Preview Title",
-      heatmapSubtitle: config.heatmapSubtitle || "Preview Subtitle",
-      showCurrentDayBorder: config.showCurrentDayBorder,
-      colorScheme: { paletteName: config.palette },
+      year: state.year,
+      heatmapTitle: state.heatmapTitle || "Preview Title",
+      heatmapSubtitle: state.heatmapSubtitle || "Preview Subtitle",
+      showCurrentDayBorder: state.showCurrentDayBorder,
+      colorScheme: { paletteName: state.palette },
       ui: {
-        hideTabs: config.hideTabs ? true : undefined,
-        hideYear: config.hideYear ? true : undefined,
-        hideTitle: config.hideTitle ? true : undefined,
-        hideSubtitle: config.hideSubtitle ? true : undefined,
-        showWeekNums: config.showWeekNums ? true : undefined,
+        hideTabs: state.hideTabs ? true : undefined,
+        hideYear: state.hideYear ? true : undefined,
+        hideTitle: state.hideTitle ? true : undefined,
+        hideSubtitle: state.hideSubtitle ? true : undefined,
+        showWeekNums: state.showWeekNums ? true : undefined,
         defaultView:
-          config.defaultView !== IHeatmapView.HeatmapTracker
-            ? config.defaultView
+          state.defaultView !== IHeatmapView.HeatmapTracker
+            ? state.defaultView
             : undefined,
       },
       intensityConfig: {
-        excludeFalsy: config.excludeFalsy,
+        excludeFalsy: state.excludeFalsy,
       },
     };
 
     // Merge with plugin settings, using preview palette
     const previewSettings = {
       ...this.settings,
-      separateMonths: config.separateMonths,
-      showWeekNums: config.showWeekNums,
+      separateMonths: state.separateMonths,
+      showWeekNums: state.showWeekNums,
     };
 
     // Render preview

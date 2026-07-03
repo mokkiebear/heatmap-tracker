@@ -12,9 +12,6 @@ export const DEFAULT_TRACKER_DATA: TrackerData = {
     showOutOfRange: true,
     excludeFalsy: undefined,
   },
-  intensityScaleStart: undefined,
-  intensityScaleEnd: undefined,
-  defaultEntryIntensity: 4,
   colorScheme: {
     paletteName: "default",
   },

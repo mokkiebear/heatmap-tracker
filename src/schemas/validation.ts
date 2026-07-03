@@ -24,21 +24,9 @@ function levenshtein(a: string, b: string): number {
   return dp[a.length][b.length];
 }
 
-const trackerAllowedKeys = [
-  "year",
-  "colorScheme",
-  "entries",
-  "showCurrentDayBorder",
-  "basePath",
-  "defaultEntryIntensity",
-  "intensityScaleStart",
-  "intensityScaleEnd",
-  "intensityConfig",
-  "separateMonths",
-  "heatmapTitle",
-  "heatmapSubtitle",
-  "insights",
-];
+// Derived from the schema so this list can't drift from the real fields
+// (e.g. a field being removed/renamed without updating a hand-maintained list).
+const trackerAllowedKeys = Object.keys(TrackerDataSchema.shape);
 
 function suggestKeyName(badKey: string): string | null {
   let best: { key: string; dist: number } | null = null;

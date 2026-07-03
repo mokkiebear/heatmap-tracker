@@ -1,5 +1,9 @@
 export const trackerDataMock = {
   "year": 2024,
+  "intensityConfig": {
+    "scaleStart": 1,
+    "scaleEnd": 10000
+  },
   "entries": [
     {
       "date": "2022-04-01",
@@ -617,7 +621,5 @@ export const trackerDataMock = {
       "rgb(25, 97, 40)"
     ]
   },
-  "heatmapTitle": "👣 Steps Tracker 👣 (11 intensities instead of 5)",
-  "intensityScaleStart": 1,
-  "intensityScaleEnd": 10000
+  "heatmapTitle": "👣 Steps Tracker 👣 (11 intensities instead of 5)"
 };

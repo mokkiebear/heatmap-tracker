@@ -114,6 +114,20 @@ export interface DateRange {
   end: Date;
 }
 
+/**
+ * Resolves the four date-range params (`startDate`/`endDate`, `daysToShow`,
+ * `monthsToShow`) into a single {@link DateRange}. This is the single place
+ * that decides which param wins when more than one is set — nothing else in
+ * the codebase should re-implement this precedence.
+ *
+ * Precedence (highest to lowest):
+ * 1. `monthsToShow` — current month plus N previous months.
+ * 2. `daysToShow` — last N days ending today.
+ * 3. `startDate` + `endDate` — explicit range (both required, `start` <= `end`).
+ *
+ * Returns `null` when none of the params resolve to a valid range, in which
+ * case callers fall back to showing the full `year`.
+ */
 export function resolveDateRange(
   startDate?: string,
   endDate?: string,

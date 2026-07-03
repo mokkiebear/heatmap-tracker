@@ -91,12 +91,30 @@ Notes
 - If neither is available, it falls back to the Daily Notes settings (folder/format) via the Daily Notes API.
 
 ## Tracker Settings Documentation
-> You can also read about parameters in [EXAMPLE_VAULT](https://github.com/mokkiebear/heatmap-tracker/tree/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters) (there're examples).
+
+This section is the authoritative reference for every `trackerData` parameter. [EXAMPLE_VAULT](https://github.com/mokkiebear/heatmap-tracker/tree/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters) has copy-pasteable `dataviewjs` examples for each one — each parameter below links to its example.
 
 ### `year`
 - **Type:** `number`
 - **Default:** Current year (`new Date().getFullYear()`)
 - **Description:** Specifies the year for which the heatmap should display data by default.
+- **Example:** [year](https://github.com/mokkiebear/heatmap-tracker/blob/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters/3.%20year.md)
+
+---
+
+### `heatmapTitle`
+- **Type:** `string | number`
+- **Default:** `undefined`
+- **Description:** Title displayed above the heatmap. Supports HTML for custom styling.
+- **Example:** [heatmapTitle](https://github.com/mokkiebear/heatmap-tracker/blob/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters/1.%20heatmapTitle.md)
+
+---
+
+### `heatmapSubtitle`
+- **Type:** `string | number`
+- **Default:** `undefined`
+- **Description:** Subtitle/description displayed under the title. Supports HTML for custom styling.
+- **Example:** [heatmapSubtitle](https://github.com/mokkiebear/heatmap-tracker/blob/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters/2.%20heatmapSubtitle%20(Description).md)
 
 ---
 
@@ -109,14 +127,15 @@ Notes
   "customColors": []
 }
 ```
-- **Description:** Defines the color scale used for representing different intensity levels in the heatmap. Each color corresponds to a specific range of data intensity.
+- **Description:** Defines the color scale used for representing different intensity levels in the heatmap. Each color corresponds to a specific range of data intensity. Use `paletteName` to reference a palette from plugin settings, or `customColors` to provide your own array of colors inline.
+- **Example:** [colorScheme](https://github.com/mokkiebear/heatmap-tracker/blob/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters/10.%20colorScheme.md)
 
 ---
 
 ### `customColor`
 - **Type:** `string`
 - **Default:** `undefined`
-- **Description:** Entry property. Sets the color for specific entry. If you want some entry (based on the condition) to have a different color, you can set it here.
+- **Description:** Entry property (set on an item inside `entries`, not on `trackerData` itself). Sets the color for that specific entry, overriding `colorScheme`.
 
 ---
 
@@ -130,9 +149,12 @@ Notes
 ```
 - **Description:** A list of data entries for the heatmap. Each entry includes:
   - `date`: The date of the entry (ISO string format).
-  - `customColor`: The color for that entry.
   - `intensity`: The data intensity for that date.
   - `content`: Optional tooltip or note associated with the date.
+  - `customColor`: Overrides the color for that entry.
+  - `filePath`: Absolute path to the file to open when clicked.
+  - `customHref`: Custom URL to open when clicked (takes precedence over `filePath`).
+- **Example:** [entries](https://github.com/mokkiebear/heatmap-tracker/blob/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters/11.%20entries.md)
 
 ---
 
@@ -140,34 +162,30 @@ Notes
 - **Type:** `boolean`
 - **Default:** `true`
 - **Description:** Indicates whether the current day should be highlighted with a border on the heatmap.
+- **Example:** [showCurrentDayBorder](https://github.com/mokkiebear/heatmap-tracker/blob/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters/5.%20showCurrentDayBorder.md)
 
 ---
 
-### `defaultEntryIntensity`
-- **Type:** `number`
-- **Default:** `4`
-- **Description:** The default intensity assigned to new data entries if no intensity is explicitly specified.
+### `intensityConfig`
+- **Type:** `object`
+- **Default:**
+```
+{
+  "scaleStart": undefined,
+  "scaleEnd": undefined,
+  "defaultIntensity": 4,
+  "showOutOfRange": true,
+  "excludeFalsy": undefined
+}
+```
+- **Description:** Configures the intensity scale used to map entry values to colors.
+  - `scaleStart` / `scaleEnd`: The minimum/maximum values of the intensity scale. Useful for a custom range, e.g. tracking reading time only between 30 minutes and 2 hours.
+  - `defaultIntensity`: Intensity assigned to entries that don't specify one.
+  - `showOutOfRange`: Whether entries outside `scaleStart`/`scaleEnd` are still shown (clamped) or hidden.
+  - `excludeFalsy`: When `true`, entries with falsy intensity (`0`, `undefined`, `null`, `false`) are excluded from the heatmap and don't break streaks.
+- **Example:** [intensityConfig](https://github.com/mokkiebear/heatmap-tracker/blob/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters/9.%20intensityConfig.md)
 
----
-
-### `intensityScaleStart`
-- **Type:** `number`
-- **Default:** `1`
-- **Description:** The minimum value for the intensity scale. Used to determine the color mapping for the lowest intensity values in the heatmap.
-
----
-
-### `intensityScaleEnd`
-- **Type:** `number`
-- **Default:** `5`
-- **Description:** The maximum value for the intensity scale. Represents the highest possible intensity that can be mapped to the color scale.
-
----
-
-### `excludeFalsy`
-- **Type:** `boolean`
-- **Default:** `undefined` (falsy values are included)
-- **Description:** When set to `true`, entries with falsy intensity values (0, undefined, null, false) will be excluded from the heatmap.
+> **Migrating from `defaultEntryIntensity`/`intensityScaleStart`/`intensityScaleEnd`:** these top-level parameters are removed as of the API described here. Old codeblocks using them keep working (they're folded into `intensityConfig` automatically), but new heatmaps should use `intensityConfig` directly.
 
 ---
 
@@ -175,6 +193,7 @@ Notes
 - **Type:** `string`
 - **Default:** `undefined`
 - **Description:** Base folder used to collect entries. If set, the plugin will propose creating new files in this folder when clicking on empty heatmap boxes.
+- **Example:** [basePath](https://github.com/mokkiebear/heatmap-tracker/blob/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters/8.%20basePath.md)
 
 ---
 
@@ -182,13 +201,23 @@ Notes
 - **Type:** `boolean`
 - **Default:** `true`
 - **Description:** Determines whether months should be visually separated within the heatmap layout.
+- **Example:** [separateMonths](https://github.com/mokkiebear/heatmap-tracker/blob/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters/4.%20separateMonths.md)
+
+---
+
+### `disableFileCreation`
+- **Type:** `boolean`
+- **Default:** `false`
+- **Description:** When `true`, clicking an empty heatmap box will not offer to create a new file.
+- **Example:** [disableFileCreation](https://github.com/mokkiebear/heatmap-tracker/blob/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters/7.%20disableFileCreation.md)
 
 ---
 
 ### `insights`
 - **Type:** `array`
 - **Default:** `[]`
-- **Description:** Powerful property for calculating and displaying your own insights in `Statistics`. Check this [example](https://github.com/mokkiebear/heatmap-tracker/blob/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters/6.%20insights.md).
+- **Description:** Powerful property for calculating and displaying your own insights in `Statistics`.
+- **Example:** [insights](https://github.com/mokkiebear/heatmap-tracker/blob/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters/6.%20insights.md)
 
 ---
 
@@ -196,34 +225,21 @@ Notes
 - **Type:** `"default" | "monthly"`
 - **Default:** `"default"`
 - **Description:** Controls the heatmap grid arrangement. `"default"` renders the traditional GitHub-style week-column grid. `"monthly"` renders one row per month with days 1–31 as columns, providing a compact calendar-style view.
+- **Example:** [layout](https://github.com/mokkiebear/heatmap-tracker/blob/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters/12.%20layout.md)
 
 ---
 
-### `monthsToShow`
-- **Type:** `number`
-- **Default:** `undefined` (shows full year)
-- **Description:** Show the current month plus the N previous months. For example, `monthsToShow: 3` displays 4 rows (current month + 3 prior). Takes precedence over `daysToShow` and `startDate`/`endDate`. Best used with `layout: "monthly"`.
+### Date range: `monthsToShow`, `daysToShow`, `startDate`/`endDate`
 
----
+These four parameters all narrow which dates the heatmap displays instead of the full `year`. Only one wins when several are set — they're resolved in this order (highest priority first):
 
-### `daysToShow`
-- **Type:** `number`
-- **Default:** `undefined` (shows full year)
-- **Description:** Show the last N days from today. Takes precedence over `startDate`/`endDate` but is overridden by `monthsToShow`.
+1. **`monthsToShow`** (`number`, default `undefined`) — current month plus the N previous months. `monthsToShow: 3` displays 4 rows (current month + 3 prior). Best used with `layout: "monthly"`.
+2. **`daysToShow`** (`number`, default `undefined`) — the last N days ending today.
+3. **`startDate`** + **`endDate`** (`string`, format `YYYY-MM-DD`, default `undefined`) — an explicit range. Both must be set, and `startDate` must not be after `endDate`.
 
----
+If none of these are set, the heatmap falls back to showing the full `year`. This precedence is implemented once, in [`resolveDateRange`](https://github.com/mokkiebear/heatmap-tracker/blob/main/src/utils/date.ts) — that function's doc comment is the source of truth if this section and the code ever disagree.
 
-### `startDate`
-- **Type:** `string` (format: `YYYY-MM-DD`)
-- **Default:** `undefined`
-- **Description:** First date to display. Must be used together with `endDate`. Overridden by `daysToShow` or `monthsToShow`.
-
----
-
-### `endDate`
-- **Type:** `string` (format: `YYYY-MM-DD`)
-- **Default:** `undefined`
-- **Description:** Last date to display. Must be used together with `startDate`. Overridden by `daysToShow` or `monthsToShow`.
+- **Example:** [Date Range Parameters](https://github.com/mokkiebear/heatmap-tracker/blob/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters/13.%20dateRange.md)
 
 
 <img src="https://raw.githubusercontent.com/mokkiebear/heatmap-tracker/refs/heads/main/public/two-mac-mockup.png" />
@@ -267,8 +283,8 @@ To be used with [Obsidian Dataview](https://blacksmithgu.github.io/obsidian-data
 </details>
 
 <details>
-    <summary>5. <b>Localization.</b> Plugin supports multiple languages, including English, German, and Russian.</summary>
-    <p></p>
+    <summary>5. <b>Localization.</b> Plugin supports 9 languages: English, German, Russian, Chinese, Hindi, Spanish, French, Portuguese, and Polish.</summary>
+    <p>See <a href="https://github.com/mokkiebear/heatmap-tracker/tree/main/src/localization/locales">src/localization/locales</a> for the current list, and <a href="./docs/add-new-language.md">docs/add-new-language.md</a> if you'd like to contribute a translation.</p>
 </details>
 
 <details>
@@ -307,6 +323,8 @@ To be used with [Obsidian Dataview](https://blacksmithgu.github.io/obsidian-data
 📍 Check out the [Roadmap](./ROADMAP.md) to see what's planned for the future!
 
 ## Development (Windows/Mac):
+
+📐 New to the codebase? [ARCHITECTURE.md](./ARCHITECTURE.md) maps how data flows from a codeblock/dataviewjs script through to the rendered heatmap.
 
  ```npm run dev``` - will start an automatic TS to JS transpiler and automatically copy the generated JS/CSS/manifest files to the example vault when modified (Remember to run ```npm install``` first).
 

@@ -30,7 +30,6 @@ const mockTrackerData: TrackerData = {
       showWeekNums: undefined
   },
   showCurrentDayBorder: false,
-  defaultEntryIntensity: 0
 };
 
 const mockBoxes: Box[] = [

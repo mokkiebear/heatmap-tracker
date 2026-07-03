@@ -7,6 +7,7 @@ import {
   getShiftedWeekdays,
   formatDateToISO8601,
   getISOWeekNumber,
+  resolveDateRange,
 } from '../date';
 
 describe('getShiftedWeekdays', () => {
@@ -230,4 +231,47 @@ describe('getISOWeekNumber', () => {
         const date = new Date('2024-07-01T00:00:00Z'); // Monday
         expect(getISOWeekNumber(date)).toBe(27);
     });
+});
+
+describe('resolveDateRange', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2025-06-15T12:00:00Z'));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('returns null when nothing is set', () => {
+    expect(resolveDateRange(undefined, undefined, undefined, undefined)).toBeNull();
+  });
+
+  it('resolves startDate/endDate when only those are set', () => {
+    const range = resolveDateRange('2025-01-01', '2025-01-31', undefined, undefined);
+    expect(formatDateToISO8601(range!.start)).toBe('2025-01-01');
+    expect(formatDateToISO8601(range!.end)).toBe('2025-01-31');
+  });
+
+  it('ignores an inverted startDate/endDate pair', () => {
+    expect(resolveDateRange('2025-02-01', '2025-01-01', undefined, undefined)).toBeNull();
+  });
+
+  it('daysToShow takes precedence over startDate/endDate', () => {
+    const range = resolveDateRange('2025-01-01', '2025-01-31', 7, undefined);
+    expect(formatDateToISO8601(range!.start)).toBe('2025-06-09');
+    expect(formatDateToISO8601(range!.end)).toBe('2025-06-15');
+  });
+
+  it('monthsToShow takes precedence over daysToShow and startDate/endDate', () => {
+    const range = resolveDateRange('2025-01-01', '2025-01-31', 7, 2);
+    expect(formatDateToISO8601(range!.start)).toBe('2025-04-01');
+    expect(formatDateToISO8601(range!.end)).toBe('2025-06-30');
+  });
+
+  it('monthsToShow: 0 shows only the current month', () => {
+    const range = resolveDateRange(undefined, undefined, undefined, 0);
+    expect(formatDateToISO8601(range!.start)).toBe('2025-06-01');
+    expect(formatDateToISO8601(range!.end)).toBe('2025-06-30');
+  });
 });

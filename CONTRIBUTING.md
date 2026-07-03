@@ -81,6 +81,7 @@ For more detailed instructions, refer to the README.md.
 - **Issue References**: Reference relevant issues by number (e.g., #123).
 
 ## Additional Resources
+- **Architecture**: Read [ARCHITECTURE.md](ARCHITECTURE.md) for how data flows through the codebase (schemas → types → context → views) before making structural changes.
 - **Roadmap**: Check out the ROADMAP.md to see what’s planned for the future.
 - **Releasing**: See [RELEASING.md](RELEASING.md) for how versions are published, and add a `CHANGELOG.md` entry under `[Unreleased]` for any user-facing change in your PR.
 - **License**: This project is licensed under the Apache-2.0 License.

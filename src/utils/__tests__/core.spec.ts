@@ -60,9 +60,6 @@ describe('mergeTrackerData', () => {
         { date: '2021-01-01', customColor: '#7bc96f', intensity: 5, content: '' },
       ],
       showCurrentDayBorder: false,
-      intensityScaleStart: 2,
-      intensityScaleEnd: 8,
-      defaultEntryIntensity: 2,
       colorScheme: {
         paletteName: 'danger',
         customColors: ['#fff33b', '#fdc70c', '#f3903f', '#ed683c', '#e93e3a'],
@@ -72,10 +69,11 @@ describe('mergeTrackerData', () => {
     const expected = {
       ...userConfig,
       intensityConfig: {
-        defaultIntensity: 2,
-        scaleEnd: 8,
-        scaleStart: 2,
+        defaultIntensity: 4,
+        scaleEnd: undefined,
+        scaleStart: undefined,
         showOutOfRange: true,
+        excludeFalsy: undefined,
       },
       insights: [],
       basePath: undefined,
@@ -96,7 +94,36 @@ describe('mergeTrackerData', () => {
     expect(result).toEqual(expected);
   });
 
-  it('should return intensityConfig', () => {
+  it('should return intensityConfig as provided by the user', () => {
+    const userConfig = {
+      year: 2021,
+      entries: [
+        { date: '2021-01-01', customColor: '#7bc96f', intensity: 5, content: '' },
+      ],
+      showCurrentDayBorder: false,
+      intensityConfig: {
+        scaleStart: 2,
+        scaleEnd: 8,
+        defaultIntensity: 2,
+      },
+      colorScheme: {
+        paletteName: 'danger',
+        customColors: ['#fff33b', '#fdc70c', '#f3903f', '#ed683c', '#e93e3a'],
+      },
+    };
+
+    const result = mergeTrackerData(DEFAULT_TRACKER_DATA, userConfig as any);
+
+    expect(result).toEqual(expect.objectContaining({
+      intensityConfig: expect.objectContaining({
+        defaultIntensity: 2,
+        scaleEnd: 8,
+        scaleStart: 2,
+      })
+    }));
+  });
+
+  it('should migrate deprecated intensityScaleStart/intensityScaleEnd/defaultEntryIntensity into intensityConfig and drop them', () => {
     const userConfig = {
       year: 2021,
       entries: [
@@ -115,36 +142,39 @@ describe('mergeTrackerData', () => {
     const result = mergeTrackerData(DEFAULT_TRACKER_DATA, userConfig as any);
 
     expect(result).toEqual(expect.objectContaining({
-      intensityConfig: {
+      intensityConfig: expect.objectContaining({
         defaultIntensity: 2,
         scaleEnd: 8,
         scaleStart: 2,
-        showOutOfRange: true,
-      }
+      })
     }));
+    expect((result as any).defaultEntryIntensity).toBeUndefined();
+    expect((result as any).intensityScaleStart).toBeUndefined();
+    expect((result as any).intensityScaleEnd).toBeUndefined();
   });
 
-  it('should return deprecated intensity parameters', () => {
+  it('should prefer intensityConfig over deprecated fields when both are provided', () => {
     const userConfig = {
       year: 2021,
-      entries: [
-        { date: '2021-01-01', customColor: '#7bc96f', intensity: 5, content: '' },
-      ],
+      entries: [],
       showCurrentDayBorder: false,
       intensityScaleStart: 2,
       intensityScaleEnd: 8,
       defaultEntryIntensity: 2,
-      colorScheme: {
-        paletteName: 'danger',
-        customColors: ['#fff33b', '#fdc70c', '#f3903f', '#ed683c', '#e93e3a'],
+      intensityConfig: {
+        scaleStart: 100,
+        scaleEnd: 800,
+        defaultIntensity: 3,
       },
     };
 
     const result = mergeTrackerData(DEFAULT_TRACKER_DATA, userConfig as any);
 
-    expect(result.defaultEntryIntensity).toBeDefined();
-    expect(result.intensityScaleStart).toBeDefined();
-    expect(result.intensityScaleEnd).toBeDefined();
+    expect(result.intensityConfig).toEqual(expect.objectContaining({
+      defaultIntensity: 3,
+      scaleEnd: 800,
+      scaleStart: 100,
+    }));
   });
 
   describe('colorScheme', () => {
@@ -157,9 +187,6 @@ describe('mergeTrackerData', () => {
             { date: '2021-01-01', customColor: '#7bc96f', intensity: 5, content: '' },
           ],
           showCurrentDayBorder: false,
-          intensityScaleStart: 2,
-          intensityScaleEnd: 8,
-          defaultEntryIntensity: 2,
         };
 
         const result = mergeTrackerData(DEFAULT_TRACKER_DATA, userConfig as any);
@@ -178,9 +205,6 @@ describe('mergeTrackerData', () => {
             { date: '2021-01-01', customColor: '#7bc96f', intensity: 5, content: '' },
           ],
           showCurrentDayBorder: false,
-          intensityScaleStart: 2,
-          intensityScaleEnd: 8,
-          defaultEntryIntensity: 2,
           colorScheme: null,
         };
 

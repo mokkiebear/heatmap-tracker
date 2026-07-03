@@ -19,12 +19,13 @@ function DocumentationView() {
         customColors: ["#c6e48b", "#7bc96f", "#49af5d", "#2e8840", "#196127"]
     },
 
-    // OPTIONAL: If you want to define your own intensity start/end values.
-    // Use this if you want to have a custom intensity scale.
+    // OPTIONAL: If you want to define your own intensity scale.
     // E.g. if you want to track book reading progress only from 30 minutes to 2 hours.
-    defaultEntryIntensity: 4,
-    intensityScaleStart: 1,
-    intensityScaleEnd: 5
+    intensityConfig: {
+        scaleStart: 1,
+        scaleEnd: 5,
+        defaultIntensity: 4,
+    }
 }
   `;
 

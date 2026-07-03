@@ -121,6 +121,17 @@ export function getBoxes(
   return boxes;
 }
 
+/**
+ * Pre-2.x `trackerData` shape, before `intensityConfig` existed. Kept only so
+ * `mergeTrackerData` can fold old codeblocks/dataviewjs scripts forward —
+ * these are no longer part of the TrackerData schema/type.
+ */
+interface LegacyIntensityFields {
+  defaultEntryIntensity?: number;
+  intensityScaleStart?: number;
+  intensityScaleEnd?: number;
+}
+
 export function mergeTrackerData(
   defaultTrackerData: TrackerData,
   userTrackerData: TrackerData,
@@ -129,9 +140,16 @@ export function mergeTrackerData(
     return defaultTrackerData;
   }
 
+  const {
+    defaultEntryIntensity,
+    intensityScaleStart,
+    intensityScaleEnd,
+    ...restUserTrackerData
+  } = userTrackerData as TrackerData & LegacyIntensityFields;
+
   return {
     ...defaultTrackerData,
-    ...userTrackerData,
+    ...restUserTrackerData,
     colorScheme: {
       ...defaultTrackerData.colorScheme,
       ...userTrackerData.colorScheme,
@@ -140,10 +158,13 @@ export function mergeTrackerData(
       ...defaultTrackerData.intensityConfig,
       ...userTrackerData.intensityConfig,
 
-      scaleStart: userTrackerData.intensityScaleStart,
-      scaleEnd: userTrackerData.intensityScaleEnd,
+      // `intensityConfig` (current API) wins when set; the legacy fields are
+      // only used as a fallback so old codeblocks keep working.
+      scaleStart: userTrackerData.intensityConfig?.scaleStart ?? intensityScaleStart,
+      scaleEnd: userTrackerData.intensityConfig?.scaleEnd ?? intensityScaleEnd,
       defaultIntensity:
-        userTrackerData.defaultEntryIntensity ??
+        userTrackerData.intensityConfig?.defaultIntensity ??
+        defaultEntryIntensity ??
         defaultTrackerData.intensityConfig.defaultIntensity,
     },
   };
