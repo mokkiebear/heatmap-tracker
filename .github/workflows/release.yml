@@ -22,6 +22,25 @@ jobs:
           npm install
           npm run build
 
+      - name: Extract release notes from CHANGELOG.md
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+
+          awk -v ver="$tag" '
+            /^## \[/ {
+              if (found) exit
+              if ($0 ~ "\\[" ver "\\]") { found=1; next }
+            }
+            found { print }
+          ' CHANGELOG.md > RELEASE_NOTES.md
+
+          if [ ! -s RELEASE_NOTES.md ]; then
+            echo "Error: no CHANGELOG.md section found for tag $tag" >&2
+            exit 1
+          fi
+
+          cat RELEASE_NOTES.md
+
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -30,5 +49,5 @@ jobs:
 
           gh release create "$tag" \
             --title="$tag" \
-            --draft \
+            --notes-file=RELEASE_NOTES.md \
             ./build/main.js ./build/manifest.json ./build/styles.css

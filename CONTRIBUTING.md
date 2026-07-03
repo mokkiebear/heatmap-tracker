@@ -53,7 +53,7 @@ We appreciate your contributions! To submit a pull request:
    ```bash
   	git checkout -b feature/your-feature-name
 ```
-4.	**Make Changes**: Implement your changes, ensuring adherence to the project’s coding standards.
+4.	**Make Changes**: Implement your changes, ensuring adherence to the project’s coding standards. If the change is user-facing, add a bullet under `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md) (see [RELEASING.md](RELEASING.md)).
 5.	**Commit Changes**: Commit your changes with a descriptive commit message.
 ```bash
 git commit -m "Add feature: your feature description"
@@ -82,6 +82,7 @@ For more detailed instructions, refer to the README.md.
 
 ## Additional Resources
 - **Roadmap**: Check out the ROADMAP.md to see what’s planned for the future.
+- **Releasing**: See [RELEASING.md](RELEASING.md) for how versions are published, and add a `CHANGELOG.md` entry under `[Unreleased]` for any user-facing change in your PR.
 - **License**: This project is licensed under the Apache-2.0 License.
 
 Thank you for contributing to Heatmap Tracker!
