@@ -1,6 +1,6 @@
 import { App } from "obsidian";
 
-import { createRoot } from "react-dom/client";
+import { createRoot, Root } from "react-dom/client";
 import { StrictMode } from "react";
 
 import { TrackerData, TrackerSettings } from "./types";
@@ -19,9 +19,11 @@ export function renderApp(
   app: App,
   pluginSettings: TrackerSettings,
   inputTrackerData: unknown,
-  component: React.JSX.Element
+  component: React.JSX.Element,
+  onRootCreated?: (root: Root) => void
 ) {
   const root = createRoot(container);
+  onRootCreated?.(root);
 
   let trackerData = mergeTrackerData(
     DEFAULT_TRACKER_DATA,

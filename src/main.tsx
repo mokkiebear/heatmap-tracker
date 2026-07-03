@@ -5,10 +5,10 @@ import {
   Plugin,
   stringifyYaml,
 } from "obsidian";
-import { getAPI, Literal } from "obsidian-dataview";
+import { getAPI } from "obsidian-dataview";
 import HeatmapTrackerSettingsTab from "./settings";
 import { TrackerData, TrackerParams, TrackerSettings } from "./types";
-import { parseIntensity } from "./utils/intensity";
+import { buildEntriesFromDataview } from "./utils/dataviewEntries";
 
 import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
 
@@ -75,47 +75,19 @@ export default class HeatmapTrackerPlugin extends Plugin {
           }
         }
         try {
-          // Append codeblock parameters to TrackerData object
-          const trackerData: TrackerData = {
-            entries: [],
-            ...params,
-          };
           // Use DataView API to filter pages that contain specified frontmatter property
           const dv = getAPI();
-          const pages = dv
-            .pages(`"${params.path}"`)
-            .where((p: Record<string, Literal>) => {
-              if (typeof params.property === "string") {
-                return p[params.property] !== undefined;
-              }
+          const entries = buildEntriesFromDataview(
+            dv,
+            { path: params.path, property: params.property },
+            (page) => el.createSpan(`[](${page.file.name})`),
+          );
 
-              for (const property of params.property) {
-                if (p[property] !== undefined) {
-                  return true;
-                }
-              }
-
-              return false;
-            });
-
-          for (const page of pages) {
-            let intensity = 0;
-
-            if (typeof params.property === "string") {
-              intensity = parseIntensity(page[params.property]);
-            } else {
-              intensity = params.property.reduce((sum: number, str: string) => {
-                return sum + parseIntensity(page[str]);
-              }, 0);
-            }
-
-            trackerData.entries.push({
-              date: page.file.name,
-              filePath: page.file.path,
-              intensity: intensity,
-              content: el.createSpan(`[](${page.file.name})`),
-            });
-          }
+          // Append codeblock parameters to TrackerData object
+          const trackerData: TrackerData = {
+            entries,
+            ...params,
+          };
 
           if (window.renderHeatmapTracker) {
             // Append codeblock parameters to TrackerSettings object

@@ -13,13 +13,13 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "1. Heatmap Tracker Overview.md",
+                "file": "test.md",
                 "mode": "source",
-                "backlinks": false,
-                "source": false
+                "source": false,
+                "backlinks": false
               },
               "icon": "lucide-file",
-              "title": "1. Heatmap Tracker Overview"
+              "title": "test"
             }
           }
         ]
@@ -37,10 +37,11 @@
         "state": {
           "type": "file-explorer",
           "state": {
-            "sortOrder": "alphabetical"
+            "sortOrder": "alphabetical",
+            "autoReveal": false
           },
           "icon": "lucide-folder-closed",
-          "title": "Files"
+          "title": "Файловый менеджер"
         }
       },
       {
@@ -77,14 +78,15 @@
     "id": "02cc380ad3b23148",
     "type": "mobile-drawer",
     "children": [],
-    "currentTab": 0
+    "currentTab": -1
   },
   "left-ribbon": {
     "hiddenItems": {
-      "canvas:Create new canvas": false,
-      "daily-notes:Open today's daily note": false,
-      "command-palette:Open command palette": false,
-      "workspaces:Manage workspace layouts": false
+      "canvas:Создать новый холст": false,
+      "daily-notes:Сегодняшняя заметка": false,
+      "command-palette:Открыть палитру команд": false,
+      "workspaces:Пространства": false,
+      "bases:Создать новую базу": false
     }
   },
   "active": "231eeed7e54a5ede",
