@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-07-03
+### Added
+- HeatmapModal: track multiple properties via add/remove chips instead of a single dropdown, matching the existing `property: [a, b]` aggregation behavior.
+- HeatmapModal: `layout` (`default`/`monthly`) picker and a date-range picker (full year / last N days / last N months / custom start-end) covering `monthsToShow`, `daysToShow`, `startDate`/`endDate`.
+- HeatmapModal: custom colors editor (`colorScheme.customColors`) as an alternative to picking a palette.
+- HeatmapModal: full `intensityConfig` controls — `scaleStart`, `scaleEnd`, `defaultIntensity`, `showOutOfRange` (previously only `excludeFalsy` was exposed).
+- HeatmapModal: inline validation banner that disables "Insert Heatmap" until required fields (property, date range, custom colors, etc.) are valid.
+- HeatmapModal: the preview now queries Dataview using the selected property/path and renders real matching entries instead of an empty grid.
+
+### Changed
+- HeatmapModal: widened and reorganized into sections (Basic, Data source, Layout & date range, Appearance, Intensity scale, Behavior, UI settings) with a dedicated preview/submit column that stays visible while scrolling through the other options.
+- Extracted the Dataview query + intensity-summing logic shared by the codeblock processor and the modal preview into `src/utils/dataviewEntries.ts`.
+
+### Fixed
+- Codeblock processor no longer searches for a literal folder named `"undefined"` when no `path` is set — it now searches the whole vault, as intended.
+- `renderApp` now hands its React root back via a callback so callers (the modal preview) can unmount it between re-renders instead of leaking a root on every keystroke.
+- HeatmapModal: validation error banner text was unreadable (red text on a red background).
+- HeatmapModal: preview/fields columns could collapse to near-zero width on mobile due to a flexbox `align-items` cross-axis bug when the layout switches to a single column.
+
 ## [2.4.0] - 2026-07-03
 ### Removed
 - Deprecated `defaultEntryIntensity`, `intensityScaleStart`, and `intensityScaleEnd` `trackerData` parameters. Use `intensityConfig` instead — old codeblocks/dataviewjs scripts using the deprecated fields keep working (they're migrated automatically).
