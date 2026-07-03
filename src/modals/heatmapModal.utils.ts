@@ -3,12 +3,25 @@ import { getCurrentFullYear } from "../utils/date";
 
 export type DateRangeMode = "full-year" | "days" | "months" | "custom";
 
+export type FilterOperator = "equals" | "contains" | "notEmpty";
+
+export interface FilterConditionFormState {
+  property: string;
+  operator: FilterOperator;
+  /** Kept as a plain string in form state regardless of operator; dropped on build for "notEmpty". */
+  value: string;
+}
+
 export interface HeatmapModalFormState {
   heatmapTitle: string;
   heatmapSubtitle: string;
   /** Frontmatter keys to track. More than one aggregates (sums) their intensities. */
   properties: string[];
   path: string;
+  /** Only include pages with at least one of these tags. */
+  tags: string[];
+  /** Additional frontmatter conditions a page must satisfy (all must match). */
+  filters: FilterConditionFormState[];
   year: number;
   layout: "default" | "monthly";
   dateRangeMode: DateRangeMode;
@@ -42,6 +55,8 @@ export function createInitialFormState(): HeatmapModalFormState {
     heatmapSubtitle: "",
     properties: [],
     path: "",
+    tags: [],
+    filters: [],
     year: getCurrentFullYear(),
     layout: "default",
     dateRangeMode: "full-year",
@@ -131,6 +146,17 @@ export function validateHeatmapForm(state: HeatmapModalFormState): string[] {
     errors.push("Intensity scale start must not be greater than scale end.");
   }
 
+  if (state.filters.some((f) => f.property.trim() === "")) {
+    errors.push("Each filter condition needs a property.");
+  }
+  if (
+    state.filters.some(
+      (f) => f.operator !== "notEmpty" && f.property.trim() !== "" && f.value.trim() === "",
+    )
+  ) {
+    errors.push("Each filter condition needs a value, or use \"Is not empty\".");
+  }
+
   return errors;
 }
 
@@ -197,6 +223,25 @@ function buildUi(state: HeatmapModalFormState) {
   };
 }
 
+export function buildTags(state: HeatmapModalFormState): string[] | undefined {
+  const tags = state.tags.filter(Boolean);
+  return tags.length > 0 ? tags : undefined;
+}
+
+export function buildFilters(
+  state: HeatmapModalFormState,
+): Array<{ property: string; operator: FilterOperator; value?: string }> | undefined {
+  const filters = state.filters
+    .filter((f) => f.property.trim() !== "")
+    .map((f) => ({
+      property: f.property.trim(),
+      operator: f.operator,
+      value: f.operator === "notEmpty" ? undefined : f.value,
+    }));
+
+  return filters.length > 0 ? filters : undefined;
+}
+
 /**
  * Resolves the mutually-exclusive date-range fields down to the single one
  * that should be sent, matching the precedence implemented in
@@ -233,6 +278,8 @@ export function buildHeatmapConfig(state: HeatmapModalFormState): Record<string,
     heatmapSubtitle: state.heatmapSubtitle || undefined,
     property,
     path: state.path || undefined,
+    tags: buildTags(state),
+    filters: buildFilters(state),
     year: state.year,
     layout: state.layout !== "default" ? state.layout : undefined,
     separateMonths: state.separateMonths,

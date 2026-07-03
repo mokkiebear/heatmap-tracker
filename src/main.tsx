@@ -79,7 +79,12 @@ export default class HeatmapTrackerPlugin extends Plugin {
           const dv = getAPI();
           const entries = buildEntriesFromDataview(
             dv,
-            { path: params.path, property: params.property },
+            {
+              path: params.path,
+              property: params.property,
+              tags: params.tags,
+              filters: params.filters,
+            },
             (page) => el.createSpan(`[](${page.file.name})`),
           );
 

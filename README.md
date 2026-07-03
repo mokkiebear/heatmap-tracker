@@ -45,6 +45,27 @@ property: [<frontmatter_property_key_1>, <frontmatter_property_key_2>, ...]
 
 This will aggregate the values of all specified properties on the heatmap.
 
+You can narrow down which notes are included with `path`, `tags`, and `filters` — all optional, and all can be combined:
+
+````
+```heatmap-tracker
+property: exercise
+path: "daily notes"
+tags: [journal]
+filters:
+  - property: status
+    operator: equals
+    value: done
+```
+````
+
+- `path`: folder to search in. Leave unset to search the whole vault.
+- `tags`: only include notes with at least one of these tags (the leading `#` is optional).
+- `filters`: additional frontmatter conditions a note must satisfy — **all** conditions must match. Each entry has:
+  - `property`: the frontmatter key to check.
+  - `operator`: `equals`, `contains`, or `notEmpty`.
+  - `value`: compared against `property`'s value (ignored, and not required, for `notEmpty`).
+
 ## Basic Usage 2.0
 You can add a heatmap tracker using command: `Insert Heatmap Tracker`. This is the easiest way to get started.
 

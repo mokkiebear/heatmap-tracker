@@ -4,6 +4,7 @@ import {
   DropdownComponent,
   Modal,
   Setting,
+  getAllTags,
   setIcon,
 } from "obsidian";
 import { getAPI } from "obsidian-dataview";
@@ -12,17 +13,141 @@ import React from "react";
 import { Root } from "react-dom/client";
 import { renderApp } from "../render";
 import ReactApp from "../App";
-import { buildEntriesFromDataview } from "../utils/dataviewEntries";
+import { buildEntriesFromDataview, normalizeTag } from "../utils/dataviewEntries";
 import {
   DateRangeMode,
+  FilterOperator,
   HeatmapModalFormState,
+  buildFilters,
   buildHeatmapConfig,
   buildPreviewTrackerData,
+  buildTags,
   createInitialFormState,
   validateHeatmapForm,
 } from "./heatmapModal.utils";
 
 const PREVIEW_DEBOUNCE_MS = 200;
+
+/**
+ * A small "add from suggestions or type your own, shown as removable chips"
+ * control. Used for both tracked properties and tags — same interaction,
+ * different data source.
+ */
+class ChipList {
+  private chipsEl: HTMLElement;
+  private dropdown: DropdownComponent | null = null;
+  private customInputEl: HTMLInputElement | null = null;
+
+  constructor(
+    containerEl: HTMLElement,
+    private options: {
+      getValues: () => string[];
+      add: (value: string) => void;
+      remove: (value: string) => void;
+      getSuggestions: () => string[];
+      addPlaceholder: string;
+      emptyLabel: string;
+      onChange: () => void;
+    },
+  ) {
+    this.chipsEl = containerEl.createDiv({ cls: "heatmap-create-modal__chips" });
+    this.renderChips();
+
+    const addFromList = new Setting(containerEl).setClass(
+      "heatmap-create-modal__add-property-row",
+    );
+    addFromList.addDropdown((dropdown) => {
+      this.dropdown = dropdown;
+      this.refreshSuggestions();
+      dropdown.onChange((value) => {
+        if (!value) return;
+        this.add(value);
+        dropdown.setValue("");
+      });
+    });
+
+    const addCustom = new Setting(containerEl).setClass(
+      "heatmap-create-modal__add-property-row",
+    );
+    addCustom.addText((text) => {
+      text.setPlaceholder(options.addPlaceholder);
+      this.customInputEl = text.inputEl;
+      text.inputEl.addEventListener("keydown", (evt) => {
+        if (evt.key === "Enter") {
+          evt.preventDefault();
+          this.addFromCustomInput();
+        }
+      });
+    });
+    addCustom.addButton((btn) =>
+      btn.setButtonText("Add").onClick(() => this.addFromCustomInput()),
+    );
+  }
+
+  refreshSuggestions() {
+    const dropdown = this.dropdown;
+    if (!dropdown) return;
+
+    dropdown.selectEl.empty();
+    dropdown.addOption("", "Add...");
+
+    const values = this.options.getValues();
+    this.options
+      .getSuggestions()
+      .filter((s) => !values.includes(s))
+      .forEach((s) => dropdown.addOption(s, s));
+    dropdown.setValue("");
+  }
+
+  private addFromCustomInput() {
+    const input = this.customInputEl;
+    if (!input) return;
+    this.add(input.value);
+    input.value = "";
+  }
+
+  private add(value: string) {
+    const trimmed = value.trim();
+    if (!trimmed || this.options.getValues().includes(trimmed)) return;
+
+    this.options.add(trimmed);
+    this.renderChips();
+    this.refreshSuggestions();
+    this.options.onChange();
+  }
+
+  private remove(value: string) {
+    this.options.remove(value);
+    this.renderChips();
+    this.refreshSuggestions();
+    this.options.onChange();
+  }
+
+  private renderChips() {
+    this.chipsEl.empty();
+    const values = this.options.getValues();
+
+    if (values.length === 0) {
+      this.chipsEl.createSpan({
+        cls: "heatmap-create-modal__chips-empty",
+        text: this.options.emptyLabel,
+      });
+      return;
+    }
+
+    values.forEach((value) => {
+      const chip = this.chipsEl.createDiv({ cls: "heatmap-create-modal__chip" });
+      chip.createSpan({ text: value });
+
+      const removeBtn = chip.createEl("button", {
+        cls: "heatmap-create-modal__chip-remove",
+        attr: { "aria-label": `Remove ${value}` },
+      });
+      setIcon(removeBtn, "x");
+      removeBtn.addEventListener("click", () => this.remove(value));
+    });
+  }
+}
 
 export class HeatmapModal extends Modal {
   private settings: TrackerSettings;
@@ -37,12 +162,13 @@ export class HeatmapModal extends Modal {
   private errorsEl: HTMLElement | null = null;
   private submitButton: ButtonComponent | null = null;
 
-  private propertyChipsEl: HTMLElement | null = null;
-  private propertyDropdown: DropdownComponent | null = null;
-  private customPropertyInputEl: HTMLInputElement | null = null;
+  private propertyChipList: ChipList | null = null;
+  private tagChipList: ChipList | null = null;
+  private propertyDatalistEl: HTMLDataListElement | null = null;
 
   private dateRangeFieldsEl: HTMLElement | null = null;
   private customColorsEl: HTMLElement | null = null;
+  private filtersEl: HTMLElement | null = null;
   private separateMonthsSettingEl: HTMLElement | null = null;
 
   constructor(
@@ -158,50 +284,62 @@ export class HeatmapModal extends Modal {
       .addText((text) =>
         text.onChange((value) => {
           this.formState.path = value;
-          this.refreshPropertyDropdownOptions();
+          this.propertyChipList?.refreshSuggestions();
+          this.refreshPropertyDatalist();
           this.refresh();
         }),
       );
 
-    const propertiesSetting = new Setting(contentEl)
+    new Setting(contentEl)
       .setName("Properties to track")
       .setDesc(
         "Frontmatter key(s) to read from your notes (e.g. 'exercise: 10' or 'reading: true'). Add more than one to sum their values on the same heatmap.",
       );
-    this.propertyChipsEl = propertiesSetting.controlEl.createDiv({
-      cls: "heatmap-create-modal__chips",
-    });
-    this.renderPropertyChips();
-
-    const addFromVault = new Setting(contentEl).setClass(
-      "heatmap-create-modal__add-property-row",
-    );
-    addFromVault.addDropdown((dropdown) => {
-      this.propertyDropdown = dropdown;
-      this.refreshPropertyDropdownOptions();
-      dropdown.onChange((value) => {
-        if (!value) return;
-        this.addProperty(value);
-        dropdown.setValue("");
-      });
+    this.propertyChipList = new ChipList(contentEl, {
+      getValues: () => this.formState.properties,
+      add: (value) => this.formState.properties.push(value),
+      remove: (value) => {
+        this.formState.properties = this.formState.properties.filter(
+          (p) => p !== value,
+        );
+      },
+      getSuggestions: () => this.getVaultProperties(),
+      addPlaceholder: "Or type a custom property name",
+      emptyLabel: "No properties selected yet.",
+      onChange: () => this.refresh(),
     });
 
-    const addCustom = new Setting(contentEl).setClass(
-      "heatmap-create-modal__add-property-row",
-    );
-    addCustom.addText((text) => {
-      text.setPlaceholder("Or type a custom property name");
-      this.customPropertyInputEl = text.inputEl;
-      text.inputEl.addEventListener("keydown", (evt) => {
-        if (evt.key === "Enter") {
-          evt.preventDefault();
-          this.addCustomProperty();
-        }
-      });
+    new Setting(contentEl)
+      .setName("Tags")
+      .setDesc(
+        "Only include notes with at least one of these tags (optional). Leave empty to include notes regardless of tags.",
+      );
+    this.tagChipList = new ChipList(contentEl, {
+      getValues: () => this.formState.tags,
+      add: (value) => this.formState.tags.push(normalizeTag(value)),
+      remove: (value) => {
+        this.formState.tags = this.formState.tags.filter((t) => t !== value);
+      },
+      getSuggestions: () => this.getVaultTags(),
+      addPlaceholder: "Or type a tag (e.g. journal)",
+      emptyLabel: "No tag filter — notes of any tag are included.",
+      onChange: () => this.refresh(),
     });
-    addCustom.addButton((btn) =>
-      btn.setButtonText("Add").onClick(() => this.addCustomProperty()),
-    );
+
+    this.propertyDatalistEl = contentEl.createEl("datalist", {
+      attr: { id: "heatmap-create-modal-property-list" },
+    });
+    this.refreshPropertyDatalist();
+
+    new Setting(contentEl)
+      .setName("Additional conditions")
+      .setDesc(
+        "Optionally narrow results further by frontmatter value (e.g. only notes where \"status\" equals \"done\"). All conditions must match.",
+      );
+    this.filtersEl = contentEl.createDiv({
+      cls: "heatmap-create-modal__filters",
+    });
+    this.renderFiltersEditor();
   }
 
   private renderDateRangeSection(contentEl: HTMLElement) {
@@ -450,7 +588,7 @@ export class HeatmapModal extends Modal {
   }
 
   // ---------------------------------------------------------------------
-  // Property chips
+  // Vault lookups (property/tag suggestions)
   // ---------------------------------------------------------------------
 
   private getVaultProperties(): string[] {
@@ -469,74 +607,95 @@ export class HeatmapModal extends Modal {
     return [...props].sort();
   }
 
-  private refreshPropertyDropdownOptions() {
-    const dropdown = this.propertyDropdown;
-    if (!dropdown) return;
-
-    const selectEl = dropdown.selectEl;
-    selectEl.empty();
-    dropdown.addOption("", "Add tracked property...");
-
-    const available = this.getVaultProperties().filter(
-      (p) => !this.formState.properties.includes(p),
-    );
-    available.forEach((p) => dropdown.addOption(p, p));
-    dropdown.setValue("");
+  private getVaultTags(): string[] {
+    const tags = new Set<string>();
+    for (const file of this.app.vault.getMarkdownFiles()) {
+      const cache = this.app.metadataCache.getFileCache(file);
+      if (!cache) continue;
+      for (const tag of getAllTags(cache) ?? []) {
+        tags.add(tag);
+      }
+    }
+    return [...tags].sort();
   }
 
-  private addProperty(property: string) {
-    const trimmed = property.trim();
-    if (!trimmed || this.formState.properties.includes(trimmed)) return;
+  private refreshPropertyDatalist() {
+    const datalist = this.propertyDatalistEl;
+    if (!datalist) return;
 
-    this.formState.properties.push(trimmed);
-    this.renderPropertyChips();
-    this.refreshPropertyDropdownOptions();
-    this.refresh();
+    datalist.empty();
+    this.getVaultProperties().forEach((p) => {
+      datalist.createEl("option", { attr: { value: p } });
+    });
   }
 
-  private addCustomProperty() {
-    const input = this.customPropertyInputEl;
-    if (!input) return;
+  // ---------------------------------------------------------------------
+  // Additional conditions (filters)
+  // ---------------------------------------------------------------------
 
-    this.addProperty(input.value);
-    input.value = "";
-  }
-
-  private removeProperty(property: string) {
-    this.formState.properties = this.formState.properties.filter(
-      (p) => p !== property,
-    );
-    this.renderPropertyChips();
-    this.refreshPropertyDropdownOptions();
-    this.refresh();
-  }
-
-  private renderPropertyChips() {
-    const container = this.propertyChipsEl;
+  private renderFiltersEditor() {
+    const container = this.filtersEl;
     if (!container) return;
-
     container.empty();
 
-    if (this.formState.properties.length === 0) {
-      container.createSpan({
-        cls: "heatmap-create-modal__chips-empty",
-        text: "No properties selected yet.",
-      });
-      return;
-    }
+    this.formState.filters.forEach((filter, index) => {
+      const row = new Setting(container).setClass(
+        "heatmap-create-modal__filter-row",
+      );
 
-    this.formState.properties.forEach((property) => {
-      const chip = container.createDiv({
-        cls: "heatmap-create-modal__chip",
+      row.addText((text) => {
+        text.setPlaceholder("Property");
+        text.inputEl.setAttribute("list", "heatmap-create-modal-property-list");
+        text.setValue(filter.property);
+        text.onChange((value) => {
+          this.formState.filters[index].property = value;
+          this.refresh();
+        });
       });
-      chip.createSpan({ text: property });
 
-      const removeBtn = chip.createEl("button", {
-        cls: "heatmap-create-modal__chip-remove",
-        attr: { "aria-label": `Remove ${property}` },
+      row.addDropdown((dropdown) => {
+        dropdown.addOption("equals", "Equals");
+        dropdown.addOption("contains", "Contains");
+        dropdown.addOption("notEmpty", "Is not empty");
+        dropdown.setValue(filter.operator);
+        dropdown.onChange((value) => {
+          this.formState.filters[index].operator = value as FilterOperator;
+          this.renderFiltersEditor();
+          this.refresh();
+        });
       });
-      setIcon(removeBtn, "x");
-      removeBtn.addEventListener("click", () => this.removeProperty(property));
+
+      if (filter.operator !== "notEmpty") {
+        row.addText((text) => {
+          text.setPlaceholder("Value");
+          text.setValue(filter.value);
+          text.onChange((value) => {
+            this.formState.filters[index].value = value;
+            this.refresh();
+          });
+        });
+      }
+
+      row.addExtraButton((btn) => {
+        btn
+          .setIcon("x")
+          .setTooltip("Remove condition")
+          .onClick(() => {
+            this.formState.filters.splice(index, 1);
+            this.renderFiltersEditor();
+            this.refresh();
+          });
+      });
+    });
+
+    const addBtn = container.createEl("button", {
+      cls: "mod-cta heatmap-create-modal__add-color-button",
+      text: "Add condition",
+    });
+    addBtn.addEventListener("click", () => {
+      this.formState.filters.push({ property: "", operator: "equals", value: "" });
+      this.renderFiltersEditor();
+      this.refresh();
     });
   }
 
@@ -698,6 +857,8 @@ export class HeatmapModal extends Modal {
       return buildEntriesFromDataview(dv, {
         path: this.formState.path,
         property: properties.length === 1 ? properties[0] : properties,
+        tags: buildTags(this.formState),
+        filters: buildFilters(this.formState),
       });
     } catch (e) {
       console.warn("Heatmap Tracker: failed to build preview entries", e);

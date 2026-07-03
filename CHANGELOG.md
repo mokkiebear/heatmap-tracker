@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-07-03
+### Added
+- HeatmapModal & codeblock: `tags` — only include notes with at least one of the given tags. Exposed in the modal as an add/remove chip list, with suggestions drawn from tags already used in the vault.
+- HeatmapModal & codeblock: `filters` — additional frontmatter conditions (`property` + `equals`/`contains`/`notEmpty` + `value`) a note must satisfy, all of which must match. Exposed in the modal as a dynamic list of condition rows with a property autocomplete.
+
+### Changed
+- HeatmapModal: extracted the "pick from vault suggestions, or type your own, shown as removable chips" UI (previously duplicated for properties) into a shared internal `ChipList` control, now reused for both properties and tags.
+
 ## [2.5.0] - 2026-07-03
 ### Added
 - HeatmapModal: track multiple properties via add/remove chips instead of a single dropdown, matching the existing `property: [a, b]` aggregation behavior.

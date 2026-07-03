@@ -7,8 +7,11 @@ import { InsightSchema } from "./schemas/insight.schema";
 import { ColorsListSchema } from "./schemas/colorsList.schema";
 import { ColorSchemeSchema } from "./schemas/colorScheme.schema";
 import { PalettesSchema } from "./schemas/palettes.schema";
+import { FilterConditionSchema } from "./schemas/filterCondition.schema";
 
 export type Entry = z.infer<typeof EntrySchema>;
+
+export type FilterCondition = z.infer<typeof FilterConditionSchema>;
 
 export type ColorsList = z.infer<typeof ColorsListSchema>;
 
@@ -59,4 +62,8 @@ export type WeekDisplayMode = "even" | "odd" | "none" | "all";
 export interface TrackerParams {
   path?: string;
   property: string | string[];
+  /** Only include pages with at least one of these tags (e.g. "#journal"). */
+  tags?: string[];
+  /** Additional frontmatter conditions a page must satisfy (all must match). */
+  filters?: FilterCondition[];
 }

@@ -5,6 +5,7 @@ import { IntensityConfigSchema } from "./intensityConfig.schema";
 import { InsightSchema } from "./insight.schema";
 import { ColorSchemeSchema } from "./colorScheme.schema";
 import { UISchema } from "./ui.schema";
+import { FilterConditionSchema } from "./filterCondition.schema";
 
 // TODO: change to strict when I know how to handle `property` and `path`.
 // Issue: https://github.com/mokkiebear/heatmap-tracker/issues/64
@@ -52,4 +53,9 @@ export const TrackerDataSchema = z.object({
    * Takes precedence over daysToShow and startDate/endDate.
    */
   monthsToShow: z.number().optional(),
+
+  /** Only include pages with at least one of these tags (e.g. "#journal"). */
+  tags: z.array(z.string()).optional(),
+  /** Additional frontmatter conditions a page must satisfy (all must match). */
+  filters: z.array(FilterConditionSchema).optional(),
 });

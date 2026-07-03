@@ -114,6 +114,36 @@ describe("validateHeatmapForm", () => {
     );
     expect(errors).toEqual([]);
   });
+
+  it("requires a property on every filter condition", () => {
+    const errors = validateHeatmapForm(
+      makeState({
+        properties: ["exercise"],
+        filters: [{ property: "", operator: "equals", value: "done" }],
+      }),
+    );
+    expect(errors).toContain("Each filter condition needs a property.");
+  });
+
+  it("requires a value unless the operator is 'notEmpty'", () => {
+    const withMissingValue = validateHeatmapForm(
+      makeState({
+        properties: ["exercise"],
+        filters: [{ property: "status", operator: "equals", value: "" }],
+      }),
+    );
+    expect(withMissingValue).toContain(
+      "Each filter condition needs a value, or use \"Is not empty\".",
+    );
+
+    const notEmptyOk = validateHeatmapForm(
+      makeState({
+        properties: ["exercise"],
+        filters: [{ property: "status", operator: "notEmpty", value: "" }],
+      }),
+    );
+    expect(notEmptyOk).toEqual([]);
+  });
 });
 
 describe("buildHeatmapConfig", () => {
@@ -246,6 +276,30 @@ describe("buildHeatmapConfig", () => {
       showWeekNums: true,
       defaultView: IHeatmapView.Legend,
     });
+  });
+
+  it("omits tags/filters when empty, includes them cleaned when set", () => {
+    const empty = buildHeatmapConfig(makeState({ properties: ["p"] }));
+    expect(empty.tags).toBeUndefined();
+    expect(empty.filters).toBeUndefined();
+
+    const withBoth = buildHeatmapConfig(
+      makeState({
+        properties: ["p"],
+        tags: ["#journal", ""],
+        filters: [
+          { property: "status", operator: "equals", value: "done" },
+          { property: "", operator: "equals", value: "ignored" },
+          { property: "notes", operator: "notEmpty", value: "ignored-too" },
+        ],
+      }),
+    );
+
+    expect(withBoth.tags).toEqual(["#journal"]);
+    expect(withBoth.filters).toEqual([
+      { property: "status", operator: "equals", value: "done" },
+      { property: "notes", operator: "notEmpty", value: undefined },
+    ]);
   });
 });
 

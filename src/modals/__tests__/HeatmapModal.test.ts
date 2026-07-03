@@ -75,20 +75,25 @@ jest.mock("react-dom/client", () => ({}));
 jest.mock("../../App", () => ({ __esModule: true, default: () => null }));
 
 let dataviewPages: Record<string, unknown>[] = [];
-const getAPIMock = jest.fn((_app?: unknown) => ({
-  pages: (source?: string) => ({
+function chainablePages(pages: Record<string, unknown>[], source?: string): any {
+  return {
     __source: source,
     where(predicate: (p: any) => boolean) {
-      return dataviewPages.filter(predicate);
+      return chainablePages(pages.filter(predicate), source);
     },
     [Symbol.iterator]() {
-      return dataviewPages[Symbol.iterator]();
+      return pages[Symbol.iterator]();
     },
-  }),
+  };
+}
+const getAPIMock = jest.fn((_app?: unknown) => ({
+  pages: (source?: string) => chainablePages(dataviewPages, source),
 }));
 jest.mock("obsidian-dataview", () => ({
   getAPI: (...args: any[]) => getAPIMock(...args),
 }));
+
+const getAllTagsMock = jest.fn((_cache?: unknown) => [] as string[]);
 
 jest.mock("obsidian", () => {
   class MockTextComponent {
@@ -185,6 +190,24 @@ jest.mock("obsidian", () => {
     }
   }
 
+  class MockExtraButtonComponent {
+    private handler?: () => void;
+
+    setIcon() {
+      return this;
+    }
+    setTooltip() {
+      return this;
+    }
+    onClick(handler: () => void) {
+      this.handler = handler;
+      return this;
+    }
+    trigger() {
+      this.handler?.();
+    }
+  }
+
   class MockSetting {
     static instances: MockSetting[] = [];
 
@@ -194,6 +217,7 @@ jest.mock("obsidian", () => {
     toggles: MockToggleComponent[] = [];
     dropdowns: MockDropdownComponent[] = [];
     buttons: MockButtonComponent[] = [];
+    extraButtons: MockExtraButtonComponent[] = [];
 
     constructor(public containerEl: HTMLElement) {
       this.settingEl = document.createElement("div");
@@ -209,7 +233,8 @@ jest.mock("obsidian", () => {
     setDesc() {
       return this;
     }
-    setClass() {
+    setClass(cls: string) {
+      this.settingEl.className = cls;
       return this;
     }
     setHeading() {
@@ -236,6 +261,12 @@ jest.mock("obsidian", () => {
     addButton(cb: (b: MockButtonComponent) => void) {
       const b = new MockButtonComponent();
       this.buttons.push(b);
+      cb(b);
+      return this;
+    }
+    addExtraButton(cb: (b: MockExtraButtonComponent) => void) {
+      const b = new MockExtraButtonComponent();
+      this.extraButtons.push(b);
       cb(b);
       return this;
     }
@@ -269,6 +300,7 @@ jest.mock("obsidian", () => {
     DropdownComponent: MockDropdownComponent,
     ButtonComponent: MockButtonComponent,
     setIcon: jest.fn(),
+    getAllTags: getAllTagsMock,
   };
 });
 
@@ -301,7 +333,11 @@ describe("HeatmapModal", () => {
     Setting.instances = [];
     dataviewPages = [];
     onSubmit = jest.fn();
-    modal = new HeatmapModal({} as any, baseSettings, onSubmit);
+    const app = {
+      vault: { getMarkdownFiles: () => [] },
+      metadataCache: { getFileCache: () => null },
+    };
+    modal = new HeatmapModal(app as any, baseSettings, onSubmit);
     modal.open();
   });
 
@@ -309,14 +345,22 @@ describe("HeatmapModal", () => {
     jest.useRealTimers();
   });
 
+  // `Setting.instances` accumulates forever, including rows that were later
+  // discarded by a container's `.empty()` rebuild (e.g. switching a filter's
+  // operator, or removing a row). `.empty()` (innerHTML reset) detaches those
+  // elements from the DOM, so filtering on `parentElement` gives us only the
+  // settings that are still actually rendered.
+  function liveSettings() {
+    return Setting.instances.filter((s: any) => s.settingEl.parentElement !== null);
+  }
   function allDropdowns() {
-    return Setting.instances.flatMap((s: any) => s.dropdowns);
+    return liveSettings().flatMap((s: any) => s.dropdowns);
   }
   function allTexts() {
-    return Setting.instances.flatMap((s: any) => s.texts);
+    return liveSettings().flatMap((s: any) => s.texts);
   }
   function allButtons() {
-    return Setting.instances.flatMap((s: any) => s.buttons);
+    return liveSettings().flatMap((s: any) => s.buttons);
   }
   function submitButton() {
     // The submit button is the last button rendered (Insert Heatmap).
@@ -329,6 +373,37 @@ describe("HeatmapModal", () => {
   }
   function addCustomPropertyButton() {
     return allButtons().find((b: any) => b.buttonEl.textContent === "Add");
+  }
+  function addTagCustomText() {
+    return allTexts().find(
+      (t: any) => t.inputEl.placeholder === "Or type a tag (e.g. journal)",
+    );
+  }
+  function addCustomTagButton() {
+    // The tag ChipList's "Add" button is the 2nd one (properties' comes first).
+    return allButtons().filter((b: any) => b.buttonEl.textContent === "Add")[1];
+  }
+  function findRawButtonByText(text: string): HTMLButtonElement | undefined {
+    const buttons = Array.from(
+      (modal as any).contentEl.querySelectorAll("button"),
+    ) as HTMLButtonElement[];
+    return buttons.find((b) => b.textContent === text);
+  }
+  function filterPropertyTexts() {
+    return allTexts().filter((t: any) => t.inputEl.placeholder === "Property");
+  }
+  function filterValueTexts() {
+    return allTexts().filter((t: any) => t.inputEl.placeholder === "Value");
+  }
+  function filterOperatorDropdowns() {
+    return allDropdowns().filter((d: any) =>
+      Array.from(d.selectEl.options).some((o: any) => o.value === "notEmpty"),
+    );
+  }
+  function filterRemoveButtons() {
+    return liveSettings()
+      .filter((s: any) => s.texts[0]?.inputEl.placeholder === "Property")
+      .flatMap((s: any) => s.extraButtons);
   }
 
   it("disables Insert until a property is selected", () => {
@@ -435,5 +510,82 @@ describe("HeatmapModal", () => {
     expect(previewData.entries).toEqual([
       { date: "2026-01-01", filePath: "d/2026-01-01.md", intensity: 10, content: undefined },
     ]);
+  });
+
+  it("adding a custom tag shows it as a chip and includes it in the submitted config", () => {
+    addPropertyCustomText()!.trigger("exercise");
+    addCustomPropertyButton()!.trigger();
+
+    addTagCustomText()!.trigger("journal");
+    addCustomTagButton()!.trigger();
+
+    submitButton().trigger();
+    const config = onSubmit.mock.calls[0][0];
+    expect(config.tags).toEqual(["#journal"]);
+  });
+
+  it("omits tags from the submitted config when none are added", () => {
+    addPropertyCustomText()!.trigger("exercise");
+    addCustomPropertyButton()!.trigger();
+
+    submitButton().trigger();
+    const config = onSubmit.mock.calls[0][0];
+    expect(config.tags).toBeUndefined();
+  });
+
+  it("adds a filter condition row and includes it in the submitted config", () => {
+    addPropertyCustomText()!.trigger("exercise");
+    addCustomPropertyButton()!.trigger();
+
+    findRawButtonByText("Add condition")!.dispatchEvent(new Event("click", { bubbles: true }));
+
+    filterPropertyTexts()[0].trigger("status");
+    filterValueTexts()[0].trigger("done");
+
+    submitButton().trigger();
+    const config = onSubmit.mock.calls[0][0];
+    expect(config.filters).toEqual([
+      { property: "status", operator: "equals", value: "done" },
+    ]);
+  });
+
+  it("hides the value field and omits value once operator is switched to 'notEmpty'", () => {
+    addPropertyCustomText()!.trigger("exercise");
+    addCustomPropertyButton()!.trigger();
+
+    findRawButtonByText("Add condition")!.dispatchEvent(new Event("click", { bubbles: true }));
+    filterPropertyTexts()[0].trigger("status");
+
+    expect(filterValueTexts()).toHaveLength(1);
+
+    filterOperatorDropdowns()[0].trigger("notEmpty");
+
+    expect(filterValueTexts()).toHaveLength(0);
+
+    submitButton().trigger();
+    const config = onSubmit.mock.calls[0][0];
+    expect(config.filters).toEqual([
+      { property: "status", operator: "notEmpty", value: undefined },
+    ]);
+  });
+
+  it("blocks submit while a filter condition is missing its property", () => {
+    addPropertyCustomText()!.trigger("exercise");
+    addCustomPropertyButton()!.trigger();
+
+    findRawButtonByText("Add condition")!.dispatchEvent(new Event("click", { bubbles: true }));
+
+    expect(submitButton().disabled).toBe(true);
+  });
+
+  it("removes a filter condition row", () => {
+    addPropertyCustomText()!.trigger("exercise");
+    addCustomPropertyButton()!.trigger();
+
+    findRawButtonByText("Add condition")!.dispatchEvent(new Event("click", { bubbles: true }));
+    expect(filterPropertyTexts()).toHaveLength(1);
+
+    filterRemoveButtons()[0].trigger();
+    expect(filterPropertyTexts()).toHaveLength(0);
   });
 });

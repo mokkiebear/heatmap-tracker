@@ -54,7 +54,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  justify-content: flex-end;
+  margin: 0.25em 0 0.5em;
 }
 
 .heatmap-create-modal__chips-empty {
@@ -132,6 +132,19 @@
   ul {
     margin: 0;
     padding-left: 1.25em;
+  }
+}
+
+.heatmap-create-modal__filters {
+  margin-bottom: 0.5em;
+}
+
+.heatmap-create-modal__filter-row {
+  gap: 6px;
+
+  .setting-item-control {
+    flex-wrap: nowrap;
+    gap: 6px;
   }
 }
 
