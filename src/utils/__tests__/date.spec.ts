@@ -68,6 +68,14 @@ describe('isValidDate', () => {
   test('Valid Date in Different Format', () => {
     expect(isValidDate('12/31/2021')).toBe(true);
   });
+
+  test('Date String with Weekday Suffix (e.g. Daily Notes YYYY-MM-DD-dddd format)', () => {
+    expect(isValidDate('2026-06-24-Wednesday')).toBe(true);
+  });
+
+  test('Null Date', () => {
+    expect(isValidDate(null as unknown as string)).toBe(false);
+  });
 });
 
 describe('getDayOfYear', () => {

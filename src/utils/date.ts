@@ -1,6 +1,8 @@
 export function isValidDate(dateString: string): boolean {
-  const date = new Date(dateString);
-  return !isNaN(date.getTime());
+  if (!dateString) {
+    return false;
+  }
+  return !isNaN(parseUTCDate(dateString).getTime());
 }
 
 export function getDayOfYear(date: Date): number {
@@ -76,7 +78,7 @@ export function formatDateToISO8601(date: Date | null): string | null {
 }
 
 export function getFullYear(date: string) {
-  return new Date(date).getUTCFullYear();
+  return parseUTCDate(date).getUTCFullYear();
 }
 
 export function getCurrentFullYear() {

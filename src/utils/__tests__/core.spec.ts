@@ -223,6 +223,18 @@ describe('getEntriesForYear', () => {
     expect(getEntriesForYear(entries, 2025)).toEqual([{ date: '2025-01-01T00:00:00Z' }]);
   });
 
+  it('should include entries whose filenames have a weekday suffix (issue #89)', () => {
+    const entries: Entry[] = [
+      { date: '2026-06-24-Wednesday' },
+      { date: '2026-06-25-Thursday' },
+      { date: '2025-06-24-Tuesday' },
+    ];
+    expect(getEntriesForYear(entries, 2026)).toEqual([
+      { date: '2026-06-24-Wednesday' },
+      { date: '2026-06-25-Thursday' },
+    ]);
+  });
+
   it('should handle entries with null or undefined dates', () => {
     const entries: Entry[] = [
       { date: null as unknown as string },
