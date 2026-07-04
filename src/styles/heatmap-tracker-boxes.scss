@@ -5,8 +5,12 @@
   grid-template-columns: repeat(53, var(--heatmap-tracker-box-size));
   grid-template-rows: repeat(7, var(--heatmap-tracker-box-size));
   grid-column: 1;
-  row-gap: var(--heatmap-tracker-box-gap);
-  column-gap: var(--heatmap-tracker-box-gap);
+  // !important guards against community CSS snippets that reset spacing
+  // globally (e.g. "compact UI" snippets doing `gap: 0 !important`), which
+  // would otherwise make adjacent day-boxes touch and look like a single
+  // box split into two colors.
+  row-gap: var(--heatmap-tracker-box-gap) !important;
+  column-gap: var(--heatmap-tracker-box-gap) !important;
 }
 
 /* Separate Months */
