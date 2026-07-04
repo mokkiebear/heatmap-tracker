@@ -5,6 +5,8 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+## [2.6.1] - 2026-07-04
 ### Fixed
 - Heatmap box grid spacing (`row-gap`/`column-gap`) could be collapsed to `0` by community CSS snippets that reset spacing globally, making adjacent day-boxes touch and look like a single box rendered with two colors ([#83](https://github.com/mokkiebear/heatmap-tracker/issues/83)).
 
