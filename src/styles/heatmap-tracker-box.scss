@@ -5,6 +5,11 @@
   background-color: #ebedf0;
   transition: transform 0.2s, border 0.2s;
   aspect-ratio: 1;
+  // Other community plugins (e.g. Meta Data Menu) decorate internal links
+  // with their own icons/buttons. Without containment, an oversized
+  // injected element blows out the box and breaks the whole grid layout.
+  overflow: hidden;
+  contain: layout paint;
 
   &:hover {
     transform: scale(1.4);
