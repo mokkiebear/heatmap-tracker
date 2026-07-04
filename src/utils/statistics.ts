@@ -100,7 +100,7 @@ export function processCustomMetrics(insights: Insight[], yearEntries: Entry[]):
 
 const mostActiveDayMetric: Insight = {
   name: "The most active day of the week",
-  calculate: ({ yearEntries }: { yearEntries: Entry[] }): string => {
+  calculate: ({ yearEntries }): string => {
     const dayCounts: Record<string, number> = {};
 
     // Map each box to the day of the week
@@ -127,7 +127,7 @@ const mostActiveDayMetric: Insight = {
 
 const totalValueMetric: Insight = {
   name: "Total Value",
-  calculate: ({ yearEntries }: { yearEntries: Entry[] }) => {
+  calculate: ({ yearEntries }) => {
     const total = yearEntries.reduce((sum, entry) => sum + (entry.value || 0), 0);
     return total.toString();
   },
@@ -135,7 +135,7 @@ const totalValueMetric: Insight = {
 
 const averageValueMetric: Insight = {
   name: "Average Value",
-  calculate: ({ yearEntries }: { yearEntries: Entry[] }) => {
+  calculate: ({ yearEntries }) => {
     const total = yearEntries.reduce((sum, entry) => sum + (entry.value || 0), 0);
     return (total / yearEntries.length).toFixed(2); // Two decimal places
   },
@@ -143,11 +143,11 @@ const averageValueMetric: Insight = {
 
 const mostFrequentIntensityMetric: Insight = {
   name: "Most Frequent Intensity",
-  calculate: ({ yearEntries }: { yearEntries: Entry[] }) => {
+  calculate: ({ yearEntries }) => {
     const intensityCounts: Record<number, number> = {};
 
     yearEntries.forEach((entry) => {
-      const intensity = entry.intensity || 0;
+      const intensity = Number(entry.intensity) || 0;
       intensityCounts[intensity] = (intensityCounts[intensity] || 0) + 1;
     });
 
@@ -161,7 +161,7 @@ const mostFrequentIntensityMetric: Insight = {
 
 const highestValueDayMetric: Insight = {
   name: "Day with the Highest Value",
-  calculate: ({ yearEntries }: { yearEntries: Entry[] }) => {
+  calculate: ({ yearEntries }) => {
     const maxEntry = yearEntries.reduce((max, entry) =>
       (entry.value || 0) > (max.value || 0) ? entry : max
     );
@@ -171,11 +171,11 @@ const highestValueDayMetric: Insight = {
 
 const intensityDistributionMetric: Insight = {
   name: "Intensity Distribution",
-  calculate: ({ yearEntries }: { yearEntries: Entry[] }) => {
+  calculate: ({ yearEntries }) => {
     const distribution: Record<number, number> = {};
 
     yearEntries.forEach((entry) => {
-      const intensity = entry.intensity || 0;
+      const intensity = Number(entry.intensity) || 0;
       distribution[intensity] = (distribution[intensity] || 0) + 1;
     });
 
