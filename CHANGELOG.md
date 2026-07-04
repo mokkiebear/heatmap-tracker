@@ -5,6 +5,8 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Fixed
+- Heatmap boxes now clip and contain their content (`overflow: hidden`, `contain: layout paint`) so icons/buttons injected by other community plugins (e.g. Meta Data Menu decorating internal links) can no longer blow up box size and break the whole grid layout ([#41](https://github.com/mokkiebear/heatmap-tracker/issues/41)).
 
 ## [2.6.1] - 2026-07-04
 ### Fixed
