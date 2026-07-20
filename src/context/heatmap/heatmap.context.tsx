@@ -19,12 +19,15 @@ interface HeatmapProviderProps {
   children: ReactNode;
   trackerData: TrackerData;
   settings: TrackerSettings;
+  /** Called after `updateSettings` mutates `settings`, to persist it (see src/render.tsx). */
+  onSettingsChange?: (settings: TrackerSettings) => void;
 }
 
 export function HeatmapProvider({
   children,
   trackerData,
   settings,
+  onSettingsChange,
 }: HeatmapProviderProps) {
   const [view, setView] = useState(
     trackerData.ui?.defaultView || IHeatmapView.HeatmapTracker,
@@ -115,6 +118,11 @@ export function HeatmapProvider({
     ],
   );
 
+  function updateSettings(patch: Partial<TrackerSettings>) {
+    Object.assign(settings, patch);
+    onSettingsChange?.(settings);
+  }
+
   return (
     <HeatmapContext.Provider
       value={{
@@ -132,6 +140,7 @@ export function HeatmapProvider({
         intensityConfig: trackerData.intensityConfig,
         setCurrentYear,
         setView,
+        updateSettings,
       }}
     >
       {children}
@@ -154,6 +163,7 @@ interface HeatmapContextProps {
   dateRange: DateRange | null;
   setCurrentYear: React.Dispatch<React.SetStateAction<number>>;
   setView: React.Dispatch<React.SetStateAction<IHeatmapView>>;
+  updateSettings: (patch: Partial<TrackerSettings>) => void;
 }
 
 export function useHeatmapContext(): HeatmapContextProps {

@@ -8,6 +8,8 @@ import {
   formatDateToISO8601,
   getISOWeekNumber,
   resolveDateRange,
+  getToday,
+  getCurrentFullYear,
 } from '../date';
 
 describe('getShiftedWeekdays', () => {
@@ -231,6 +233,77 @@ describe('getISOWeekNumber', () => {
         const date = new Date('2024-07-01T00:00:00Z'); // Monday
         expect(getISOWeekNumber(date)).toBe(27);
     });
+});
+
+// Simulates a "now" instant whose local calendar date differs from its UTC
+// calendar date (e.g. evening in a negative-UTC-offset timezone), without
+// depending on the test runner's actual OS timezone. Only the argless `new
+// Date()` form (what getToday/getCurrentFullYear call to read "now") is
+// faked; every other Date usage (Date.UTC, `new Date(timestamp)`) is passed
+// through to the real constructor so the rest of the date machinery -
+// including the assertions' own date reconstruction - stays correct.
+function withFakeNow(fakeNow: { local: [number, number, number]; utc: [number, number, number] }, run: () => void) {
+  const RealDate = global.Date;
+  const [localYear, localMonth, localDate] = fakeNow.local;
+  const [utcYear, utcMonth, utcDate] = fakeNow.utc;
+
+  class FakeNow extends RealDate {
+    getFullYear() { return localYear; }
+    getMonth() { return localMonth; }
+    getDate() { return localDate; }
+    getUTCFullYear() { return utcYear; }
+    getUTCMonth() { return utcMonth; }
+    getUTCDate() { return utcDate; }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const MockDate = function (...args: any[]) {
+    if (args.length === 0) return new FakeNow();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return new (RealDate as any)(...args);
+  };
+  MockDate.UTC = RealDate.UTC;
+  MockDate.now = RealDate.now;
+  MockDate.parse = RealDate.parse;
+  // Share the real prototype so `instanceof Date` still holds for anything
+  // this mock constructs (including plain RealDate/FakeNow instances).
+  MockDate.prototype = RealDate.prototype;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  global.Date = MockDate as any;
+
+  try {
+    run();
+  } finally {
+    global.Date = RealDate;
+  }
+}
+
+describe('getToday', () => {
+  it('uses the local calendar date, not the UTC calendar date, when they differ', () => {
+    // 11:30 PM local on Jul 17 with the UTC clock already past midnight into
+    // Jul 18 (e.g. evening in a negative-UTC-offset timezone). "Today"
+    // should still be Jul 17.
+    withFakeNow({ local: [2026, 6, 17], utc: [2026, 6, 18] }, () => {
+      expect(formatDateToISO8601(getToday())).toBe('2026-07-17');
+    });
+  });
+
+  it('agrees with the UTC calendar date when local time is ahead of UTC', () => {
+    // 1:30 AM local on Jul 18 while the UTC clock still reads Jul 17 (e.g. a
+    // positive-UTC-offset timezone just after local midnight).
+    withFakeNow({ local: [2026, 6, 18], utc: [2026, 6, 17] }, () => {
+      expect(formatDateToISO8601(getToday())).toBe('2026-07-18');
+    });
+  });
+});
+
+describe('getCurrentFullYear', () => {
+  it("uses the local year, not the UTC year, on New Year's Eve", () => {
+    // 11:30 PM local on Dec 31, 2026 with the UTC clock already into Jan 1, 2027.
+    withFakeNow({ local: [2026, 11, 31], utc: [2027, 0, 1] }, () => {
+      expect(getCurrentFullYear()).toBe(2026);
+    });
+  });
 });
 
 describe('resolveDateRange', () => {

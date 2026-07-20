@@ -80,7 +80,8 @@
     "donation": "Donation",
     "heatmap-tracker": "Carte thermique",
     "heatmap-tracker-statistics": "Statistiques",
-    "legend": "Légende"
+    "legend": "Légende",
+    "export": "Exporter"
   },
   "support.header": "☕️ Salut !",
   "support.text1": "Si ce plugin rend votre journée un peu plus fluide ou vous aide à vous organiser, ça me fait super plaisir ❤️",

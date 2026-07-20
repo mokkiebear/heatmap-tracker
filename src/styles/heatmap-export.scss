@@ -1,0 +1,159 @@
+.heatmap-export {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+  padding: 0.5em 1em 1em;
+  width: 100%;
+  font-size: 0.85em;
+
+  &__controls {
+    display: flex;
+    gap: 1em;
+    flex-wrap: wrap;
+    align-items: flex-end;
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25em;
+    }
+  }
+
+  &__date-input {
+    width: 120px;
+  }
+
+  &__presets {
+    display: flex;
+    gap: 0.3em;
+    flex-wrap: wrap;
+  }
+
+  &__folder-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+
+  &__toggle {
+    display: flex;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 0.4em !important;
+  }
+
+  &__summary {
+    color: var(--text-muted);
+  }
+
+  &__error {
+    color: var(--text-error);
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.5em;
+  }
+
+  &__preview {
+    width: 100%;
+    min-height: 420px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    background: var(--background-primary);
+  }
+}
+
+.heatmap-legend-modal {
+  &__hint {
+    color: var(--text-muted);
+    font-size: 0.9em;
+    margin-bottom: 0.75em;
+  }
+
+  &__footnote {
+    color: var(--text-muted);
+    font-size: 0.8em;
+    font-style: italic;
+    margin: 0.5em 0 0.75em;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    margin-bottom: 0.75em;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+
+    &.is-dragging {
+      opacity: 0.4;
+    }
+
+    &.is-excluded {
+      opacity: 0.55;
+    }
+  }
+
+  &__include-toggle {
+    flex-shrink: 0;
+  }
+
+  &__handle {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    color: var(--text-faint);
+    cursor: grab;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  &__swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    border: 1px solid var(--background-modifier-border);
+  }
+
+  &__color-input {
+    width: 100px;
+
+    &:disabled {
+      color: var(--text-faint);
+      cursor: default;
+      opacity: 0.7;
+    }
+  }
+
+  &__label-input {
+    flex: 1;
+  }
+
+  &__value-input {
+    width: 56px;
+    flex-shrink: 0;
+  }
+
+  &__remove-button {
+    flex-shrink: 0;
+  }
+
+  &__empty {
+    color: var(--text-muted);
+    font-size: 0.9em;
+  }
+
+  &__button-row {
+    display: flex;
+    gap: 0.5em;
+    margin-bottom: 0.75em;
+  }
+}

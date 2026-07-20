@@ -29,5 +29,6 @@ export const DEFAULT_SETTINGS: TrackerSettings = {
     [IHeatmapView.HeatmapTracker]: true,
     [IHeatmapView.HeatmapTrackerStatistics]: true,
     [IHeatmapView.Legend]: true,
+    [IHeatmapView.Export]: true,
   },
 };

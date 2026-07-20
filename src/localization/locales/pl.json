@@ -79,7 +79,8 @@
     "heatmap-tracker-statistics": "Statystyki",
     "documentation": "Dokumentacja",
     "donation": "Darowizna",
-    "legend": "Legenda"
+    "legend": "Legenda",
+    "export": "Eksport"
   },
   "tab": "Zakładka",
   "support.header": "☕️ Hej!",

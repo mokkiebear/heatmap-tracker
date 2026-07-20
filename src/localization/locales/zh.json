@@ -79,7 +79,8 @@
     "heatmap-tracker-statistics": "统计",
     "documentation": "文档",
     "donation": "捐赠",
-    "legend": "图例"
+    "legend": "图例",
+    "export": "导出"
   },
   "tab": "标签页",
   "support.header": "☕️ 你好！",

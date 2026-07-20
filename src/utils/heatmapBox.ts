@@ -13,7 +13,7 @@ import { ConfirmModal } from "src/modals/ConfirmModal";
 /**
  * Opens a file in a new leaf.
  */
-async function openFileInLeaf(app: App, file: TFile): Promise<void> {
+export async function openFileInLeaf(app: App, file: TFile): Promise<void> {
   const leaf = app.workspace.getLeaf(true);
   await leaf.openFile(file);
 }

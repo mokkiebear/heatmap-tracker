@@ -107,6 +107,7 @@ export default class HeatmapTrackerPlugin extends Plugin {
     window.renderHeatmapTracker = getRenderHeatmapTracker(
       this.app,
       this.settings,
+      () => this.saveSettings(),
     );
   }
 
