@@ -1,4 +1,5 @@
 import { Entry, Insight } from "src/types";
+import { getToday } from "src/utils/date";
 
 export interface StreakResult {
   currentStreak: number;
@@ -63,7 +64,7 @@ export function calculateStreaks(entries: Entry[]): StreakResult {
   // represent the streak ending at the last entry.
   currentStreakStartDate = tempStreakStartDate;
 
-  const today = new Date();
+  const today = getToday();
   const lastEntryDate = new Date(sortedEntries[sortedEntries.length - 1].date);
   const diffWithToday = Math.abs(
     (today.getTime() - lastEntryDate.getTime()) / (1000 * 60 * 60 * 24)

@@ -58,7 +58,7 @@ export function getLastDayOfYear(year: number): Date {
 
 export function getToday() {
   const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
 }
 
 export function formatDateToISO8601(date: Date | null): string | null {
@@ -82,7 +82,7 @@ export function getFullYear(date: string) {
 }
 
 export function getCurrentFullYear() {
-  return new Date().getUTCFullYear();
+  return new Date().getFullYear();
 }
 
 export function isSameDate(d1: Date, d2: Date): boolean {

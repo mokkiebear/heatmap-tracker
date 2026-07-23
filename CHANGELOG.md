@@ -5,6 +5,11 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Export tab: turn tracked data and daily notes into a single shareable Markdown or HTML report — a customizable heatmap-matching grid (weeks-as-columns or weeks-as-rows, month-splitting, week start day, weekend skipping, etc) with automatic band-wrapping for long ranges, followed by each day's own note content aggregated underneath it (grouped by week, frontmatter stripped). This comes with a legend editor to define meaning of colors with drag-to-reorder and per-category summary inclusion, a customizable summary line, quick date-range presets, and a configurable export folder. Preferences persist across sessions.
+
+### Fixed
+- `getToday()` now depends on locale.
 
 ## [2.6.2] - 2026-07-04
 ### Fixed

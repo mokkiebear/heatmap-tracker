@@ -25,6 +25,43 @@ export type IntensityConfig = z.infer<typeof IntensityConfigSchema>;
 
 export type TrackerData = z.infer<typeof TrackerDataSchema>;
 
+export interface LegendEntry {
+  color: string;
+  label: string;
+  /** Whether this category's count appears in the summary line. Default: true. */
+  includeInSummary?: boolean;
+  /**
+   * Fixed value every day matching this color contributes, replacing the
+   * day's own raw value. For categories like "Leave" whose underlying entry
+   * still carries a non-zero placeholder intensity (needed just to keep the
+   * day colored/logged), this forces the real reported value (e.g. 0 hours).
+   */
+  valueOverride?: number;
+}
+
+/** Remembered Export-tab preferences, persisted across sessions. */
+export interface ExportDefaults {
+  orientation?: "columns" | "rows";
+  weekStartDay?: number;
+  startDate?: string;
+  endDate?: string;
+  showWeekStartDate?: boolean;
+  /** Splits the grid at month boundaries with a blank gap. */
+  splitByMonth?: boolean;
+  /** Shows a month-name header, independent of whether the grid is split. */
+  showMonthLabels?: boolean;
+  skipWeekends?: boolean;
+  valueLabel?: string;
+  legend?: LegendEntry[];
+  exportFolder?: string;
+  /** Omits the day-count/day-type breakdown line entirely. */
+  hideSummary?: boolean;
+  /** Omits the "Total <value label>" line. */
+  hideTotalValue?: boolean;
+  /** Omits every value — the total line and each day's own value in the write-up. */
+  hideAllValues?: boolean;
+}
+
 export interface TrackerSettings {
   palettes: Palettes;
   weekStartDay: number;
@@ -33,6 +70,7 @@ export interface TrackerSettings {
   showWeekNums: boolean;
   language: string;
   viewTabsVisibility: Partial<Record<IHeatmapView, boolean>>;
+  exportDefaults?: ExportDefaults;
 }
 
 export interface Box {
@@ -55,6 +93,7 @@ export enum IHeatmapView {
   HeatmapTrackerStatistics = "heatmap-tracker-statistics",
   Documentation = "documentation",
   Legend = "legend",
+  Export = "export",
 }
 
 export type WeekDisplayMode = "even" | "odd" | "none" | "all";

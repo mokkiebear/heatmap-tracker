@@ -262,6 +262,19 @@ If none of these are set, the heatmap falls back to showing the full `year`. Thi
 
 - **Example:** [Date Range Parameters](https://github.com/mokkiebear/heatmap-tracker/blob/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters/13.%20dateRange.md)
 
+## Exporting a Report
+
+Every heatmap has an **Export** tab alongside Heatmap Tracker / Statistics / Legend / Documentation. It turns your tracked data and daily notes into a single shareable report — a status update, a work log for a manager, an end-of-year summary — sitting between a bare calendar (too little context) and a folder of raw notes (too much noise).
+
+- **Note content, aggregated**: below the calendar and legend, the report walks every week and day in range and pulls in that day's own note content (frontmatter stripped, bullet points kept as written; a day with no note just shows `-`), grouped under "Week of ..." and per-day headings. The reader gets everything that actually happened, day by day, in one document instead of clicking through each note individually.
+- **Layout**: "Weeks as columns" or "Weeks as rows", rendered pixel-for-pixel like the heatmap itself — including exact day-level month-splitting (with a year label whenever the range crosses a year boundary) and, when a date range is too wide/tall for one grid, automatic wrapping into multiple bands, evenly split rather than front-loading one band and leaving a small leftover.
+- **Date range**: pick start/end dates directly, or jump to a range with a preset — Logged (the full span of your tracked data), Last year, Year to date, Last month, or Month to date.
+- **Display options**: which day the week starts on, whether to show each week's start date, split the grid by month, show month labels, and hide weekends.
+- **Legend editor**: colors are pre-populated from what's actually used in your data, so you just fill in what each one means. Reorder entries by drag-and-drop, and toggle per-category whether it's counted in the summary line.
+- **Summary line**: a compact, customizable breakdown like `Workday: 22 · Leave: 1 · Rest day but worked: 1` with a total (e.g. `Total hours: 169`) — or hide the breakdown, the total, or all values entirely.
+- **Output**: save as a Markdown note or a self-contained HTML file, to whichever folder in your vault you choose.
+
+All of these preferences persist across sessions, so you only need to set them up once.
 
 <img src="https://raw.githubusercontent.com/mokkiebear/heatmap-tracker/refs/heads/main/public/two-mac-mockup.png" />
 
@@ -333,6 +346,11 @@ To be used with [Obsidian Dataview](https://blacksmithgu.github.io/obsidian-data
 <details>
     <summary>10. <b>Monthly Layout.</b> Display your heatmap as a compact calendar with one row per month.</summary>
     <p>Set <code>layout: "monthly"</code> to switch from the default GitHub-style grid to a calendar-style view with days 1–31 as columns. Combine with <code>monthsToShow</code> to display only recent months.</p>
+</details>
+
+<details>
+    <summary>11. <b>Export a Report.</b> Turn your tracked data and daily notes into a single shareable Markdown or HTML report.</summary>
+    <p>The <b>Export</b> tab renders a grid that matches your heatmap exactly (columns or rows, with automatic day-level month-splitting and band-wrapping for long ranges), then aggregates each day's own note content underneath it, grouped by week — plus a customizable legend, summary line, and date-range presets. See <a href="#exporting-a-report">Exporting a Report</a> above for details.</p>
 </details>
 
 <img src="https://raw.githubusercontent.com/mokkiebear/heatmap-tracker/refs/heads/main/public/mac-mockup-dark.png" />

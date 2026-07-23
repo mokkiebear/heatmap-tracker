@@ -21,6 +21,7 @@ const LegendView = lazy(() => import("./views/LegendView/LegendView"));
 const MonthlyHeatmapView = lazy(
   () => import("./views/MonthlyHeatmapView/MonthlyHeatmapView")
 );
+const ExportView = lazy(() => import("./views/ExportView/ExportView"));
 
 function ReactApp() {
   const { i18n } = useTranslation();
@@ -45,6 +46,9 @@ function ReactApp() {
       break;
     case IHeatmapView.Legend:
       content = <LegendView />;
+      break;
+    case IHeatmapView.Export:
+      content = <ExportView />;
       break;
     default:
       content = null;

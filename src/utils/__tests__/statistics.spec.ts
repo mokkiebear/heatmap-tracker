@@ -81,6 +81,46 @@ describe('calculateStreaks', () => {
     expect(result.currentStreakEndDate?.toISOString().split('T')[0]).toBe(d(0));
   });
 
+  it('keeps the current streak alive for an entry logged today, even when the UTC calendar date is already tomorrow', () => {
+    // Simulates checking in the evening in a negative-UTC-offset timezone,
+    // where the UTC clock has already rolled over to the next calendar day
+    // even though it's still "today" locally. Only the argless `new Date()`
+    // form (what calculateStreaks' internal getToday() call reads as "now")
+    // is faked; everything else falls through to the real Date constructor.
+    const RealDate = global.Date;
+    class FakeNow extends RealDate {
+      getFullYear() { return 2026; }
+      getMonth() { return 6; }
+      getDate() { return 17; }
+      getUTCFullYear() { return 2026; }
+      getUTCMonth() { return 6; }
+      getUTCDate() { return 18; }
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const MockDate = function (...args: any[]) {
+      if (args.length === 0) return new FakeNow();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return new (RealDate as any)(...args);
+    };
+    MockDate.UTC = RealDate.UTC;
+    MockDate.now = RealDate.now;
+    MockDate.parse = RealDate.parse;
+    MockDate.prototype = RealDate.prototype;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    global.Date = MockDate as any;
+
+    try {
+      const entries: Entry[] = [
+        { date: '2026-07-16', intensity: 1 },
+        { date: '2026-07-17', intensity: 1 },
+      ];
+      const result = calculateStreaks(entries);
+      expect(result.currentStreak).toBe(2);
+    } finally {
+      global.Date = RealDate;
+    }
+  });
+
   it('should simulate excludeFalsy by passing filtered entries', () => {
     // Imagine we have entries on 1st, 2nd, 3rd, but 2nd has intensity 0 and is filtered out
     const allEntries: Entry[] = [
