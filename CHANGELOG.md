@@ -5,6 +5,8 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+## [2.7.3] - 2026-08-04
 ### Added
 - CI workflow running type-check, lint, format check, the test suite (in three timezones) and a build on every pull request and push to `main`. Previously nothing ran automatically until a release tag was pushed.
 - Prettier, `.editorconfig` and a `format`/`format:check` script pair, so code style stops being a review topic. `.git-blame-ignore-revs` keeps the one-time reformat out of `git blame`.
