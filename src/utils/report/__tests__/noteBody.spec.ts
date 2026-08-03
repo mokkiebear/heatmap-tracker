@@ -19,7 +19,10 @@ describe("readNoteBody", () => {
     mockMetadataCache = {
       getFileCache: jest.fn(),
     };
-    app = { vault: mockVault, metadataCache: mockMetadataCache } as unknown as App;
+    app = {
+      vault: mockVault,
+      metadataCache: mockMetadataCache,
+    } as unknown as App;
   });
 
   it("returns undefined when the path does not resolve to a TFile", async () => {
@@ -53,7 +56,9 @@ describe("readNoteBody", () => {
   it("falls back to a regex strip when metadataCache has no frontmatterPosition", async () => {
     const file = new TFile();
     mockVault.getAbstractFileByPath.mockReturnValue(file);
-    mockVault.cachedRead.mockResolvedValue("---\ndate: 2026-07-15\n---\n- bullet one");
+    mockVault.cachedRead.mockResolvedValue(
+      "---\ndate: 2026-07-15\n---\n- bullet one",
+    );
     mockMetadataCache.getFileCache.mockReturnValue(null);
 
     const body = await readNoteBody(app, "2026-07-15.md");
@@ -64,7 +69,9 @@ describe("readNoteBody", () => {
   it("returns the trimmed raw text when there is no frontmatter at all", async () => {
     const file = new TFile();
     mockVault.getAbstractFileByPath.mockReturnValue(file);
-    mockVault.cachedRead.mockResolvedValue("  - just a bullet, no frontmatter  ");
+    mockVault.cachedRead.mockResolvedValue(
+      "  - just a bullet, no frontmatter  ",
+    );
     mockMetadataCache.getFileCache.mockReturnValue(null);
 
     const body = await readNoteBody(app, "no-frontmatter.md");
@@ -77,11 +84,18 @@ describe("readNoteBodies", () => {
   it("dedupes paths and only includes resolved bodies", async () => {
     const file = new TFile();
     const mockVault = {
-      getAbstractFileByPath: jest.fn((path: string) => (path === "a.md" ? file : null)),
-      cachedRead: jest.fn().mockResolvedValue("---\ndate: 2026-07-15\n---\nbody text"),
+      getAbstractFileByPath: jest.fn((path: string) =>
+        path === "a.md" ? file : null,
+      ),
+      cachedRead: jest
+        .fn()
+        .mockResolvedValue("---\ndate: 2026-07-15\n---\nbody text"),
     };
     const mockMetadataCache = { getFileCache: jest.fn().mockReturnValue(null) };
-    const app = { vault: mockVault, metadataCache: mockMetadataCache } as unknown as App;
+    const app = {
+      vault: mockVault,
+      metadataCache: mockMetadataCache,
+    } as unknown as App;
 
     const bodies = await readNoteBodies(app, ["a.md", "a.md", "b.md"]);
 

@@ -9,8 +9,20 @@ const model: ReportModel = {
     {
       weekStart: "2026-07-13",
       days: [
-        { date: "2026-07-13", weekday: 1, value: 8, color: "#7bc96f", body: "- meeting\n- wrote code" },
-        { date: "2026-07-14", weekday: 2, value: undefined, color: undefined, body: undefined },
+        {
+          date: "2026-07-13",
+          weekday: 1,
+          value: 8,
+          color: "#7bc96f",
+          body: "- meeting\n- wrote code",
+        },
+        {
+          date: "2026-07-14",
+          weekday: 2,
+          value: undefined,
+          color: undefined,
+          body: undefined,
+        },
       ],
     },
   ],
@@ -66,7 +78,9 @@ describe("buildReportMarkdown", () => {
 
     expect(markdown).toContain("### Tue, Jul 14, 2026");
     const lines = markdown.split("\n");
-    const headingIndex = lines.findIndex((line) => line === "### Tue, Jul 14, 2026");
+    const headingIndex = lines.findIndex(
+      (line) => line === "### Tue, Jul 14, 2026",
+    );
     expect(lines[headingIndex + 2]).toBe("-");
   });
 
@@ -102,7 +116,9 @@ describe("buildReportMarkdown", () => {
     // concern) — check the day-type summary line specifically, not the whole doc.
     const lines = markdown.split("\n");
     expect(lines).toContain("Leave: 0 · Other: 1<br>Total hours: 8");
-    expect(lines).not.toContain("Workday: 1 · Leave: 0 · Other: 1<br>Total hours: 8");
+    expect(lines).not.toContain(
+      "Workday: 1 · Leave: 0 · Other: 1<br>Total hours: 8",
+    );
   });
 
   it("embeds the legend as an inline-styled swatch + label (no dependency on a <style> block)", () => {
@@ -126,8 +142,20 @@ describe("buildReportMarkdown", () => {
         {
           weekStart: "2026-07-13",
           days: [
-            { date: "2026-07-13", weekday: 1, value: 8, color: "#7bc96f", body: undefined },
-            { date: "2026-07-14", weekday: 2, value: undefined, color: "#8b949e", body: undefined },
+            {
+              date: "2026-07-13",
+              weekday: 1,
+              value: 8,
+              color: "#7bc96f",
+              body: undefined,
+            },
+            {
+              date: "2026-07-14",
+              weekday: 2,
+              value: undefined,
+              color: "#8b949e",
+              body: undefined,
+            },
           ],
         },
       ],
@@ -146,7 +174,9 @@ describe("buildReportMarkdown", () => {
     const lines = markdown.split("\n");
     // The total is shown alone, immediately after the meta caption's own
     // blank-line separator — no stray blank summary line in between.
-    const metaIndex = lines.findIndex((line) => line.includes("Report generated"));
+    const metaIndex = lines.findIndex((line) =>
+      line.includes("Report generated"),
+    );
     expect(lines[metaIndex + 1]).toBe("");
     expect(lines[metaIndex + 2]).toBe("Total value: 8");
     expect(lines[metaIndex + 3]).toBe("");
@@ -210,7 +240,9 @@ describe("buildReportMarkdown", () => {
     const lines = markdown.split("\n");
     // Right after the meta caption's blank-line separator comes the heatmap
     // marker directly — no stray empty summary line in between.
-    const metaIndex = lines.findIndex((line) => line.includes("Report generated"));
+    const metaIndex = lines.findIndex((line) =>
+      line.includes("Report generated"),
+    );
     expect(lines[metaIndex + 1]).toBe("");
     expect(lines[metaIndex + 2]).toBe("MARKER");
   });
@@ -250,7 +282,9 @@ describe("buildReportMarkdown", () => {
       const lines = markdown.split("\n");
       // Jul 14 has no color at all, so it's genuinely unmatched -> Other: 1,
       // on top of the gradient's own combined count and blank's separate one.
-      expect(lines).toContain("Activity: 1 · Rest day: 0 · Other: 1<br>Total value: 8");
+      expect(lines).toContain(
+        "Activity: 1 · Rest day: 0 · Other: 1<br>Total value: 8",
+      );
     });
 
     it("does not render individual per-color swatch rows for non-blank entries", () => {

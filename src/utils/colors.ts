@@ -8,12 +8,17 @@ import { isEmpty } from "./core";
  * @param settingsColors - The available color palettes.
  * @returns The list of colors to be used.
  */
-export function getColors(colorScheme: ColorScheme, settingsColors: Palettes): ColorsList {
+export function getColors(
+  colorScheme: ColorScheme,
+  settingsColors: Palettes,
+): ColorsList {
   const { paletteName, customColors } = colorScheme ?? {};
 
   if (!isEmpty(customColors)) {
     return customColors as ColorsList;
   }
 
-  return paletteName && settingsColors[paletteName] ? settingsColors[paletteName] : settingsColors['default'];
+  return paletteName && settingsColors[paletteName]
+    ? settingsColors[paletteName]
+    : settingsColors["default"];
 }

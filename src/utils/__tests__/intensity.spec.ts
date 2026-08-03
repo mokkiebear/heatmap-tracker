@@ -8,7 +8,9 @@ import {
   parseIntensity,
 } from "../intensity";
 
-const createConfig = (overrides: Partial<IntensityConfig> = {}): IntensityConfig => ({
+const createConfig = (
+  overrides: Partial<IntensityConfig> = {},
+): IntensityConfig => ({
   scaleStart: undefined,
   scaleEnd: undefined,
   defaultIntensity: 1,
@@ -29,7 +31,7 @@ describe("getEntriesIntensities", () => {
     expect(getEntriesIntensities(entries)).toEqual([7, 3]);
   });
 
-  it('should handle 0 intensity values correctly', () => {
+  it("should handle 0 intensity values correctly", () => {
     const entries: Entry[] = [
       { date: "2024-01-01", intensity: null as any },
       { date: "2024-01-02", intensity: 5 },
@@ -81,12 +83,10 @@ describe("getIntensitiesInfo", () => {
     const intensities = [10, 40, 70];
     const config = createConfig();
 
-    expect(getIntensitiesInfo(intensities, config, colors)).toEqual(
-      [
-        { min: 10, max: 40, intensity: 1 },
-        { min: 40, max: 70, intensity: 2 }
-      ]
-    );
+    expect(getIntensitiesInfo(intensities, config, colors)).toEqual([
+      { min: 10, max: 40, intensity: 1 },
+      { min: 40, max: 70, intensity: 2 },
+    ]);
   });
 
   it("should respect custom scale boundaries when provided", () => {
@@ -143,10 +143,18 @@ describe("fillEntriesWithIntensity", () => {
       defaultIntensity: 80,
     });
 
-    const hideOutOfRange = fillEntriesWithIntensity(entries, baseConfig, colors);
+    const hideOutOfRange = fillEntriesWithIntensity(
+      entries,
+      baseConfig,
+      colors,
+    );
     expect(hideOutOfRange[11].intensity).toBeUndefined();
 
-    const showOutOfRange = fillEntriesWithIntensity(entries, { ...baseConfig, showOutOfRange: true }, colors);
+    const showOutOfRange = fillEntriesWithIntensity(
+      entries,
+      { ...baseConfig, showOutOfRange: true },
+      colors,
+    );
 
     expect(showOutOfRange[10].intensity).toBe(2);
     expect(showOutOfRange[11].intensity).toBe(4);
@@ -199,7 +207,11 @@ describe("excludeFalsy configuration", () => {
     ];
 
     const resultFalse = fillEntriesWithIntensity(entries, configFalse, colors);
-    const resultUndefined = fillEntriesWithIntensity(entries, configUndefined, colors);
+    const resultUndefined = fillEntriesWithIntensity(
+      entries,
+      configUndefined,
+      colors,
+    );
 
     // Both should include day 1 with 0 intensity
     expect(resultFalse[1]).toBeDefined();
@@ -246,10 +258,10 @@ describe("excludeFalsy configuration", () => {
 
   it("should NOT color intensity 0 when scale starts at 1 and showOutOfRange is true (USER BUG)", () => {
     const colors: ColorsList = ["#111", "#222", "#333"];
-    const config = createConfig({ 
-      scaleStart: 1, 
+    const config = createConfig({
+      scaleStart: 1,
       scaleEnd: 10,
-      showOutOfRange: true 
+      showOutOfRange: true,
     });
     const entries: Entry[] = [
       { date: "2024-01-01", intensity: 0 },
@@ -268,8 +280,8 @@ describe("excludeFalsy configuration", () => {
   });
 });
 
-describe('some examples', () => {
-  test('5 - 1 - 10', () => {
+describe("some examples", () => {
+  test("5 - 1 - 10", () => {
     const result = getIntensitiesRanges(5, 1, 10);
 
     expect(result).toEqual([
@@ -277,11 +289,11 @@ describe('some examples', () => {
       { min: 2.8, max: 4.6, intensity: 2 },
       { min: 4.6, max: 6.4, intensity: 3 },
       { min: 6.4, max: 8.2, intensity: 4 },
-      { min: 8.2, max: 10, intensity: 5 }
+      { min: 8.2, max: 10, intensity: 5 },
     ]);
   });
 
-  test('11 - 1 - 10000', () => {
+  test("11 - 1 - 10000", () => {
     const result = getIntensitiesRanges(11, 1, 10000);
 
     expect(result).toEqual([
@@ -295,11 +307,11 @@ describe('some examples', () => {
       { min: 6364, max: 7273, intensity: 8 },
       { min: 7273, max: 8182, intensity: 9 },
       { min: 8182, max: 9091, intensity: 10 },
-      { min: 9091, max: 10000, intensity: 11 }
+      { min: 9091, max: 10000, intensity: 11 },
     ]);
   });
 
-  test('5 - 5 - 5', () => {
+  test("5 - 5 - 5", () => {
     const result = getIntensitiesRanges(5, 5, 5);
 
     expect(result).toEqual([
@@ -307,11 +319,11 @@ describe('some examples', () => {
       { min: 5, max: 5, intensity: 2 },
       { min: 5, max: 5, intensity: 3 },
       { min: 5, max: 5, intensity: 4 },
-      { min: 5, max: 5, intensity: 5 }
+      { min: 5, max: 5, intensity: 5 },
     ]);
   });
 
-  test('6 - -10 - 10', () => {
+  test("6 - -10 - 10", () => {
     const result = getIntensitiesRanges(6, -10, 10);
 
     expect(result).toEqual([
@@ -320,7 +332,7 @@ describe('some examples', () => {
       { min: -3.333333333333333, max: 0, intensity: 3 },
       { min: 0, max: 3.333333333333334, intensity: 4 },
       { min: 3.333333333333334, max: 6.666666666666668, intensity: 5 },
-      { min: 6.666666666666668, max: 10, intensity: 6 }
+      { min: 6.666666666666668, max: 10, intensity: 6 },
     ]);
   });
 });
@@ -345,7 +357,7 @@ describe("parseIntensity", () => {
 
   it("should handle non-numeric strings", () => {
     expect(parseIntensity("abc")).toBe(1); // truthy string -> 1
-    expect(parseIntensity("")).toBe(0);    // falsy string -> 0
+    expect(parseIntensity("")).toBe(0); // falsy string -> 0
   });
 
   it("should handle null and undefined", () => {

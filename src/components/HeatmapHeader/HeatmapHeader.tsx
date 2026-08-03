@@ -6,7 +6,8 @@ import { ChevronRightIcon } from "../icons/ChevronRightIcon";
 
 export function HeatmapHeader() {
   const { t } = useTranslation();
-  const { currentYear, setCurrentYear, trackerData, dateRange } = useHeatmapContext();
+  const { currentYear, setCurrentYear, trackerData, dateRange } =
+    useHeatmapContext();
 
   function onArrowBackClick() {
     setCurrentYear((prev) => prev - 1);

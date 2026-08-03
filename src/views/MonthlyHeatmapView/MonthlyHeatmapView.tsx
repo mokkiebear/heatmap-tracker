@@ -3,7 +3,12 @@ import { useTranslation } from "react-i18next";
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
 import { HeatmapBox } from "src/components/HeatmapBox/HeatmapBox";
 import { Box } from "src/types";
-import { getDaysInMonth, formatDateToISO8601, getToday, isSameDate } from "src/utils/date";
+import {
+  getDaysInMonth,
+  formatDateToISO8601,
+  getToday,
+  isSameDate,
+} from "src/utils/date";
 
 interface MonthRow {
   year: number;
@@ -13,8 +18,18 @@ interface MonthRow {
 }
 
 const MONTH_KEYS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 const DAY_NUMBERS = Array.from({ length: 31 }, (_, i) => i + 1);
@@ -33,7 +48,10 @@ function MonthlyHeatmapView() {
     const todayDate = getToday();
     const result: MonthRow[] = [];
 
-    let startMonth: number, startYear: number, endMonth: number, endYear: number;
+    let startMonth: number,
+      startYear: number,
+      endMonth: number,
+      endYear: number;
 
     if (dateRange) {
       startYear = dateRange.start.getUTCFullYear();
@@ -100,7 +118,14 @@ function MonthlyHeatmapView() {
     }
 
     return result;
-  }, [currentYear, dateRange, entriesWithIntensityByDate, colorsList, trackerData, t]);
+  }, [
+    currentYear,
+    dateRange,
+    entriesWithIntensityByDate,
+    colorsList,
+    trackerData,
+    t,
+  ]);
 
   return (
     <div className="heatmap-tracker monthly-heatmap">
@@ -108,20 +133,23 @@ function MonthlyHeatmapView() {
         {/* Header row: empty cell + day numbers */}
         <div className="monthly-heatmap-label monthly-heatmap-header-label"></div>
         {DAY_NUMBERS.map((d) => (
-          <div key={`h-${d}`} className="monthly-heatmap-day-header">{d}</div>
+          <div key={`h-${d}`} className="monthly-heatmap-day-header">
+            {d}
+          </div>
         ))}
 
         {/* Month rows */}
         {rows.map((row) => (
           <React.Fragment key={`row-${row.year}-${row.month}`}>
-            <div className="monthly-heatmap-label">
-              {row.label}
-            </div>
+            <div className="monthly-heatmap-label">{row.label}</div>
             {row.boxes.map((box, i) =>
               box ? (
                 <HeatmapBox key={`${row.year}-${row.month}-${i}`} box={box} />
               ) : (
-                <div key={`empty-${row.year}-${row.month}-${i}`} className="monthly-heatmap-empty" />
+                <div
+                  key={`empty-${row.year}-${row.month}-${i}`}
+                  className="monthly-heatmap-empty"
+                />
               ),
             )}
           </React.Fragment>

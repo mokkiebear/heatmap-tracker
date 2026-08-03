@@ -15,7 +15,9 @@ describe("mergeLegendWithDefaults", () => {
   ];
 
   it("preserves an existing entry's customizations for a color still in defaults", () => {
-    const entries: LegendEntry[] = [{ color: "#7bc96f", label: "Workday", valueOverride: 8 }];
+    const entries: LegendEntry[] = [
+      { color: "#7bc96f", label: "Workday", valueOverride: 8 },
+    ];
     const merged = mergeLegendWithDefaults(entries, defaults);
 
     expect(merged.find((e) => e.color === "#7bc96f")).toEqual({
@@ -30,7 +32,10 @@ describe("mergeLegendWithDefaults", () => {
     const merged = mergeLegendWithDefaults(entries, defaults);
 
     expect(merged.find((e) => e.color === "#c6e48b")).toEqual(defaults[0]);
-    expect(merged.find((e) => e.color === "#7bc96f")).toEqual({ color: "#7bc96f", label: "Workday" });
+    expect(merged.find((e) => e.color === "#7bc96f")).toEqual({
+      color: "#7bc96f",
+      label: "Workday",
+    });
   });
 
   it("drops an entry whose color no longer appears in the current defaults", () => {
@@ -53,11 +58,17 @@ describe("mergeLegendWithDefaults", () => {
     ];
     const merged = mergeLegendWithDefaults(entries, defaults);
 
-    expect(merged.map((e) => e.color)).toEqual([EMPTY_CELL_COLOR, "#7bc96f", "#c6e48b"]);
+    expect(merged.map((e) => e.color)).toEqual([
+      EMPTY_CELL_COLOR,
+      "#7bc96f",
+      "#c6e48b",
+    ]);
   });
 
   it("appends brand-new colors in the defaults' own order, after all preserved entries", () => {
-    const entries: LegendEntry[] = [{ color: EMPTY_CELL_COLOR, label: "Rest day" }];
+    const entries: LegendEntry[] = [
+      { color: EMPTY_CELL_COLOR, label: "Rest day" },
+    ];
     const biggerDefaults: LegendEntry[] = [
       { color: "#c6e48b", label: "" },
       { color: "#7bc96f", label: "" },
@@ -66,7 +77,12 @@ describe("mergeLegendWithDefaults", () => {
     ];
     const merged = mergeLegendWithDefaults(entries, biggerDefaults);
 
-    expect(merged.map((e) => e.color)).toEqual([EMPTY_CELL_COLOR, "#c6e48b", "#7bc96f", "#196127"]);
+    expect(merged.map((e) => e.color)).toEqual([
+      EMPTY_CELL_COLOR,
+      "#c6e48b",
+      "#7bc96f",
+      "#196127",
+    ]);
   });
 
   it("is a no-op when nothing has changed (idempotent)", () => {
@@ -93,11 +109,9 @@ describe("paletteEntriesInOrder", () => {
       { color: "#7bc96f", label: "Medium" },
     ];
 
-    expect(paletteEntriesInOrder(entries, colorsList).map((e) => e.color)).toEqual([
-      "#c6e48b",
-      "#7bc96f",
-      "#196127",
-    ]);
+    expect(
+      paletteEntriesInOrder(entries, colorsList).map((e) => e.color),
+    ).toEqual(["#c6e48b", "#7bc96f", "#196127"]);
   });
 
   it("excludes a matched color that isn't in the palette (e.g. a custom per-day color, or blank)", () => {
@@ -107,17 +121,26 @@ describe("paletteEntriesInOrder", () => {
       { color: EMPTY_CELL_COLOR, label: "" },
     ];
 
-    expect(paletteEntriesInOrder(entries, colorsList).map((e) => e.color)).toEqual(["#c6e48b"]);
+    expect(
+      paletteEntriesInOrder(entries, colorsList).map((e) => e.color),
+    ).toEqual(["#c6e48b"]);
   });
 
   it("skips a palette color with no matching entry, rather than inserting a placeholder", () => {
     const entries: LegendEntry[] = [{ color: "#c6e48b", label: "Light" }];
 
-    expect(paletteEntriesInOrder(entries, colorsList).map((e) => e.color)).toEqual(["#c6e48b"]);
+    expect(
+      paletteEntriesInOrder(entries, colorsList).map((e) => e.color),
+    ).toEqual(["#c6e48b"]);
   });
 
   it("returns an empty array when nothing matches the palette", () => {
-    expect(paletteEntriesInOrder([{ color: "#f59e0b", label: "Rest day work" }], colorsList)).toEqual([]);
+    expect(
+      paletteEntriesInOrder(
+        [{ color: "#f59e0b", label: "Rest day work" }],
+        colorsList,
+      ),
+    ).toEqual([]);
   });
 });
 
@@ -175,12 +198,17 @@ describe("reorderLegendEntries", () => {
   it("is a no-op when the drop target overlaps the dragged block at all", () => {
     const entries = [workday, leave, restWork, blank];
     const block = [workday, leave];
-    expect(reorderLegendEntries(entries, block, [leave, restWork])).toBe(entries);
+    expect(reorderLegendEntries(entries, block, [leave, restWork])).toBe(
+      entries,
+    );
   });
 
   it("appends at the end when the target isn't found in the remaining entries", () => {
     const entries = [workday, leave];
     const strayTarget: LegendEntry = { color: "#000000", label: "Not present" };
-    expect(reorderLegendEntries(entries, [workday], [strayTarget])).toEqual([leave, workday]);
+    expect(reorderLegendEntries(entries, [workday], [strayTarget])).toEqual([
+      leave,
+      workday,
+    ]);
   });
 });

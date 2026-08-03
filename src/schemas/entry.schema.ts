@@ -13,12 +13,9 @@ export const EntrySchema = z.strictObject({
    */
   intensity: NumberLike.optional(),
   /**
-  * Initial user intensity (value).
-  */
+   * Initial user intensity (value).
+   */
   value: z.number().optional(),
   customColor: z.string().optional(),
-  content: z.union([
-    z.string(),
-    z.instanceof(HTMLElement)
-  ]).optional(),
+  content: z.union([z.string(), z.instanceof(HTMLElement)]).optional(),
 });

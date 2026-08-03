@@ -8,9 +8,8 @@ jest.mock("obsidian", () => ({
 jest.mock("src/localization/i18n", () => ({
   __esModule: true,
   default: {
-    t: jest.fn(
-      (key: string, options?: { paletteName?: string }) =>
-        options?.paletteName ? `${key}:${options.paletteName}` : key
+    t: jest.fn((key: string, options?: { paletteName?: string }) =>
+      options?.paletteName ? `${key}:${options.paletteName}` : key,
     ),
   },
 }));
@@ -29,7 +28,7 @@ type ElementOptions = {
 
 const applyElementOptions = (
   element: HTMLElement,
-  options: ElementOptions = {}
+  options: ElementOptions = {},
 ) => {
   const { cls, text, attr, value } = options;
 
@@ -99,8 +98,7 @@ beforeEach(() => {
   document.body.innerHTML = "";
 });
 
-const flushPromises = () =>
-  new Promise((resolve) => setTimeout(resolve, 0));
+const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 type PalettesConfig = Record<string, ColorsList>;
 
@@ -111,7 +109,7 @@ const defaultPalettes: PalettesConfig = {
 
 const setupPaletteSettings = (palettes: PalettesConfig = defaultPalettes) => {
   const palettesClone = Object.fromEntries(
-    Object.entries(palettes).map(([name, colors]) => [name, [...colors]])
+    Object.entries(palettes).map(([name, colors]) => [name, [...colors]]),
   );
 
   const plugin = {
@@ -126,10 +124,7 @@ const setupPaletteSettings = (palettes: PalettesConfig = defaultPalettes) => {
     display: jest.fn(),
   };
 
-  const paletteSettings = new PaletteSettings(
-    plugin as any,
-    settings as any
-  );
+  const paletteSettings = new PaletteSettings(plugin as any, settings as any);
 
   return { paletteSettings, plugin, settings };
 };
@@ -140,7 +135,7 @@ const renderPaletteSettings = (palettes?: PalettesConfig) => {
   context.paletteSettings.displayPaletteSettings();
 
   const container = context.settings.containerEl.querySelector(
-    ".heatmap-tracker-settings-palettes__container"
+    ".heatmap-tracker-settings-palettes__container",
   ) as HTMLElement;
 
   if (!container) {
@@ -153,14 +148,12 @@ const renderPaletteSettings = (palettes?: PalettesConfig) => {
 const getPaletteContainer = (container: HTMLElement, name: string) => {
   const paletteContainers = Array.from(
     container.querySelectorAll(
-      ".heatmap-tracker-settings-palettes__palette-container"
-    )
+      ".heatmap-tracker-settings-palettes__palette-container",
+    ),
   );
 
   return paletteContainers.find((paletteContainer) =>
-    paletteContainer
-      .querySelector("h4")
-      ?.textContent?.includes(`: ${name}`)
+    paletteContainer.querySelector("h4")?.textContent?.includes(`: ${name}`),
   ) as HTMLElement;
 };
 
@@ -172,7 +165,7 @@ describe("PaletteSettings", () => {
     expect(header?.textContent).toBe("settings.palettes");
 
     const helpParagraphs = Array.from(container.querySelectorAll("p")).map(
-      (paragraph) => paragraph.textContent
+      (paragraph) => paragraph.textContent,
     );
     expect(helpParagraphs).toContain("settings.addPaletteNote");
     expect(helpParagraphs).toContain("settings.colorsUsageNote");
@@ -181,41 +174,39 @@ describe("PaletteSettings", () => {
     expect(defaultPalette).toBeTruthy();
 
     const defaultInputs = defaultPalette.querySelectorAll(
-      ".heatmap-tracker-settings-palettes__color-input"
+      ".heatmap-tracker-settings-palettes__color-input",
     );
     expect(defaultInputs.length).toBeGreaterThan(0);
     defaultInputs.forEach((input) =>
-      expect((input as HTMLInputElement).disabled).toBe(true)
+      expect((input as HTMLInputElement).disabled).toBe(true),
     );
     expect(
       defaultPalette.querySelector(
-        ".heatmap-tracker-settings-palettes__save-color"
-      )
+        ".heatmap-tracker-settings-palettes__save-color",
+      ),
     ).toBeNull();
     expect(
       defaultPalette.querySelector(
-        ".heatmap-tracker-settings-palettes__delete-color"
-      )
+        ".heatmap-tracker-settings-palettes__delete-color",
+      ),
     ).toBeNull();
 
     const customPalette = getPaletteContainer(container, "custom");
     expect(
       customPalette.querySelector(
-        ".heatmap-tracker-settings-palettes__add-color-container"
-      )
+        ".heatmap-tracker-settings-palettes__add-color-container",
+      ),
     ).not.toBeNull();
 
     const usedIcons = setIcon.mock.calls.map(([, icon]) => icon);
-    expect(usedIcons).toEqual(
-      expect.arrayContaining(["trash", "check", "x"])
-    );
+    expect(usedIcons).toEqual(expect.arrayContaining(["trash", "check", "x"]));
   });
 
   it("should delete palettes through the header action", async () => {
     const { container, plugin, settings } = renderPaletteSettings();
 
     const deleteButton = container.querySelector(
-      ".heatmap-tracker-settings-palettes__delete-palette"
+      ".heatmap-tracker-settings-palettes__delete-palette",
     ) as HTMLButtonElement;
     deleteButton.click();
 
@@ -231,13 +222,13 @@ describe("PaletteSettings", () => {
     const customPalette = getPaletteContainer(container, "custom");
 
     const colorInput = customPalette.querySelector(
-      ".heatmap-tracker-settings-palettes__color-input"
+      ".heatmap-tracker-settings-palettes__color-input",
     ) as HTMLInputElement;
     const saveButton = customPalette.querySelector(
-      ".heatmap-tracker-settings-palettes__save-color"
+      ".heatmap-tracker-settings-palettes__save-color",
     ) as HTMLButtonElement;
     const colorPreview = customPalette.querySelector(
-      ".heatmap-tracker-settings-palettes__color-box"
+      ".heatmap-tracker-settings-palettes__color-box",
     ) as HTMLDivElement;
 
     const newColor = "rgb(1, 2, 3)";
@@ -255,7 +246,7 @@ describe("PaletteSettings", () => {
     expect(settings.display).toHaveBeenCalledTimes(1);
 
     const removeButton = customPalette.querySelector(
-      ".heatmap-tracker-settings-palettes__delete-color"
+      ".heatmap-tracker-settings-palettes__delete-color",
     ) as HTMLButtonElement;
     removeButton.click();
     await flushPromises();
@@ -270,13 +261,13 @@ describe("PaletteSettings", () => {
     const customPalette = getPaletteContainer(container, "custom");
 
     const addInput = customPalette.querySelector(
-      ".heatmap-tracker-settings-palettes__add-color-input"
+      ".heatmap-tracker-settings-palettes__add-color-input",
     ) as HTMLInputElement;
     const preview = customPalette.querySelector(
-      ".heatmap-tracker-settings-palettes__add-color-preview"
+      ".heatmap-tracker-settings-palettes__add-color-preview",
     ) as HTMLDivElement;
     const addButton = customPalette.querySelector(
-      ".heatmap-tracker-settings-palettes__add-color-button"
+      ".heatmap-tracker-settings-palettes__add-color-button",
     ) as HTMLButtonElement;
 
     const newColor = "rgb(9, 9, 9)";
@@ -298,11 +289,11 @@ describe("PaletteSettings", () => {
     const { container, plugin, settings } = renderPaletteSettings();
 
     const newPaletteInput = container.querySelector(
-      ".heatmap-tracker-settings-palettes__new-palette-input"
+      ".heatmap-tracker-settings-palettes__new-palette-input",
     ) as HTMLInputElement;
 
     const createPaletteButton = container.querySelector(
-      ".heatmap-tracker-settings-palettes__new-palette-button"
+      ".heatmap-tracker-settings-palettes__new-palette-button",
     ) as HTMLButtonElement;
 
     createPaletteButton.click();

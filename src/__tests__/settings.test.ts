@@ -99,7 +99,10 @@ jest.mock("obsidian", () => {
 
   class PluginSettingTab {
     containerEl: HTMLElement;
-    constructor(public app: unknown, public plugin: unknown) {
+    constructor(
+      public app: unknown,
+      public plugin: unknown,
+    ) {
       this.containerEl = document.createElement("div");
     }
   }
@@ -151,7 +154,7 @@ const { default: i18nMock } = jest.requireMock("src/localization/i18n") as {
 
 const applyElementOptions = (
   element: HTMLElement,
-  options?: { cls?: string; text?: string; attr?: Record<string, string> }
+  options?: { cls?: string; text?: string; attr?: Record<string, string> },
 ) => {
   if (!options) {
     return element;
@@ -189,12 +192,9 @@ beforeAll(() => {
 
   proto.createEl = function (
     tag: string,
-    options?: { cls?: string; text?: string; attr?: Record<string, string> }
+    options?: { cls?: string; text?: string; attr?: Record<string, string> },
   ) {
-    const element = applyElementOptions(
-      document.createElement(tag),
-      options
-    );
+    const element = applyElementOptions(document.createElement(tag), options);
     this.appendChild(element);
     return element;
   };
@@ -240,37 +240,37 @@ describe("HeatmapTrackerSettingsTab", () => {
     expect(tab.containerEl.querySelector(".stale")).toBeNull();
 
     const supportHeader = tab.containerEl.querySelector(
-      ".heatmap-tracker-settings-support-section__header"
+      ".heatmap-tracker-settings-support-section__header",
     );
     expect(supportHeader?.textContent).toBe("support.header");
 
     const supportParagraphs = tab.containerEl.querySelectorAll(
-      ".heatmap-tracker-settings-support-section__text, .heatmap-tracker-settings-support-section__text--highlight"
+      ".heatmap-tracker-settings-support-section__text, .heatmap-tracker-settings-support-section__text--highlight",
     );
     expect(supportParagraphs).toHaveLength(3);
 
     const options = tab.containerEl.querySelectorAll(
-      ".heatmap-tracker-settings-support-section__options div"
+      ".heatmap-tracker-settings-support-section__options div",
     );
     expect(options).toHaveLength(2);
 
     const viewHeader = Array.from(tab.containerEl.querySelectorAll("h3")).find(
-      (el) => el.textContent === "settings.tabsVisibility"
+      (el) => el.textContent === "settings.tabsVisibility",
     );
     expect(viewHeader).toBeTruthy();
 
     const viewSettings = SettingMock.instances.filter((instance) =>
-      instance.name?.startsWith("tab: ")
+      instance.name?.startsWith("tab: "),
     );
     expect(viewSettings).toHaveLength(Object.values(IHeatmapView).length);
 
     const trackerToggle = viewSettings.find((instance) =>
-      instance.name?.includes(IHeatmapView.HeatmapTracker)
+      instance.name?.includes(IHeatmapView.HeatmapTracker),
     )?.toggles[0];
     expect(trackerToggle?.value).toBe(false);
 
     const documentationToggle = viewSettings.find((instance) =>
-      instance.name?.includes(IHeatmapView.Documentation)
+      instance.name?.includes(IHeatmapView.Documentation),
     )?.toggles[0];
     expect(documentationToggle?.value).toBe(true);
 
@@ -310,12 +310,10 @@ describe("HeatmapTrackerSettingsTab", () => {
     expect(plugin.saveSettings).toHaveBeenCalledTimes(4);
 
     const viewSetting = SettingMock.instances.find((instance) =>
-      instance.name?.includes(IHeatmapView.Legend)
+      instance.name?.includes(IHeatmapView.Legend),
     )!;
     await viewSetting.toggles[0].trigger(false);
-    expect(
-      plugin.settings.viewTabsVisibility[IHeatmapView.Legend]
-    ).toBe(false);
+    expect(plugin.settings.viewTabsVisibility[IHeatmapView.Legend]).toBe(false);
     expect(plugin.saveSettings).toHaveBeenCalledTimes(5);
 
     rerenderSpy.mockRestore();

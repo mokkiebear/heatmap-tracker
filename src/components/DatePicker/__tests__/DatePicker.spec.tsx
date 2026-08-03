@@ -14,7 +14,9 @@ jest.mock("src/utils/date", () => ({
   getToday: jest.fn(),
 }));
 
-const { getToday } = jest.requireMock("src/utils/date") as { getToday: jest.Mock };
+const { getToday } = jest.requireMock("src/utils/date") as {
+  getToday: jest.Mock;
+};
 
 function setToday(iso: string) {
   const [year, month, day] = iso.split("-").map(Number);
@@ -26,19 +28,25 @@ beforeEach(() => {
 });
 
 function openPicker(container: HTMLElement) {
-  const button = container.querySelector(".date-picker__calendar-btn") as HTMLElement;
+  const button = container.querySelector(
+    ".date-picker__calendar-btn",
+  ) as HTMLElement;
   fireEvent.click(button);
 }
 
 describe("DatePicker", () => {
   it("shows the formatted value in the trigger when not focused", () => {
-    render(<DatePicker value="2026-07-13" onChange={jest.fn()} weekStartDay={1} />);
+    render(
+      <DatePicker value="2026-07-13" onChange={jest.fn()} weekStartDay={1} />,
+    );
     const input = screen.getByRole("textbox") as HTMLInputElement;
     expect(input.value).toBe("Jul 13, 2026");
   });
 
   it("opens the day grid on the value's month when the calendar button is clicked", () => {
-    const { container } = render(<DatePicker value="2026-07-13" onChange={jest.fn()} weekStartDay={1} />);
+    const { container } = render(
+      <DatePicker value="2026-07-13" onChange={jest.fn()} weekStartDay={1} />,
+    );
     openPicker(container);
 
     expect(screen.queryByText("July 2026")).not.toBeNull();
@@ -46,18 +54,26 @@ describe("DatePicker", () => {
   });
 
   it("starts the weekday header on Monday when weekStartDay is 1", () => {
-    const { container } = render(<DatePicker value="2026-07-13" onChange={jest.fn()} weekStartDay={1} />);
+    const { container } = render(
+      <DatePicker value="2026-07-13" onChange={jest.fn()} weekStartDay={1} />,
+    );
     openPicker(container);
 
-    const labels = Array.from(container.querySelectorAll(".date-picker__weekdays span")).map((el) => el.textContent);
+    const labels = Array.from(
+      container.querySelectorAll(".date-picker__weekdays span"),
+    ).map((el) => el.textContent);
     expect(labels[0]).toBe("M");
   });
 
   it("starts the weekday header on Sunday when weekStartDay is 0", () => {
-    const { container } = render(<DatePicker value="2026-07-13" onChange={jest.fn()} weekStartDay={0} />);
+    const { container } = render(
+      <DatePicker value="2026-07-13" onChange={jest.fn()} weekStartDay={0} />,
+    );
     openPicker(container);
 
-    const labels = Array.from(container.querySelectorAll(".date-picker__weekdays span")).map((el) => el.textContent);
+    const labels = Array.from(
+      container.querySelectorAll(".date-picker__weekdays span"),
+    ).map((el) => el.textContent);
     expect(labels[0]).toBe("S");
   });
 
@@ -65,13 +81,17 @@ describe("DatePicker", () => {
     // Jul 1, 2026 is a Wednesday. With Monday-start the leading overflow is
     // Jun 29-30 (2 cells); with Sunday-start it's Jun 28-30 (3 cells) -
     // moving Jul 1 from the 3rd cell to the 4th.
-    const monday = render(<DatePicker value="2026-07-13" onChange={jest.fn()} weekStartDay={1} />);
+    const monday = render(
+      <DatePicker value="2026-07-13" onChange={jest.fn()} weekStartDay={1} />,
+    );
     openPicker(monday.container);
     const mondayDays = monday.container.querySelectorAll(".date-picker__day");
     expect(mondayDays[2].textContent).toBe("1");
     expect(mondayDays[2].classList.contains("is-outside")).toBe(false);
 
-    const sunday = render(<DatePicker value="2026-07-13" onChange={jest.fn()} weekStartDay={0} />);
+    const sunday = render(
+      <DatePicker value="2026-07-13" onChange={jest.fn()} weekStartDay={0} />,
+    );
     openPicker(sunday.container);
     const sundayDays = sunday.container.querySelectorAll(".date-picker__day");
     expect(sundayDays[3].textContent).toBe("1");
@@ -80,10 +100,14 @@ describe("DatePicker", () => {
 
   it("calls onChange and closes the panel when a day is picked", () => {
     const onChange = jest.fn();
-    const { container } = render(<DatePicker value="2026-07-13" onChange={onChange} weekStartDay={1} />);
+    const { container } = render(
+      <DatePicker value="2026-07-13" onChange={onChange} weekStartDay={1} />,
+    );
     openPicker(container);
 
-    const day20 = Array.from(container.querySelectorAll(".date-picker__day")).find(
+    const day20 = Array.from(
+      container.querySelectorAll(".date-picker__day"),
+    ).find(
       (el) => el.textContent === "20" && !el.classList.contains("is-outside"),
     ) as HTMLElement;
     fireEvent.click(day20);
@@ -93,7 +117,9 @@ describe("DatePicker", () => {
   });
 
   it("steps to the previous/next month via the nav buttons", () => {
-    const { container } = render(<DatePicker value="2026-07-13" onChange={jest.fn()} weekStartDay={1} />);
+    const { container } = render(
+      <DatePicker value="2026-07-13" onChange={jest.fn()} weekStartDay={1} />,
+    );
     openPicker(container);
 
     fireEvent.click(screen.getByLabelText("datePicker.nextMonth"));
@@ -105,18 +131,32 @@ describe("DatePicker", () => {
   });
 
   it("drills up to month view then year view via the header label, and back down on selection", () => {
-    const { container } = render(<DatePicker value="2026-07-13" onChange={jest.fn()} weekStartDay={1} />);
+    const { container } = render(
+      <DatePicker value="2026-07-13" onChange={jest.fn()} weekStartDay={1} />,
+    );
     openPicker(container);
 
     fireEvent.click(screen.getByText("July 2026"));
-    expect(container.querySelectorAll(".date-picker__grid--months .date-picker__cell")).toHaveLength(12);
+    expect(
+      container.querySelectorAll(
+        ".date-picker__grid--months .date-picker__cell",
+      ),
+    ).toHaveLength(12);
 
     fireEvent.click(screen.getByText("2026"));
-    expect(container.querySelectorAll(".date-picker__grid--years .date-picker__cell")).toHaveLength(12);
+    expect(
+      container.querySelectorAll(
+        ".date-picker__grid--years .date-picker__cell",
+      ),
+    ).toHaveLength(12);
     expect(screen.queryByText("2020–2029")).not.toBeNull();
 
     fireEvent.click(screen.getByText("2030"));
-    expect(container.querySelectorAll(".date-picker__grid--months .date-picker__cell")).toHaveLength(12);
+    expect(
+      container.querySelectorAll(
+        ".date-picker__grid--months .date-picker__cell",
+      ),
+    ).toHaveLength(12);
 
     fireEvent.click(screen.getByText("Mar"));
     expect(screen.queryByText("March 2030")).not.toBeNull();
@@ -128,7 +168,9 @@ describe("DatePicker", () => {
     // a day fires onChange with a date matching what was actually switched
     // to (guards against a stale year/month sneaking into the day grid).
     const onChange = jest.fn();
-    const { container } = render(<DatePicker value="2026-07-13" onChange={onChange} weekStartDay={1} />);
+    const { container } = render(
+      <DatePicker value="2026-07-13" onChange={onChange} weekStartDay={1} />,
+    );
     openPicker(container);
 
     fireEvent.click(screen.getByText("July 2026"));
@@ -136,7 +178,9 @@ describe("DatePicker", () => {
     fireEvent.click(screen.getByText("2030"));
     fireEvent.click(screen.getByText("Mar"));
 
-    const day15 = Array.from(container.querySelectorAll(".date-picker__day")).find(
+    const day15 = Array.from(
+      container.querySelectorAll(".date-picker__day"),
+    ).find(
       (el) => el.textContent === "15" && !el.classList.contains("is-outside"),
     ) as HTMLElement;
     fireEvent.click(day15);
@@ -150,7 +194,9 @@ describe("DatePicker", () => {
     // order) - reproduces that exact sequence instead of only ever using
     // fireEvent.click, which never fires the preceding blur at all.
     const onChange = jest.fn();
-    const { container } = render(<DatePicker value="2026-07-13" onChange={onChange} weekStartDay={1} />);
+    const { container } = render(
+      <DatePicker value="2026-07-13" onChange={onChange} weekStartDay={1} />,
+    );
     const input = screen.getByRole("textbox");
     fireEvent.focus(input);
 
@@ -158,7 +204,11 @@ describe("DatePicker", () => {
     fireEvent.blur(input, { relatedTarget: monthLabel });
     fireEvent.click(monthLabel);
 
-    expect(container.querySelectorAll(".date-picker__grid--months .date-picker__cell")).toHaveLength(12);
+    expect(
+      container.querySelectorAll(
+        ".date-picker__grid--months .date-picker__cell",
+      ),
+    ).toHaveLength(12);
 
     const marchCell = screen.getByText("Mar");
     fireEvent.blur(input, { relatedTarget: marchCell });
@@ -170,7 +220,9 @@ describe("DatePicker", () => {
 
   it("does not reset the navigated-to month/year if the input is redundantly refocused while already open", () => {
     const onChange = jest.fn();
-    render(<DatePicker value="2026-07-13" onChange={onChange} weekStartDay={1} />);
+    render(
+      <DatePicker value="2026-07-13" onChange={onChange} weekStartDay={1} />,
+    );
     const input = screen.getByRole("textbox");
     fireEvent.focus(input);
 
@@ -184,7 +236,9 @@ describe("DatePicker", () => {
   });
 
   it("steps by year at month-level and by decade at year-level", () => {
-    const { container } = render(<DatePicker value="2026-07-13" onChange={jest.fn()} weekStartDay={1} />);
+    const { container } = render(
+      <DatePicker value="2026-07-13" onChange={jest.fn()} weekStartDay={1} />,
+    );
     openPicker(container);
 
     fireEvent.click(screen.getByText("July 2026")); // -> month level, year 2026
@@ -203,7 +257,9 @@ describe("DatePicker", () => {
   });
 
   it("rolls the year over when stepping past December/January at day-level", () => {
-    const { container } = render(<DatePicker value="2026-01-13" onChange={jest.fn()} weekStartDay={1} />);
+    const { container } = render(
+      <DatePicker value="2026-01-13" onChange={jest.fn()} weekStartDay={1} />,
+    );
     openPicker(container);
     expect(screen.queryByText("January 2026")).not.toBeNull();
 
@@ -217,7 +273,9 @@ describe("DatePicker", () => {
 
   it("commits a typed ISO date on blur", () => {
     const onChange = jest.fn();
-    render(<DatePicker value="2026-07-13" onChange={onChange} weekStartDay={1} />);
+    render(
+      <DatePicker value="2026-07-13" onChange={onChange} weekStartDay={1} />,
+    );
     const input = screen.getByRole("textbox");
 
     fireEvent.focus(input);
@@ -229,7 +287,9 @@ describe("DatePicker", () => {
 
   it("discards an unparseable typed value instead of calling onChange", () => {
     const onChange = jest.fn();
-    render(<DatePicker value="2026-07-13" onChange={onChange} weekStartDay={1} />);
+    render(
+      <DatePicker value="2026-07-13" onChange={onChange} weekStartDay={1} />,
+    );
     const input = screen.getByRole("textbox") as HTMLInputElement;
 
     fireEvent.focus(input);
@@ -242,7 +302,9 @@ describe("DatePicker", () => {
 
   it("clears the value via the Clear footer action", () => {
     const onChange = jest.fn();
-    const { container } = render(<DatePicker value="2026-07-13" onChange={onChange} weekStartDay={1} />);
+    const { container } = render(
+      <DatePicker value="2026-07-13" onChange={onChange} weekStartDay={1} />,
+    );
     openPicker(container);
 
     fireEvent.click(screen.getByText("datePicker.clear"));
@@ -251,7 +313,9 @@ describe("DatePicker", () => {
 
   it("jumps to today's date via the Today footer action", () => {
     const onChange = jest.fn();
-    const { container } = render(<DatePicker value="2026-07-13" onChange={onChange} weekStartDay={1} />);
+    const { container } = render(
+      <DatePicker value="2026-07-13" onChange={onChange} weekStartDay={1} />,
+    );
     openPicker(container);
 
     fireEvent.click(screen.getByText("datePicker.today"));
@@ -260,7 +324,9 @@ describe("DatePicker", () => {
 
   it("closes the panel on outside click without committing anything", () => {
     const onChange = jest.fn();
-    const { container } = render(<DatePicker value="2026-07-13" onChange={onChange} weekStartDay={1} />);
+    const { container } = render(
+      <DatePicker value="2026-07-13" onChange={onChange} weekStartDay={1} />,
+    );
     openPicker(container);
     expect(container.querySelector(".date-picker__panel")).not.toBeNull();
 

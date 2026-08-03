@@ -50,7 +50,8 @@ export function computeDayTypeCounts(
     if (countByColor.has(blankNormalized)) {
       countByColor.set(
         blankNormalized,
-        (countByColor.get(blankNormalized) ?? 0) + Math.max(0, totalDaysInRange - days.length),
+        (countByColor.get(blankNormalized) ?? 0) +
+          Math.max(0, totalDaysInRange - days.length),
       );
     }
   }
@@ -84,7 +85,10 @@ export function getLegendVisibility(entry: LegendEntry): LegendVisibility {
 }
 
 /** Mutates `entry` so `getLegendVisibility(entry) === visibility` afterwards. */
-export function setLegendVisibility(entry: LegendEntry, visibility: LegendVisibility): void {
+export function setLegendVisibility(
+  entry: LegendEntry,
+  visibility: LegendVisibility,
+): void {
   if (visibility === "shown") {
     entry.includeInSummary = undefined;
     entry.includeInLegend = undefined;
@@ -98,7 +102,9 @@ export function setLegendVisibility(entry: LegendEntry, visibility: LegendVisibi
 }
 
 /** shown -> summaryHidden -> hidden -> shown -> ... */
-export function nextLegendVisibility(visibility: LegendVisibility): LegendVisibility {
+export function nextLegendVisibility(
+  visibility: LegendVisibility,
+): LegendVisibility {
   if (visibility === "shown") return "summaryHidden";
   if (visibility === "summaryHidden") return "hidden";
   return "shown";
@@ -115,7 +121,9 @@ export function nextLegendVisibility(visibility: LegendVisibility): LegendVisibi
  * (`getLegendVisibility(entry) === "hidden"`).
  */
 export function buildLegendHtml(legend: LegendEntry[]): string {
-  const labeled = legend.filter((entry) => entry.label.trim() !== "" && entry.includeInLegend !== false);
+  const labeled = legend.filter(
+    (entry) => entry.label.trim() !== "" && entry.includeInLegend !== false,
+  );
   if (labeled.length === 0) return "";
 
   const items = labeled
@@ -168,12 +176,17 @@ export function buildGradientLegendHtml(
   const SWATCH_GAP = 2;
 
   const blankNormalized = normalizeColor(EMPTY_CELL_COLOR);
-  const intensityColors = colorsList.filter((color) => normalizeColor(color) !== blankNormalized);
+  const intensityColors = colorsList.filter(
+    (color) => normalizeColor(color) !== blankNormalized,
+  );
   const paletteColors = new Set(intensityColors.map(normalizeColor));
 
-  const paletteEntries = legend.filter((entry) => paletteColors.has(normalizeColor(entry.color)));
+  const paletteEntries = legend.filter((entry) =>
+    paletteColors.has(normalizeColor(entry.color)),
+  );
   const gradientHidden =
-    paletteEntries.length > 0 && paletteEntries.every((entry) => entry.includeInLegend === false);
+    paletteEntries.length > 0 &&
+    paletteEntries.every((entry) => entry.includeInLegend === false);
 
   let gradientItem = "";
   if (intensityColors.length > 0 && !gradientHidden) {
@@ -190,7 +203,9 @@ export function buildGradientLegendHtml(
     gradientItem =
       `<div style="display:flex;align-items:center;gap:8px;">` +
       `<div style="display:flex;gap:${SWATCH_GAP}px;">${swatches}</div>` +
-      (label ? `<span style="font-size:0.85em;">${escapeHtml(label)}</span>` : "") +
+      (label
+        ? `<span style="font-size:0.85em;">${escapeHtml(label)}</span>`
+        : "") +
       `</div>`;
   }
 
@@ -281,7 +296,10 @@ export interface SummaryModel {
  * `hideSummary` set — so callers can omit the line entirely instead of
  * rendering it blank.
  */
-export function buildSummaryModel(model: ReportModel, options: SummaryOptions = {}): SummaryModel {
+export function buildSummaryModel(
+  model: ReportModel,
+  options: SummaryOptions = {},
+): SummaryModel {
   const valueLabel = options.valueLabel?.trim() || "value";
   const legend = options.legend ?? [];
   const legendMode = options.legendMode ?? "separate";
@@ -293,13 +311,20 @@ export function buildSummaryModel(model: ReportModel, options: SummaryOptions = 
       const allDays = model.weeks.flatMap((week) => week.days);
       const totalDaysInRange =
         Math.round(
-          (parseUTCDate(model.endDate).getTime() - parseUTCDate(model.startDate).getTime()) /
+          (parseUTCDate(model.endDate).getTime() -
+            parseUTCDate(model.startDate).getTime()) /
             (1000 * 60 * 60 * 24),
         ) + 1;
-      const { counts, otherCount } = computeDayTypeCounts(allDays, legend, totalDaysInRange);
+      const { counts, otherCount } = computeDayTypeCounts(
+        allDays,
+        legend,
+        totalDaysInRange,
+      );
 
       if (legendMode === "gradient") {
-        const paletteColors = new Set((options.colorsList ?? []).map(normalizeColor));
+        const paletteColors = new Set(
+          (options.colorsList ?? []).map(normalizeColor),
+        );
         const gradientLabel = options.gradientLabel?.trim();
 
         let gradientTotal = 0;
@@ -340,8 +365,12 @@ export function buildSummaryModel(model: ReportModel, options: SummaryOptions = 
         // button - mirroring how an individual excluded entry drops its
         // whole line in separate mode, rather than showing a zero.
         if (gradientLabel && anyPaletteIncluded) {
-          const insertAt = gradientPosition === -1 ? parts.length : gradientPosition;
-          parts.splice(insertAt, 0, { label: gradientLabel, value: gradientTotal });
+          const insertAt =
+            gradientPosition === -1 ? parts.length : gradientPosition;
+          parts.splice(insertAt, 0, {
+            label: gradientLabel,
+            value: gradientTotal,
+          });
         }
         dayTypeParts.push(...parts);
       } else {
@@ -355,7 +384,10 @@ export function buildSummaryModel(model: ReportModel, options: SummaryOptions = 
         dayTypeParts.push({ label: "Other", value: otherCount });
       }
     } else {
-      dayTypeParts.push({ label: "Days logged", value: model.summary.totalDays });
+      dayTypeParts.push({
+        label: "Days logged",
+        value: model.summary.totalDays,
+      });
     }
   }
 

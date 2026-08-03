@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { PalettesSchema } from "../palettes.schema";
 
-
 describe("PalettesSchema", () => {
   it("accepts a valid palettes object", () => {
     const input = {

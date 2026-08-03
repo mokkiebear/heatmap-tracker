@@ -1,4 +1,9 @@
-import { formatDateToISO8601, getDaysInMonth, getToday, parseUTCDate } from "src/utils/date";
+import {
+  formatDateToISO8601,
+  getDaysInMonth,
+  getToday,
+  parseUTCDate,
+} from "src/utils/date";
 
 export interface DateParts {
   year: number;
@@ -23,7 +28,11 @@ export function parseISO(iso: string): DateParts | null {
   if (!iso) return null;
   const date = parseUTCDate(iso);
   if (isNaN(date.getTime())) return null;
-  return { year: date.getUTCFullYear(), month: date.getUTCMonth(), day: date.getUTCDate() };
+  return {
+    year: date.getUTCFullYear(),
+    month: date.getUTCMonth(),
+    day: date.getUTCDate(),
+  };
 }
 
 /**
@@ -40,13 +49,22 @@ export function parseTypedISO(text: string): string | null {
   if (month < 1 || month > 12 || day < 1 || day > 31) return null;
 
   const date = new Date(Date.UTC(year, month - 1, day));
-  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  )
+    return null;
   return toISO(year, month - 1, day);
 }
 
 export function todayParts(): DateParts {
   const today = getToday();
-  return { year: today.getUTCFullYear(), month: today.getUTCMonth(), day: today.getUTCDate() };
+  return {
+    year: today.getUTCFullYear(),
+    month: today.getUTCMonth(),
+    day: today.getUTCDate(),
+  };
 }
 
 /**
@@ -55,7 +73,11 @@ export function todayParts(): DateParts {
  * `weekStartDay` (not always Sunday), so the grid's columns match whatever
  * week-start convention the rest of the report is using.
  */
-export function buildDayGrid(year: number, month: number, weekStartDay: number): DayCell[] {
+export function buildDayGrid(
+  year: number,
+  month: number,
+  weekStartDay: number,
+): DayCell[] {
   const cells: DayCell[] = [];
 
   const firstWeekday = new Date(Date.UTC(year, month, 1)).getUTCDay();
@@ -78,7 +100,11 @@ export function buildDayGrid(year: number, month: number, weekStartDay: number):
   const nextYear = month === 11 ? year + 1 : year;
   let nextDay = 1;
   while (cells.length < 42) {
-    cells.push({ iso: toISO(nextYear, nextMonth, nextDay), day: nextDay, inMonth: false });
+    cells.push({
+      iso: toISO(nextYear, nextMonth, nextDay),
+      day: nextDay,
+      inMonth: false,
+    });
     nextDay++;
   }
 

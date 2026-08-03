@@ -1,19 +1,19 @@
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
-import en from './locales/en.json';
-import ru from './locales/ru.json';
-import de from './locales/de.json';
-import es from './locales/es.json';
-import fr from './locales/fr.json';
-import hi from './locales/hi.json';
-import zh from './locales/zh.json';
-import pt from './locales/pt.json';
-import pl from './locales/pl.json';
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+import en from "./locales/en.json";
+import ru from "./locales/ru.json";
+import de from "./locales/de.json";
+import es from "./locales/es.json";
+import fr from "./locales/fr.json";
+import hi from "./locales/hi.json";
+import zh from "./locales/zh.json";
+import pt from "./locales/pt.json";
+import pl from "./locales/pl.json";
 
-import languages from './languages.json';
+import languages from "./languages.json";
 
 // don't want to use this?
-// have a look at the Quick start guide 
+// have a look at the Quick start guide
 // for passing in lng and translations on init
 
 i18n
@@ -22,7 +22,7 @@ i18n
   // init i18next
   // for all options read: https://www.i18next.com/overview/configuration-options
   .init({
-    fallbackLng: 'en',
+    fallbackLng: "en",
     debug: false,
 
     interpolation: {
@@ -59,6 +59,5 @@ i18n
       },
     },
   });
-
 
 export default i18n;

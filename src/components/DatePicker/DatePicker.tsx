@@ -4,17 +4,40 @@ import { getShiftedWeekdays } from "src/utils/date";
 import { CalendarIcon } from "src/components/icons/CalendarIcon";
 import { ChevronLeftIcon } from "src/components/icons/ChevronLeftIcon";
 import { ChevronRightIcon } from "src/components/icons/ChevronRightIcon";
-import { buildDayGrid, parseISO, parseTypedISO, todayParts, toISO } from "src/components/DatePicker/dateGrid";
+import {
+  buildDayGrid,
+  parseISO,
+  parseTypedISO,
+  todayParts,
+  toISO,
+} from "src/components/DatePicker/dateGrid";
 
 const WEEKDAY_LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
-const MONTH_SHORT_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTH_SHORT_LABELS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 // How many years the year-grid pages by per prev/next click — a full page of
 // the 12 shown, minus the one-year overlap at each edge (see the year-level
 // render below), matching how the day-grid also always advances by exactly
 // one full month regardless of how many overflow days it shows.
 const YEAR_PAGE_STEP = 10;
 
-const MONTH_FORMATTER = new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric", timeZone: "UTC" });
+const MONTH_FORMATTER = new Intl.DateTimeFormat(undefined, {
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+});
 const TRIGGER_FORMATTER = new Intl.DateTimeFormat(undefined, {
   month: "short",
   day: "numeric",
@@ -58,7 +81,12 @@ function initialView(value: string): ViewState {
  * time. The trigger is a real text input, so a known date (`yyyy-mm-dd`) can
  * be typed directly instead of always navigating the grid to it.
  */
-export function DatePicker({ value, onChange, weekStartDay, ariaLabel }: DatePickerProps) {
+export function DatePicker({
+  value,
+  onChange,
+  weekStartDay,
+  ariaLabel,
+}: DatePickerProps) {
   const { t } = useTranslation();
   const wrapRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -70,7 +98,10 @@ export function DatePicker({ value, onChange, weekStartDay, ariaLabel }: DatePic
   const [editText, setEditText] = useState("");
   const [view, setView] = useState<ViewState>(() => initialView(value));
 
-  const shiftedWeekdayLabels = getShiftedWeekdays(WEEKDAY_LETTERS, weekStartDay);
+  const shiftedWeekdayLabels = getShiftedWeekdays(
+    WEEKDAY_LETTERS,
+    weekStartDay,
+  );
   const selected = parseISO(value);
   const today = todayParts();
 
@@ -186,13 +217,18 @@ export function DatePicker({ value, onChange, weekStartDay, ariaLabel }: DatePic
   }
 
   function drillUp() {
-    setView((prev) => ({ ...prev, level: prev.level === "month" ? "year" : "month" }));
+    setView((prev) => ({
+      ...prev,
+      level: prev.level === "month" ? "year" : "month",
+    }));
   }
 
   const displayValue = isEditing
     ? editText
     : value && selected
-      ? TRIGGER_FORMATTER.format(new Date(Date.UTC(selected.year, selected.month, selected.day)))
+      ? TRIGGER_FORMATTER.format(
+          new Date(Date.UTC(selected.year, selected.month, selected.day)),
+        )
       : "";
 
   const navLabels: Record<Level, [string, string]> = {
@@ -205,7 +241,10 @@ export function DatePicker({ value, onChange, weekStartDay, ariaLabel }: DatePic
   const decadeStart = Math.floor(view.year / 10) * 10;
 
   return (
-    <div className={classNames("date-picker", isOpen && "is-open")} ref={wrapRef}>
+    <div
+      className={classNames("date-picker", isOpen && "is-open")}
+      ref={wrapRef}
+    >
       <div className="date-picker__trigger">
         <input
           ref={inputRef}
@@ -226,7 +265,11 @@ export function DatePicker({ value, onChange, weekStartDay, ariaLabel }: DatePic
           tabIndex={-1}
           aria-haspopup="dialog"
           aria-expanded={isOpen}
-          aria-label={ariaLabel ? `${t("datePicker.openCalendar")}: ${ariaLabel}` : t("datePicker.openCalendar")}
+          aria-label={
+            ariaLabel
+              ? `${t("datePicker.openCalendar")}: ${ariaLabel}`
+              : t("datePicker.openCalendar")
+          }
           onClick={handleCalendarButtonClick}
         >
           <CalendarIcon />
@@ -234,22 +277,44 @@ export function DatePicker({ value, onChange, weekStartDay, ariaLabel }: DatePic
       </div>
 
       {isOpen && (
-        <div className={classNames("date-picker__panel", isFlipped && "is-flipped")} ref={panelRef}>
+        <div
+          className={classNames(
+            "date-picker__panel",
+            isFlipped && "is-flipped",
+          )}
+          ref={panelRef}
+        >
           <div className="date-picker__header">
-            <button type="button" className="date-picker__nav-btn" aria-label={prevLabel} onClick={() => step(-1)}>
+            <button
+              type="button"
+              className="date-picker__nav-btn"
+              aria-label={prevLabel}
+              onClick={() => step(-1)}
+            >
               <ChevronLeftIcon />
             </button>
             <button
               type="button"
-              className={classNames("date-picker__label-btn", view.level === "year" && "is-static")}
+              className={classNames(
+                "date-picker__label-btn",
+                view.level === "year" && "is-static",
+              )}
               disabled={view.level === "year"}
               onClick={drillUp}
             >
-              {view.level === "day" && MONTH_FORMATTER.format(new Date(Date.UTC(view.year, view.month, 1)))}
+              {view.level === "day" &&
+                MONTH_FORMATTER.format(
+                  new Date(Date.UTC(view.year, view.month, 1)),
+                )}
               {view.level === "month" && view.year}
               {view.level === "year" && `${decadeStart}–${decadeStart + 9}`}
             </button>
-            <button type="button" className="date-picker__nav-btn" aria-label={nextLabel} onClick={() => step(1)}>
+            <button
+              type="button"
+              className="date-picker__nav-btn"
+              aria-label={nextLabel}
+              onClick={() => step(1)}
+            >
               <ChevronRightIcon />
             </button>
           </div>
@@ -262,21 +327,25 @@ export function DatePicker({ value, onChange, weekStartDay, ariaLabel }: DatePic
                 ))}
               </div>
               <div className="date-picker__grid date-picker__grid--days">
-                {buildDayGrid(view.year, view.month, weekStartDay).map((cell) => (
-                  <button
-                    key={cell.iso}
-                    type="button"
-                    className={classNames(
-                      "date-picker__day",
-                      !cell.inMonth && "is-outside",
-                      cell.iso === toISO(today.year, today.month, today.day) && "is-today",
-                      cell.iso === value && "is-selected",
-                    )}
-                    onClick={() => commit(cell.iso)}
-                  >
-                    {cell.day}
-                  </button>
-                ))}
+                {buildDayGrid(view.year, view.month, weekStartDay).map(
+                  (cell) => (
+                    <button
+                      key={cell.iso}
+                      type="button"
+                      className={classNames(
+                        "date-picker__day",
+                        !cell.inMonth && "is-outside",
+                        cell.iso ===
+                          toISO(today.year, today.month, today.day) &&
+                          "is-today",
+                        cell.iso === value && "is-selected",
+                      )}
+                      onClick={() => commit(cell.iso)}
+                    >
+                      {cell.day}
+                    </button>
+                  ),
+                )}
               </div>
             </>
           )}
@@ -289,10 +358,16 @@ export function DatePicker({ value, onChange, weekStartDay, ariaLabel }: DatePic
                   type="button"
                   className={classNames(
                     "date-picker__cell",
-                    view.year === today.year && m === today.month && "is-current",
-                    selected?.year === view.year && selected.month === m && "is-selected",
+                    view.year === today.year &&
+                      m === today.month &&
+                      "is-current",
+                    selected?.year === view.year &&
+                      selected.month === m &&
+                      "is-selected",
                   )}
-                  onClick={() => setView({ year: view.year, month: m, level: "day" })}
+                  onClick={() =>
+                    setView({ year: view.year, month: m, level: "day" })
+                  }
                 >
                   {label}
                 </button>
@@ -302,26 +377,34 @@ export function DatePicker({ value, onChange, weekStartDay, ariaLabel }: DatePic
 
           {view.level === "year" && (
             <div className="date-picker__grid date-picker__grid--years">
-              {Array.from({ length: 12 }, (_, i) => decadeStart - 1 + i).map((y) => (
-                <button
-                  key={y}
-                  type="button"
-                  className={classNames(
-                    "date-picker__cell",
-                    (y < decadeStart || y > decadeStart + 9) && "is-outside",
-                    y === today.year && "is-current",
-                    selected?.year === y && "is-selected",
-                  )}
-                  onClick={() => setView({ year: y, month: view.month, level: "month" })}
-                >
-                  {y}
-                </button>
-              ))}
+              {Array.from({ length: 12 }, (_, i) => decadeStart - 1 + i).map(
+                (y) => (
+                  <button
+                    key={y}
+                    type="button"
+                    className={classNames(
+                      "date-picker__cell",
+                      (y < decadeStart || y > decadeStart + 9) && "is-outside",
+                      y === today.year && "is-current",
+                      selected?.year === y && "is-selected",
+                    )}
+                    onClick={() =>
+                      setView({ year: y, month: view.month, level: "month" })
+                    }
+                  >
+                    {y}
+                  </button>
+                ),
+              )}
             </div>
           )}
 
           <div className="date-picker__footer">
-            <button type="button" className="date-picker__action" onClick={() => commit("")}>
+            <button
+              type="button"
+              className="date-picker__action"
+              onClick={() => commit("")}
+            >
               {t("datePicker.clear")}
             </button>
             <button

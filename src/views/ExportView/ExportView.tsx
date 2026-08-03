@@ -4,11 +4,21 @@ import { ColorsList, Entry } from "src/types";
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
 import { useAppContext } from "src/context/app/app.context";
 import { fillEntriesWithIntensityByDate } from "src/utils/intensity";
-import { formatDateToISO8601, getFirstDayOfYear, getLastDayOfYear, getToday, parseUTCDate } from "src/utils/date";
+import {
+  formatDateToISO8601,
+  getFirstDayOfYear,
+  getLastDayOfYear,
+  getToday,
+  parseUTCDate,
+} from "src/utils/date";
 import { openFileInLeaf } from "src/utils/heatmapBox";
 import { formatGeneratedAt } from "src/utils/report/dateLabels";
 import { readNoteBodies } from "src/utils/report/noteBody";
-import { ReportModel, buildReportModel, computeDataRange } from "src/utils/report/reportModel";
+import {
+  ReportModel,
+  buildReportModel,
+  computeDataRange,
+} from "src/utils/report/reportModel";
 import {
   EMPTY_CELL_COLOR,
   HeatmapOrientation,
@@ -21,6 +31,11 @@ import { notify } from "src/utils/notify";
 import { LegendModal, LegendDisplayMode } from "src/modals/LegendModal";
 import { LegendEntry } from "src/utils/report/legend";
 import { normalizeColor } from "src/utils/report/legendMatch";
+import {
+  joinPath,
+  nextAvailablePath,
+  sanitizeFilename,
+} from "src/utils/report/exportPath";
 import { DatePicker } from "src/components/DatePicker/DatePicker";
 
 const PREVIEW_DEBOUNCE_MS = 300;
@@ -82,7 +97,10 @@ function defaultRange(
  * actually happened yet. The blank color follows the same rule based on
  * whether the range has any gap (unlogged) days at all.
  */
-export function buildDefaultLegendEntries(model: ReportModel | null, colorsList: ColorsList): LegendEntry[] {
+export function buildDefaultLegendEntries(
+  model: ReportModel | null,
+  colorsList: ColorsList,
+): LegendEntry[] {
   const usedColors = new Set<string>();
   let loggedDayCount = 0;
   model?.weeks.forEach((week) =>
@@ -92,20 +110,26 @@ export function buildDefaultLegendEntries(model: ReportModel | null, colorsList:
     }),
   );
 
-  const extraCustomColors = [...usedColors].filter((color) => !colorsList.includes(color));
+  const extraCustomColors = [...usedColors].filter(
+    (color) => !colorsList.includes(color),
+  );
   const totalDaysInRange = model
     ? Math.round(
-        (parseUTCDate(model.endDate).getTime() - parseUTCDate(model.startDate).getTime()) /
+        (parseUTCDate(model.endDate).getTime() -
+          parseUTCDate(model.startDate).getTime()) /
           (1000 * 60 * 60 * 24),
       ) + 1
     : 0;
   const hasBlankDays = totalDaysInRange > loggedDayCount;
 
-  return [...colorsList, ...extraCustomColors, EMPTY_CELL_COLOR].map((color) => {
-    const isBlank = normalizeColor(color) === normalizeColor(EMPTY_CELL_COLOR);
-    const isUsed = isBlank ? hasBlankDays : usedColors.has(color);
-    return { color, label: "", includeInSummary: isUsed ? undefined : false };
-  });
+  return [...colorsList, ...extraCustomColors, EMPTY_CELL_COLOR].map(
+    (color) => {
+      const isBlank =
+        normalizeColor(color) === normalizeColor(EMPTY_CELL_COLOR);
+      const isUsed = isBlank ? hasBlankDays : usedColors.has(color);
+      return { color, label: "", includeInSummary: isUsed ? undefined : false };
+    },
+  );
 }
 
 /**
@@ -138,50 +162,38 @@ export function buildRefreshBaseline(
   return buildDefaultLegendEntries(fullModel, colorsList);
 }
 
-function sanitizeFilename(name: string): string {
-  const stripped = name.replace(/<[^>]*>/g, "").replace(/[\\/:*?"<>|]/g, "-").trim();
-  return stripped || "Work Log Report";
-}
-
-function joinPath(folder: string, filename: string): string {
-  const trimmed = folder.replace(/^\/+|\/+$/g, "");
-  return trimmed ? `${trimmed}/${filename}` : filename;
-}
-
-async function ensureFolder(app: ReturnType<typeof useAppContext>, folderPath: string): Promise<void> {
+async function ensureFolder(
+  app: ReturnType<typeof useAppContext>,
+  folderPath: string,
+): Promise<void> {
   const trimmed = folderPath.replace(/^\/+|\/+$/g, "");
   if (!trimmed) return;
   if (app.vault.getAbstractFileByPath(trimmed)) return;
   await app.vault.createFolder(trimmed);
 }
 
-async function nextAvailablePath(
-  app: ReturnType<typeof useAppContext>,
-  basePath: string,
-): Promise<string> {
-  const dotIndex = basePath.lastIndexOf(".");
-  const stem = dotIndex === -1 ? basePath : basePath.slice(0, dotIndex);
-  const ext = dotIndex === -1 ? "" : basePath.slice(dotIndex);
-
-  let candidate = basePath;
-  let counter = 2;
-  while (app.vault.getAbstractFileByPath(candidate)) {
-    candidate = `${stem} (${counter})${ext}`;
-    counter += 1;
-  }
-  return candidate;
-}
-
 function ExportView() {
   const { t } = useTranslation();
   const app = useAppContext();
-  const { allFilteredEntries, colorsList, trackerData, settings, currentYear, dateRange, updateSettings } =
-    useHeatmapContext();
+  const {
+    allFilteredEntries,
+    colorsList,
+    trackerData,
+    settings,
+    currentYear,
+    dateRange,
+    updateSettings,
+  } = useHeatmapContext();
 
   const exportDefaults = settings.exportDefaults;
 
   const entriesByDate = useMemo(
-    () => fillEntriesWithIntensityByDate(allFilteredEntries, trackerData.intensityConfig, colorsList),
+    () =>
+      fillEntriesWithIntensityByDate(
+        allFilteredEntries,
+        trackerData.intensityConfig,
+        colorsList,
+      ),
     [allFilteredEntries, trackerData.intensityConfig, colorsList],
   );
 
@@ -189,8 +201,12 @@ function ExportView() {
     () => defaultRange(currentYear, dateRange, entriesByDate),
     [currentYear, dateRange, entriesByDate],
   );
-  const [startDate, setStartDate] = useState(exportDefaults?.startDate ?? initialRange.start);
-  const [endDate, setEndDate] = useState(exportDefaults?.endDate ?? initialRange.end);
+  const [startDate, setStartDate] = useState(
+    exportDefaults?.startDate ?? initialRange.start,
+  );
+  const [endDate, setEndDate] = useState(
+    exportDefaults?.endDate ?? initialRange.end,
+  );
   const [bodiesByPath, setBodiesByPath] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -201,21 +217,43 @@ function ExportView() {
     const initial = exportDefaults?.weekStartDay ?? settings.weekStartDay;
     return initial === 0 ? 0 : 1;
   });
-  const [showWeekStartDate, setShowWeekStartDate] = useState(exportDefaults?.showWeekStartDate ?? false);
+  const [showWeekStartDate, setShowWeekStartDate] = useState(
+    exportDefaults?.showWeekStartDate ?? false,
+  );
   // Defaults to whatever the live heatmap actually shows, so the export starts out looking the same.
   const [splitByMonth, setSplitByMonth] = useState(
     exportDefaults?.splitByMonth ?? trackerData.separateMonths ?? true,
   );
-  const [showMonthLabels, setShowMonthLabels] = useState(exportDefaults?.showMonthLabels ?? true);
-  const [skipWeekends, setSkipWeekends] = useState(exportDefaults?.skipWeekends ?? false);
-  const [hideSummary, setHideSummary] = useState(exportDefaults?.hideSummary ?? false);
-  const [hideTotalValue, setHideTotalValue] = useState(exportDefaults?.hideTotalValue ?? false);
-  const [hideAllValues, setHideAllValues] = useState(exportDefaults?.hideAllValues ?? false);
-  const [valueLabel, setValueLabel] = useState(exportDefaults?.valueLabel ?? "");
-  const [legend, setLegend] = useState<LegendEntry[]>(exportDefaults?.legend ?? []);
-  const [legendMode, setLegendMode] = useState<LegendDisplayMode>(exportDefaults?.legendMode ?? "separate");
-  const [gradientLabel, setGradientLabel] = useState(exportDefaults?.gradientLabel ?? "");
-  const [exportFolder, setExportFolder] = useState(exportDefaults?.exportFolder ?? "");
+  const [showMonthLabels, setShowMonthLabels] = useState(
+    exportDefaults?.showMonthLabels ?? true,
+  );
+  const [skipWeekends, setSkipWeekends] = useState(
+    exportDefaults?.skipWeekends ?? false,
+  );
+  const [hideSummary, setHideSummary] = useState(
+    exportDefaults?.hideSummary ?? false,
+  );
+  const [hideTotalValue, setHideTotalValue] = useState(
+    exportDefaults?.hideTotalValue ?? false,
+  );
+  const [hideAllValues, setHideAllValues] = useState(
+    exportDefaults?.hideAllValues ?? false,
+  );
+  const [valueLabel, setValueLabel] = useState(
+    exportDefaults?.valueLabel ?? "",
+  );
+  const [legend, setLegend] = useState<LegendEntry[]>(
+    exportDefaults?.legend ?? [],
+  );
+  const [legendMode, setLegendMode] = useState<LegendDisplayMode>(
+    exportDefaults?.legendMode ?? "separate",
+  );
+  const [gradientLabel, setGradientLabel] = useState(
+    exportDefaults?.gradientLabel ?? "",
+  );
+  const [exportFolder, setExportFolder] = useState(
+    exportDefaults?.exportFolder ?? "",
+  );
 
   const debounceRef = useRef<number | null>(null);
   const settingsSaveTimerRef = useRef<number | null>(null);
@@ -325,11 +363,26 @@ function ExportView() {
       weekStartDay,
       legend,
     });
-  }, [entriesByDate, colorsList, bodiesByPath, startDate, endDate, weekStartDay, legend, rangeValid]);
+  }, [
+    entriesByDate,
+    colorsList,
+    bodiesByPath,
+    startDate,
+    endDate,
+    weekStartDay,
+    legend,
+    rangeValid,
+  ]);
 
   const bandCount = useMemo(() => {
     if (!rangeValid) return 0;
-    return countBandsInRange(startDate, endDate, weekStartDay, orientation, splitByMonth);
+    return countBandsInRange(
+      startDate,
+      endDate,
+      weekStartDay,
+      orientation,
+      splitByMonth,
+    );
   }, [rangeValid, startDate, endDate, weekStartDay, orientation, splitByMonth]);
 
   const heatmapGridHtml = useMemo(() => {
@@ -363,7 +416,8 @@ function ExportView() {
   ]);
 
   const title =
-    (typeof trackerData.heatmapTitle === "string" && trackerData.heatmapTitle.trim()) ||
+    (typeof trackerData.heatmapTitle === "string" &&
+      trackerData.heatmapTitle.trim()) ||
     t("report.defaultTitle");
   const generatedAt = formatGeneratedAt(new Date());
 
@@ -421,15 +475,20 @@ function ExportView() {
   function handlePresetYearToDate() {
     const today = getToday();
     applyPreset({
-      start: formatDateToISO8601(getFirstDayOfYear(today.getUTCFullYear())) ?? "",
+      start:
+        formatDateToISO8601(getFirstDayOfYear(today.getUTCFullYear())) ?? "",
       end: formatDateToISO8601(today) ?? "",
     });
   }
 
   function handlePresetLastMonth() {
     const today = getToday();
-    const firstOfLastMonth = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 1, 1));
-    const lastOfLastMonth = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 0));
+    const firstOfLastMonth = new Date(
+      Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 1, 1),
+    );
+    const lastOfLastMonth = new Date(
+      Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 0),
+    );
     applyPreset({
       start: formatDateToISO8601(firstOfLastMonth) ?? "",
       end: formatDateToISO8601(lastOfLastMonth) ?? "",
@@ -438,7 +497,9 @@ function ExportView() {
 
   function handlePresetMonthToDate() {
     const today = getToday();
-    const firstOfMonth = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1));
+    const firstOfMonth = new Date(
+      Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1),
+    );
     applyPreset({
       start: formatDateToISO8601(firstOfMonth) ?? "",
       end: formatDateToISO8601(today) ?? "",
@@ -463,7 +524,10 @@ function ExportView() {
     });
     const filename = `${sanitizeFilename(title)} ${startDate} to ${endDate}.md`;
     await ensureFolder(app, exportFolder);
-    const path = await nextAvailablePath(app, joinPath(exportFolder, filename));
+    const path = nextAvailablePath(
+      joinPath(exportFolder, filename),
+      (candidate) => Boolean(app.vault.getAbstractFileByPath(candidate)),
+    );
     const file = await app.vault.create(path, markdown);
 
     await openFileInLeaf(app, file);
@@ -475,7 +539,10 @@ function ExportView() {
 
     const filename = `${sanitizeFilename(title)} ${startDate} to ${endDate}.html`;
     await ensureFolder(app, exportFolder);
-    const path = await nextAvailablePath(app, joinPath(exportFolder, filename));
+    const path = nextAvailablePath(
+      joinPath(exportFolder, filename),
+      (candidate) => Boolean(app.vault.getAbstractFileByPath(candidate)),
+    );
     await app.vault.create(path, reportHtmlDoc);
 
     notify(t("report.savedHtml", { path }));
@@ -493,11 +560,19 @@ function ExportView() {
     // (new colors, dropped stale ones) only happens when the user explicitly
     // clicks "Refresh" or "Reset" inside the modal.
     const initialEntries = legend.length > 0 ? legend : baseline;
-    new LegendModal(app, initialEntries, baseline, colorsList, legendMode, gradientLabel, (entries, mode, label) => {
-      setLegend(entries);
-      setLegendMode(mode);
-      setGradientLabel(label);
-    }).open();
+    new LegendModal(
+      app,
+      initialEntries,
+      baseline,
+      colorsList,
+      legendMode,
+      gradientLabel,
+      (entries, mode, label) => {
+        setLegend(entries);
+        setLegendMode(mode);
+        setGradientLabel(label);
+      },
+    ).open();
   }
 
   return (
@@ -505,18 +580,38 @@ function ExportView() {
       <div className="heatmap-export__controls">
         <label>
           {t("report.startDate")}
-          <DatePicker value={startDate} onChange={setStartDate} weekStartDay={weekStartDay} ariaLabel={t("report.startDate")} />
+          <DatePicker
+            value={startDate}
+            onChange={setStartDate}
+            weekStartDay={weekStartDay}
+            ariaLabel={t("report.startDate")}
+          />
         </label>
         <label>
           {t("report.endDate")}
-          <DatePicker value={endDate} onChange={setEndDate} weekStartDay={weekStartDay} ariaLabel={t("report.endDate")} />
+          <DatePicker
+            value={endDate}
+            onChange={setEndDate}
+            weekStartDay={weekStartDay}
+            ariaLabel={t("report.endDate")}
+          />
         </label>
         <div className="heatmap-export__presets">
-          <button onClick={handlePresetAllLoggedData}>{t("report.presetAllLoggedData")}</button>
-          <button onClick={handlePresetLastYear}>{t("report.presetLastYear")}</button>
-          <button onClick={handlePresetYearToDate}>{t("report.presetYearToDate")}</button>
-          <button onClick={handlePresetLastMonth}>{t("report.presetLastMonth")}</button>
-          <button onClick={handlePresetMonthToDate}>{t("report.presetMonthToDate")}</button>
+          <button onClick={handlePresetAllLoggedData}>
+            {t("report.presetAllLoggedData")}
+          </button>
+          <button onClick={handlePresetLastYear}>
+            {t("report.presetLastYear")}
+          </button>
+          <button onClick={handlePresetYearToDate}>
+            {t("report.presetYearToDate")}
+          </button>
+          <button onClick={handlePresetLastMonth}>
+            {t("report.presetLastMonth")}
+          </button>
+          <button onClick={handlePresetMonthToDate}>
+            {t("report.presetMonthToDate")}
+          </button>
         </div>
       </div>
 
@@ -526,7 +621,9 @@ function ExportView() {
           <select
             className="dropdown"
             value={orientation}
-            onChange={(e) => setOrientation(e.target.value as HeatmapOrientation)}
+            onChange={(e) =>
+              setOrientation(e.target.value as HeatmapOrientation)
+            }
           >
             <option value="columns">{t("report.orientationColumns")}</option>
             <option value="rows">{t("report.orientationRows")}</option>
@@ -556,7 +653,8 @@ function ExportView() {
           />
         </label>
         <button onClick={handleEditLegend}>
-          {t("report.editLegend")} {legend.length > 0 ? `(${legend.length})` : ""}
+          {t("report.editLegend")}{" "}
+          {legend.length > 0 ? `(${legend.length})` : ""}
         </button>
       </div>
 
@@ -622,7 +720,9 @@ function ExportView() {
         </label>
       </div>
 
-      {!rangeValid && <p className="heatmap-export__error">{t("report.invalidRange")}</p>}
+      {!rangeValid && (
+        <p className="heatmap-export__error">{t("report.invalidRange")}</p>
+      )}
 
       {rangeValid && (
         <>
@@ -643,7 +743,11 @@ function ExportView() {
           </div>
 
           <div className="heatmap-export__actions">
-            <button className="mod-cta" disabled={isLoading} onClick={handleSaveMarkdown}>
+            <button
+              className="mod-cta"
+              disabled={isLoading}
+              onClick={handleSaveMarkdown}
+            >
               {t("report.saveMarkdown")}
             </button>
             <button disabled={isLoading} onClick={handleSaveHtml}>

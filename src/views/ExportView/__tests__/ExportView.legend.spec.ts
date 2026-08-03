@@ -5,7 +5,11 @@ import { buildDefaultLegendEntries, buildRefreshBaseline } from "../ExportView";
 
 const colorsList: ColorsList = ["#c6e48b", "#7bc96f", "#239a3b", "#196127"];
 
-function modelWithDays(startDate: string, endDate: string, dayColors: string[]): ReportModel {
+function modelWithDays(
+  startDate: string,
+  endDate: string,
+  dayColors: string[],
+): ReportModel {
   return {
     startDate,
     endDate,
@@ -27,7 +31,10 @@ describe("buildDefaultLegendEntries", () => {
   it("returns one entry per palette color, in order, plus the blank color last", () => {
     const entries = buildDefaultLegendEntries(null, colorsList);
 
-    expect(entries.map((e) => e.color)).toEqual([...colorsList, EMPTY_CELL_COLOR]);
+    expect(entries.map((e) => e.color)).toEqual([
+      ...colorsList,
+      EMPTY_CELL_COLOR,
+    ]);
     expect(entries.every((e) => e.label === "")).toBe(true);
   });
 
@@ -52,7 +59,9 @@ describe("buildDefaultLegendEntries", () => {
     const model = modelWithDays("2026-07-13", "2026-07-13", ["#7bc96f"]);
     const entries = buildDefaultLegendEntries(model, colorsList);
 
-    expect(entries.find((e) => e.color === EMPTY_CELL_COLOR)?.includeInSummary).toBe(false);
+    expect(
+      entries.find((e) => e.color === EMPTY_CELL_COLOR)?.includeInSummary,
+    ).toBe(false);
   });
 
   it("defaults the blank color to shown when the range has at least one gap day", () => {
@@ -60,7 +69,9 @@ describe("buildDefaultLegendEntries", () => {
     const model = modelWithDays("2026-07-13", "2026-07-15", ["#7bc96f"]);
     const entries = buildDefaultLegendEntries(model, colorsList);
 
-    expect(entries.find((e) => e.color === EMPTY_CELL_COLOR)?.includeInSummary).toBeUndefined();
+    expect(
+      entries.find((e) => e.color === EMPTY_CELL_COLOR)?.includeInSummary,
+    ).toBeUndefined();
   });
 
   it("appends a used custom color that isn't in the palette, before the blank color", () => {
@@ -69,7 +80,9 @@ describe("buildDefaultLegendEntries", () => {
 
     const colors = entries.map((e) => e.color);
     expect(colors).toEqual([...colorsList, "#d18616", EMPTY_CELL_COLOR]);
-    expect(entries.find((e) => e.color === "#d18616")?.includeInSummary).toBeUndefined();
+    expect(
+      entries.find((e) => e.color === "#d18616")?.includeInSummary,
+    ).toBeUndefined();
   });
 
   it("hides everything by default when there is no model (nothing logged, no range)", () => {
@@ -90,11 +103,19 @@ describe("buildRefreshBaseline", () => {
 
     const baseline = buildRefreshBaseline(entriesByDate, colorsList);
 
-    expect(baseline.map((e) => e.color)).toEqual([...colorsList, "#d18616", EMPTY_CELL_COLOR]);
-    expect(baseline.find((e) => e.color === "#d18616")?.includeInSummary).toBeUndefined();
+    expect(baseline.map((e) => e.color)).toEqual([
+      ...colorsList,
+      "#d18616",
+      EMPTY_CELL_COLOR,
+    ]);
+    expect(
+      baseline.find((e) => e.color === "#d18616")?.includeInSummary,
+    ).toBeUndefined();
   });
 
   it("falls back to the plain (all-hidden) defaults when there's no data at all", () => {
-    expect(buildRefreshBaseline({}, colorsList)).toEqual(buildDefaultLegendEntries(null, colorsList));
+    expect(buildRefreshBaseline({}, colorsList)).toEqual(
+      buildDefaultLegendEntries(null, colorsList),
+    );
   });
 });

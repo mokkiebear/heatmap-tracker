@@ -1,0 +1,11 @@
+# Commits listed here are skipped by `git blame`, so a repo-wide reformat does
+# not show up as the last author of every line.
+#
+# Enable it once per clone:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+# (GitHub picks this file up automatically.)
+#
+# Add the full 40-character SHA of any pure-formatting commit below.
+
+# TODO: append the SHA of the "style: format the codebase with Prettier" commit
+# once it exists — it cannot be known before the commit is created.

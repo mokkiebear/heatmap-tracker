@@ -5,7 +5,7 @@ import { TrackerData } from "src/types";
 // простой "левенштейн" для подсказок по опечаткам
 function levenshtein(a: string, b: string): number {
   const dp: number[][] = Array.from({ length: a.length + 1 }, () =>
-    Array(b.length + 1).fill(0)
+    Array(b.length + 1).fill(0),
   );
 
   for (let i = 0; i <= a.length; i++) dp[i][0] = i;
@@ -17,7 +17,7 @@ function levenshtein(a: string, b: string): number {
       dp[i][j] = Math.min(
         dp[i - 1][j] + 1, // delete
         dp[i][j - 1] + 1, // insert
-        dp[i - 1][j - 1] + cost // substitute
+        dp[i - 1][j - 1] + cost, // substitute
       );
     }
   }
@@ -69,7 +69,7 @@ function formatZodError(error: ZodError): string[] {
         const suggestion = suggestKeyName(key);
         if (suggestion) {
           parts.push(
-            `Unknown property "${key}" in "${path}". Did you mean "${suggestion}"?`
+            `Unknown property "${key}" in "${path}". Did you mean "${suggestion}"?`,
           );
         } else {
           parts.push(`Unknown property "${key}" in "${path}".`);

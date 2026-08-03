@@ -63,7 +63,7 @@ declare global {
 }
 
 export function createDiv(): HTMLDivElement {
-  return document.createElement('div');
+  return document.createElement("div");
 }
 
 (global as any).createDiv = createDiv;
@@ -72,7 +72,7 @@ declare global {
 }
 
 export function createSpan(): HTMLSpanElement {
-  return document.createElement('span');
+  return document.createElement("span");
 }
 
 (global as any).createSpan = createSpan;

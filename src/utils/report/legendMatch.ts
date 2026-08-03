@@ -5,7 +5,10 @@ export function normalizeColor(color: string): string {
 }
 
 /** The legend entry whose color matches (case/whitespace-insensitive), if any. */
-export function matchLegendEntry(color: string | undefined, legend: LegendEntry[]): LegendEntry | undefined {
+export function matchLegendEntry(
+  color: string | undefined,
+  legend: LegendEntry[],
+): LegendEntry | undefined {
   if (!color) return undefined;
   const normalized = normalizeColor(color);
   return legend.find((entry) => normalizeColor(entry.color) === normalized);

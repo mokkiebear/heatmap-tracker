@@ -21,14 +21,14 @@ export function renderApp(
   inputTrackerData: unknown,
   component: React.JSX.Element,
   onRootCreated?: (root: Root) => void,
-  onSettingsChange?: (settings: TrackerSettings) => void
+  onSettingsChange?: (settings: TrackerSettings) => void,
 ) {
   const root = createRoot(container);
   onRootCreated?.(root);
 
   let trackerData = mergeTrackerData(
     DEFAULT_TRACKER_DATA,
-    inputTrackerData as TrackerData
+    inputTrackerData as TrackerData,
   );
 
   try {
@@ -48,7 +48,7 @@ export function renderApp(
           {component}
         </HeatmapProvider>
       </AppContext.Provider>
-    </StrictMode>
+    </StrictMode>,
   );
 
   return container;
@@ -57,12 +57,12 @@ export function renderApp(
 export function getRenderHeatmapTracker(
   app: App,
   pluginSettings: TrackerSettings,
-  onSettingsChange?: (settings: TrackerSettings) => void
+  onSettingsChange?: (settings: TrackerSettings) => void,
 ) {
   return function renderHeatmapTracker(
     el: HTMLElement,
     inputTrackerData: unknown = DEFAULT_TRACKER_DATA,
-    settings: TrackerSettings = pluginSettings
+    settings: TrackerSettings = pluginSettings,
   ) {
     const container = el.createDiv({
       cls: "heatmap-tracker-container",
@@ -71,6 +71,14 @@ export function getRenderHeatmapTracker(
       },
     });
 
-    return renderApp(container, app, settings, inputTrackerData, <ReactApp />, undefined, onSettingsChange);
+    return renderApp(
+      container,
+      app,
+      settings,
+      inputTrackerData,
+      <ReactApp />,
+      undefined,
+      onSettingsChange,
+    );
   };
 }

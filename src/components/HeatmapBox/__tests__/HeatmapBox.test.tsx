@@ -40,7 +40,7 @@ function renderBox(box: Box) {
       >
         <HeatmapBox box={box} />
       </HeatmapContext.Provider>
-    </AppContext.Provider>
+    </AppContext.Provider>,
   );
 }
 
@@ -57,7 +57,9 @@ describe("HeatmapBox accessibility", () => {
     });
 
     expect(
-      container.querySelector(".heatmap-tracker-box")?.getAttribute("aria-label")
+      container
+        .querySelector(".heatmap-tracker-box")
+        ?.getAttribute("aria-label"),
     ).toBe("2024-01-01, box.value=42");
   });
 
@@ -65,7 +67,9 @@ describe("HeatmapBox accessibility", () => {
     const { container } = renderBox({ date: "2024-01-01", hasData: false });
 
     expect(
-      container.querySelector(".heatmap-tracker-box")?.getAttribute("aria-label")
+      container
+        .querySelector(".heatmap-tracker-box")
+        ?.getAttribute("aria-label"),
     ).toBe("2024-01-01, box.noData");
   });
 

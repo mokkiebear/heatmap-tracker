@@ -1,6 +1,11 @@
 import { ReportModel } from "src/utils/report/reportModel";
 import { formatDayLabel, formatWeekLabel } from "src/utils/report/dateLabels";
-import { LegendEntry, buildGradientLegendHtml, buildLegendHtml, buildSummaryModel } from "src/utils/report/legend";
+import {
+  LegendEntry,
+  buildGradientLegendHtml,
+  buildLegendHtml,
+  buildSummaryModel,
+} from "src/utils/report/legend";
 
 export interface ReportMarkdownOptions {
   title: string;
@@ -67,9 +72,14 @@ export function buildReportMarkdown(
     hideTotalValue,
     hideAllValues,
   });
-  const dayTypeLine = dayTypeParts.map((p) => `${p.label}: ${p.value}`).join(" · ");
+  const dayTypeLine = dayTypeParts
+    .map((p) => `${p.label}: ${p.value}`)
+    .join(" · ");
   const totalLine = total ? `${total.label}: ${total.value}` : "";
-  const summaryLine = dayTypeLine && totalLine ? `${dayTypeLine}<br>${totalLine}` : dayTypeLine || totalLine;
+  const summaryLine =
+    dayTypeLine && totalLine
+      ? `${dayTypeLine}<br>${totalLine}`
+      : dayTypeLine || totalLine;
   if (summaryLine) {
     lines.push(summaryLine);
     lines.push("");
@@ -77,7 +87,9 @@ export function buildReportMarkdown(
   lines.push(heatmapHtml);
   lines.push("");
   const legendHtml =
-    legendMode === "gradient" ? buildGradientLegendHtml(colorsList, gradientLabel, legend) : buildLegendHtml(legend);
+    legendMode === "gradient"
+      ? buildGradientLegendHtml(colorsList, gradientLabel, legend)
+      : buildLegendHtml(legend);
   if (legendHtml) {
     lines.push(legendHtml);
     lines.push("");
@@ -88,7 +100,8 @@ export function buildReportMarkdown(
     lines.push("");
 
     week.days.forEach((day) => {
-      const dayValueLabel = !hideAllValues && day.value !== undefined ? ` (${day.value})` : "";
+      const dayValueLabel =
+        !hideAllValues && day.value !== undefined ? ` (${day.value})` : "";
       lines.push(`### ${formatDayLabel(day.date)}${dayValueLabel}`);
       lines.push("");
       lines.push(day.body?.trim() || "-");

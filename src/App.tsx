@@ -9,18 +9,18 @@ import HeatmapFooter from "./components/HeatmapFooter/HeatmapFooter";
 import { ViewSkeleton } from "./components/ViewSkeleton/ViewSkeleton";
 
 const HeatmapTrackerView = lazy(
-  () => import("./views/HeatmapTrackerView/HeatmapTrackerView")
+  () => import("./views/HeatmapTrackerView/HeatmapTrackerView"),
 );
 const StatisticsView = lazy(
-  () => import("./views/StatisticsView/StatisticsView")
+  () => import("./views/StatisticsView/StatisticsView"),
 );
 const DocumentationView = lazy(
-  () => import("./views/DocumentationView/DocumentationView")
+  () => import("./views/DocumentationView/DocumentationView"),
 );
 
 const LegendView = lazy(() => import("./views/LegendView/LegendView"));
 const MonthlyHeatmapView = lazy(
-  () => import("./views/MonthlyHeatmapView/MonthlyHeatmapView")
+  () => import("./views/MonthlyHeatmapView/MonthlyHeatmapView"),
 );
 const ExportView = lazy(() => import("./views/ExportView/ExportView"));
 
@@ -35,9 +35,12 @@ function ReactApp() {
   let content;
   switch (view) {
     case IHeatmapView.HeatmapTracker:
-      content = trackerData.layout === "monthly"
-        ? <MonthlyHeatmapView />
-        : <HeatmapTrackerView />;
+      content =
+        trackerData.layout === "monthly" ? (
+          <MonthlyHeatmapView />
+        ) : (
+          <HeatmapTrackerView />
+        );
       break;
     case IHeatmapView.HeatmapTrackerStatistics:
       content = <StatisticsView />;

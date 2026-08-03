@@ -9,9 +9,18 @@ module.exports = {
   // .claude/worktrees/) cause "duplicate manual mock" collisions unless
   // excluded here too.
   modulePathIgnorePatterns: ["/.claude/worktrees/"],
-  // Configure code coverage
-  collectCoverage: true,
-  collectCoverageFrom: ["src/**/*.ts"],
+  // Coverage is opt-in (`npm run test:coverage`): collecting it on every local
+  // run roughly doubles the suite time for a number nobody reads mid-change.
+  collectCoverage: false,
+  // `.tsx` matters here — App, every view/component, and the whole
+  // `heatmap.context.tsx` data pipeline live in .tsx files and were previously
+  // absent from the report entirely.
+  collectCoverageFrom: [
+    "src/**/*.{ts,tsx}",
+    "!src/**/*.d.ts",
+    "!src/__mocks__/**",
+    "!src/localization/**",
+  ],
   coverageDirectory: "coverage",
   moduleDirectories: ["./node_modules", "./src"],
   rootDir: ".",

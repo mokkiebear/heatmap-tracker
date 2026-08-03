@@ -96,7 +96,9 @@
     // is unambiguous, since a drop always lands immediately before
     // whichever row it's shown on.
     border-top: 3px solid transparent;
-    transition: opacity 0.15s ease, border-top-color 0.15s ease;
+    transition:
+      opacity 0.15s ease,
+      border-top-color 0.15s ease;
 
     &.is-dragging {
       opacity: 0.4;

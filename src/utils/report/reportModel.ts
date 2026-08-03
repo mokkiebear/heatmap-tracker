@@ -80,7 +80,11 @@ export function buildReportModel({
   let totalDays = 0;
   let totalValue = 0;
 
-  for (let date = start; date.getTime() <= end.getTime(); date = addDays(date, 1)) {
+  for (
+    let date = start;
+    date.getTime() <= end.getTime();
+    date = addDays(date, 1)
+  ) {
     const dateKey = formatDateToISO8601(date);
     if (!dateKey) continue;
 
@@ -89,7 +93,9 @@ export function buildReportModel({
 
     const color =
       entry.customColor ??
-      (entry.intensity !== undefined ? colorsList[entry.intensity - 1] : undefined);
+      (entry.intensity !== undefined
+        ? colorsList[entry.intensity - 1]
+        : undefined);
     const value = resolveDisplayValue(entry.value, color, legend);
     const body = entry.filePath
       ? bodiesByPath[entry.filePath]

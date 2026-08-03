@@ -16,7 +16,13 @@ const model: ReportModel = {
           color: "#7bc96f",
           body: "- meeting\n- <script>alert(1)</script>",
         },
-        { date: "2026-07-14", weekday: 2, value: undefined, color: undefined, body: undefined },
+        {
+          date: "2026-07-14",
+          weekday: 2,
+          value: undefined,
+          color: undefined,
+          body: undefined,
+        },
       ],
     },
   ],
@@ -37,7 +43,9 @@ describe("buildReportHtml", () => {
     expect(html).toContain("Days logged: 2");
     expect(html).toContain("Total value: 8");
     expect(html).toContain("Week of Jul 13, 2026");
-    expect(html).toContain('<div class="wlr-meta">Jul 13, 2026 – Jul 14, 2026<br>Report generated 2026-07-17</div>');
+    expect(html).toContain(
+      '<div class="wlr-meta">Jul 13, 2026 – Jul 14, 2026<br>Report generated 2026-07-17</div>',
+    );
   });
 
   it("drops the weekday from the overall range line (only per-day headings keep it)", () => {
@@ -92,7 +100,9 @@ describe("buildReportHtml", () => {
     });
 
     expect(html).not.toContain("Days logged");
-    expect(html).toContain('<div class="wlr-summary">Workday: 1 · Other: 1<br>Total hours: 8</div>');
+    expect(html).toContain(
+      '<div class="wlr-summary">Workday: 1 · Other: 1<br>Total hours: 8</div>',
+    );
   });
 
   it("omits an excluded category from the day-type line but keeps it correctly out of Other", () => {
@@ -108,7 +118,9 @@ describe("buildReportHtml", () => {
 
     // "Workday" still appears in the swatch legend (a separate concern from the
     // summary line) — check the summary divs specifically, not the whole doc.
-    const summaryText = (html.match(/<div class="wlr-summary">(.*?)<\/div>/g) ?? []).join(" ");
+    const summaryText = (
+      html.match(/<div class="wlr-summary">(.*?)<\/div>/g) ?? []
+    ).join(" ");
     expect(summaryText).toContain("Leave: 0 · Other: 1");
     expect(summaryText).not.toContain("Workday");
   });
@@ -146,8 +158,20 @@ describe("buildReportHtml", () => {
         {
           weekStart: "2026-07-13",
           days: [
-            { date: "2026-07-13", weekday: 1, value: 8, color: "#7bc96f", body: undefined },
-            { date: "2026-07-14", weekday: 2, value: undefined, color: "#8b949e", body: undefined },
+            {
+              date: "2026-07-13",
+              weekday: 1,
+              value: 8,
+              color: "#7bc96f",
+              body: undefined,
+            },
+            {
+              date: "2026-07-14",
+              weekday: 2,
+              value: undefined,
+              color: "#8b949e",
+              body: undefined,
+            },
           ],
         },
       ],
@@ -200,7 +224,9 @@ describe("buildReportHtml", () => {
       hideTotalValue: true,
     });
 
-    expect(html).toContain('<div class="wlr-summary">Workday: 1 · Other: 1</div>');
+    expect(html).toContain(
+      '<div class="wlr-summary">Workday: 1 · Other: 1</div>',
+    );
     expect(html).not.toContain("Total value");
   });
 
@@ -233,7 +259,9 @@ describe("buildReportHtml", () => {
       });
 
       expect(html).toContain("background-color:#7bc96f");
-      const summaryText = (html.match(/<div class="wlr-summary">(.*?)<\/div>/g) ?? []).join(" ");
+      const summaryText = (
+        html.match(/<div class="wlr-summary">(.*?)<\/div>/g) ?? []
+      ).join(" ");
       expect(summaryText).toContain("Activity: 1");
       expect(summaryText).toContain("Other: 1");
     });
@@ -256,7 +284,9 @@ describe("buildReportHtml", () => {
       // This fixture's 2-day range is fully logged (no gap days), so the
       // blank count is 0 - the point here is that it renders as its own
       // line at all, separately from the gradient's combined count.
-      const summaryText = (html.match(/<div class="wlr-summary">(.*?)<\/div>/g) ?? []).join(" ");
+      const summaryText = (
+        html.match(/<div class="wlr-summary">(.*?)<\/div>/g) ?? []
+      ).join(" ");
       expect(summaryText).toContain("Rest day: 0");
     });
 

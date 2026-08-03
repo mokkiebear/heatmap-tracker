@@ -117,11 +117,17 @@ export function validateHeatmapForm(state: HeatmapModalFormState): string[] {
     errors.push("Enter a valid year.");
   }
 
-  if (state.dateRangeMode === "days" && parsePositiveInt(state.daysToShow) === undefined) {
+  if (
+    state.dateRangeMode === "days" &&
+    parsePositiveInt(state.daysToShow) === undefined
+  ) {
     errors.push("Enter a positive number of days to show.");
   }
 
-  if (state.dateRangeMode === "months" && parsePositiveInt(state.monthsToShow) === undefined) {
+  if (
+    state.dateRangeMode === "months" &&
+    parsePositiveInt(state.monthsToShow) === undefined
+  ) {
     errors.push("Enter a positive number of months to show.");
   }
 
@@ -136,13 +142,20 @@ export function validateHeatmapForm(state: HeatmapModalFormState): string[] {
     }
   }
 
-  if (state.useCustomColors && state.customColors.filter(Boolean).length === 0) {
+  if (
+    state.useCustomColors &&
+    state.customColors.filter(Boolean).length === 0
+  ) {
     errors.push("Add at least one custom color, or turn off custom colors.");
   }
 
   const scaleStart = parseOptionalNumber(state.scaleStart);
   const scaleEnd = parseOptionalNumber(state.scaleEnd);
-  if (scaleStart !== undefined && scaleEnd !== undefined && scaleStart > scaleEnd) {
+  if (
+    scaleStart !== undefined &&
+    scaleEnd !== undefined &&
+    scaleStart > scaleEnd
+  ) {
     errors.push("Intensity scale start must not be greater than scale end.");
   }
 
@@ -151,10 +164,13 @@ export function validateHeatmapForm(state: HeatmapModalFormState): string[] {
   }
   if (
     state.filters.some(
-      (f) => f.operator !== "notEmpty" && f.property.trim() !== "" && f.value.trim() === "",
+      (f) =>
+        f.operator !== "notEmpty" &&
+        f.property.trim() !== "" &&
+        f.value.trim() === "",
     )
   ) {
-    errors.push("Each filter condition needs a value, or use \"Is not empty\".");
+    errors.push('Each filter condition needs a value, or use "Is not empty".');
   }
 
   return errors;
@@ -230,7 +246,9 @@ export function buildTags(state: HeatmapModalFormState): string[] | undefined {
 
 export function buildFilters(
   state: HeatmapModalFormState,
-): Array<{ property: string; operator: FilterOperator; value?: string }> | undefined {
+):
+  | Array<{ property: string; operator: FilterOperator; value?: string }>
+  | undefined {
   const filters = state.filters
     .filter((f) => f.property.trim() !== "")
     .map((f) => ({
@@ -254,7 +272,8 @@ function buildDateRange(state: HeatmapModalFormState) {
     case "days":
       return { daysToShow: parsePositiveInt(state.daysToShow) };
     case "custom":
-      return ISO_DATE_RE.test(state.startDate) && ISO_DATE_RE.test(state.endDate)
+      return ISO_DATE_RE.test(state.startDate) &&
+        ISO_DATE_RE.test(state.endDate)
         ? { startDate: state.startDate, endDate: state.endDate }
         : {};
     case "full-year":
@@ -269,7 +288,9 @@ function buildDateRange(state: HeatmapModalFormState) {
  * differ from the plugin's defaults are included, keeping the generated
  * codeblock minimal and readable.
  */
-export function buildHeatmapConfig(state: HeatmapModalFormState): Record<string, unknown> {
+export function buildHeatmapConfig(
+  state: HeatmapModalFormState,
+): Record<string, unknown> {
   const properties = state.properties.filter(Boolean);
   const property = properties.length <= 1 ? properties[0] : properties;
 

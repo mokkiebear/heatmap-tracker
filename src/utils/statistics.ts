@@ -67,7 +67,7 @@ export function calculateStreaks(entries: Entry[]): StreakResult {
   const today = getToday();
   const lastEntryDate = new Date(sortedEntries[sortedEntries.length - 1].date);
   const diffWithToday = Math.abs(
-    (today.getTime() - lastEntryDate.getTime()) / (1000 * 60 * 60 * 24)
+    (today.getTime() - lastEntryDate.getTime()) / (1000 * 60 * 60 * 24),
   );
 
   if (diffWithToday > 1) {
@@ -86,7 +86,10 @@ export function calculateStreaks(entries: Entry[]): StreakResult {
   };
 }
 
-export function processCustomMetrics(insights: Insight[], yearEntries: Entry[]): Record<string, string> {
+export function processCustomMetrics(
+  insights: Insight[],
+  yearEntries: Entry[],
+): Record<string, string> {
   const results: Record<string, string> = {};
 
   insights.forEach((insight) => {
@@ -118,8 +121,9 @@ const mostActiveDayMetric: Insight = {
 
     // Find the day with the highest count
     const mostActiveDay = Object.entries(dayCounts).reduce(
-      (maxDay, [day, count]) => (count > maxDay.count ? { day, count } : maxDay),
-      { day: "", count: 0 }
+      (maxDay, [day, count]) =>
+        count > maxDay.count ? { day, count } : maxDay,
+      { day: "", count: 0 },
     );
 
     return mostActiveDay.day;
@@ -129,7 +133,10 @@ const mostActiveDayMetric: Insight = {
 const totalValueMetric: Insight = {
   name: "Total Value",
   calculate: ({ yearEntries }) => {
-    const total = yearEntries.reduce((sum, entry) => sum + (entry.value || 0), 0);
+    const total = yearEntries.reduce(
+      (sum, entry) => sum + (entry.value || 0),
+      0,
+    );
     return total.toString();
   },
 };
@@ -137,7 +144,10 @@ const totalValueMetric: Insight = {
 const averageValueMetric: Insight = {
   name: "Average Value",
   calculate: ({ yearEntries }) => {
-    const total = yearEntries.reduce((sum, entry) => sum + (entry.value || 0), 0);
+    const total = yearEntries.reduce(
+      (sum, entry) => sum + (entry.value || 0),
+      0,
+    );
     return (total / yearEntries.length).toFixed(2); // Two decimal places
   },
 };
@@ -153,7 +163,7 @@ const mostFrequentIntensityMetric: Insight = {
     });
 
     const mostFrequent = Object.entries(intensityCounts).reduce((a, b) =>
-      b[1] > a[1] ? b : a
+      b[1] > a[1] ? b : a,
     );
 
     return mostFrequent[0]; // Return the intensity level
@@ -164,7 +174,7 @@ const highestValueDayMetric: Insight = {
   name: "Day with the Highest Value",
   calculate: ({ yearEntries }) => {
     const maxEntry = yearEntries.reduce((max, entry) =>
-      (entry.value || 0) > (max.value || 0) ? entry : max
+      (entry.value || 0) > (max.value || 0) ? entry : max,
     );
     return maxEntry.date || "No data";
   },

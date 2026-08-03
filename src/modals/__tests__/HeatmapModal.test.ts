@@ -10,12 +10,17 @@ type ElementOptions = {
   value?: string;
 };
 
-const applyElementOptions = (element: HTMLElement, options: ElementOptions = {}) => {
+const applyElementOptions = (
+  element: HTMLElement,
+  options: ElementOptions = {},
+) => {
   const { cls, text, attr, value } = options;
 
   if (cls) {
     const classes = Array.isArray(cls) ? cls : cls.split(" ");
-    classes.filter(Boolean).forEach((className) => element.classList.add(className));
+    classes
+      .filter(Boolean)
+      .forEach((className) => element.classList.add(className));
   }
   if (text !== undefined) {
     element.textContent = text;
@@ -75,7 +80,10 @@ jest.mock("react-dom/client", () => ({}));
 jest.mock("../../App", () => ({ __esModule: true, default: () => null }));
 
 let dataviewPages: Record<string, unknown>[] = [];
-function chainablePages(pages: Record<string, unknown>[], source?: string): any {
+function chainablePages(
+  pages: Record<string, unknown>[],
+  source?: string,
+): any {
   return {
     __source: source,
     where(predicate: (p: any) => boolean) {
@@ -305,8 +313,30 @@ jest.mock("obsidian", () => {
 });
 
 import { HeatmapModal } from "../HeatmapModal";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { Setting } = require("obsidian");
+// `jest.mock("obsidian")` above is hoisted, so this import already resolves to
+// the MockSetting defined in that factory. MockSetting records every instance it
+// creates in a static `instances` array, which the real Obsidian type has no
+// knowledge of — hence the cast.
+import { Setting as ObsidianSetting } from "obsidian";
+
+interface RecordedSetting {
+  settingEl: HTMLElement;
+  texts: { inputEl: HTMLInputElement; onChangeCb?: (value: string) => void }[];
+  toggles: { toggleEl: HTMLElement; onChangeCb?: (value: boolean) => void }[];
+  dropdowns: {
+    selectEl: HTMLSelectElement;
+    onChangeCb?: (value: string) => void;
+  }[];
+  buttons: {
+    buttonEl: HTMLButtonElement;
+    onClickCb?: () => void;
+    disabled: boolean;
+  }[];
+}
+
+const Setting = ObsidianSetting as unknown as {
+  instances: RecordedSetting[];
+};
 
 describe("HeatmapModal", () => {
   const baseSettings: TrackerSettings = {
@@ -351,7 +381,9 @@ describe("HeatmapModal", () => {
   // elements from the DOM, so filtering on `parentElement` gives us only the
   // settings that are still actually rendered.
   function liveSettings() {
-    return Setting.instances.filter((s: any) => s.settingEl.parentElement !== null);
+    return Setting.instances.filter(
+      (s: any) => s.settingEl.parentElement !== null,
+    );
   }
   function allDropdowns() {
     return liveSettings().flatMap((s: any) => s.dropdowns);
@@ -369,7 +401,9 @@ describe("HeatmapModal", () => {
   }
   function addPropertyCustomText() {
     // Custom-property text input is the last text field before the "Add" button row.
-    return allTexts().find((t: any) => t.inputEl.placeholder === "Or type a custom property name");
+    return allTexts().find(
+      (t: any) => t.inputEl.placeholder === "Or type a custom property name",
+    );
   }
   function addCustomPropertyButton() {
     return allButtons().find((b: any) => b.buttonEl.textContent === "Add");
@@ -492,7 +526,8 @@ describe("HeatmapModal", () => {
     jest.advanceTimersByTime(250);
 
     expect(renderAppMock).toHaveBeenCalled();
-    const previewData = renderAppMock.mock.calls[renderAppMock.mock.calls.length - 1][3];
+    const previewData =
+      renderAppMock.mock.calls[renderAppMock.mock.calls.length - 1][3];
     expect(previewData.heatmapTitle).toBe("Preview title");
   });
 
@@ -506,9 +541,15 @@ describe("HeatmapModal", () => {
 
     jest.advanceTimersByTime(250);
 
-    const previewData = renderAppMock.mock.calls[renderAppMock.mock.calls.length - 1][3];
+    const previewData =
+      renderAppMock.mock.calls[renderAppMock.mock.calls.length - 1][3];
     expect(previewData.entries).toEqual([
-      { date: "2026-01-01", filePath: "d/2026-01-01.md", intensity: 10, content: undefined },
+      {
+        date: "2026-01-01",
+        filePath: "d/2026-01-01.md",
+        intensity: 10,
+        content: undefined,
+      },
     ]);
   });
 
@@ -537,7 +578,9 @@ describe("HeatmapModal", () => {
     addPropertyCustomText()!.trigger("exercise");
     addCustomPropertyButton()!.trigger();
 
-    findRawButtonByText("Add condition")!.dispatchEvent(new Event("click", { bubbles: true }));
+    findRawButtonByText("Add condition")!.dispatchEvent(
+      new Event("click", { bubbles: true }),
+    );
 
     filterPropertyTexts()[0].trigger("status");
     filterValueTexts()[0].trigger("done");
@@ -553,7 +596,9 @@ describe("HeatmapModal", () => {
     addPropertyCustomText()!.trigger("exercise");
     addCustomPropertyButton()!.trigger();
 
-    findRawButtonByText("Add condition")!.dispatchEvent(new Event("click", { bubbles: true }));
+    findRawButtonByText("Add condition")!.dispatchEvent(
+      new Event("click", { bubbles: true }),
+    );
     filterPropertyTexts()[0].trigger("status");
 
     expect(filterValueTexts()).toHaveLength(1);
@@ -573,7 +618,9 @@ describe("HeatmapModal", () => {
     addPropertyCustomText()!.trigger("exercise");
     addCustomPropertyButton()!.trigger();
 
-    findRawButtonByText("Add condition")!.dispatchEvent(new Event("click", { bubbles: true }));
+    findRawButtonByText("Add condition")!.dispatchEvent(
+      new Event("click", { bubbles: true }),
+    );
 
     expect(submitButton().disabled).toBe(true);
   });
@@ -582,7 +629,9 @@ describe("HeatmapModal", () => {
     addPropertyCustomText()!.trigger("exercise");
     addCustomPropertyButton()!.trigger();
 
-    findRawButtonByText("Add condition")!.dispatchEvent(new Event("click", { bubbles: true }));
+    findRawButtonByText("Add condition")!.dispatchEvent(
+      new Event("click", { bubbles: true }),
+    );
     expect(filterPropertyTexts()).toHaveLength(1);
 
     filterRemoveButtons()[0].trigger();

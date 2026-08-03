@@ -12,7 +12,10 @@ import {
 const colorsList = ["#ebedf0", "#c6e48b", "#7bc96f", "#239a3b", "#196127"];
 
 function countDayCells(html: string): number {
-  return (html.match(/width:12px;height:12px;border-radius:2px;background-color:/g) ?? []).length;
+  return (
+    html.match(/width:12px;height:12px;border-radius:2px;background-color:/g) ??
+    []
+  ).length;
 }
 
 function countTransparentCells(html: string): number {
@@ -25,7 +28,9 @@ function splitBands(html: string): string[] {
 }
 
 function countMonthLabels(html: string): number {
-  return (html.match(/>(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)</g) ?? []).length;
+  return (
+    html.match(/>(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)</g) ?? []
+  ).length;
 }
 
 describe("escapeHtml", () => {
@@ -54,21 +59,31 @@ describe("countWeeksInRange", () => {
 
 describe("countBandsInRange", () => {
   it("fits a 12-month range in 2 bands for columns (max 8 months/band)", () => {
-    expect(countBandsInRange("2025-01-01", "2025-12-31", 1, "columns", true)).toBe(2);
+    expect(
+      countBandsInRange("2025-01-01", "2025-12-31", 1, "columns", true),
+    ).toBe(2);
   });
 
   it("fits the same 12-month range in 2 bands for rows too (max 6 months/band)", () => {
-    expect(countBandsInRange("2025-01-01", "2025-12-31", 1, "rows", true)).toBe(2);
+    expect(countBandsInRange("2025-01-01", "2025-12-31", 1, "rows", true)).toBe(
+      2,
+    );
   });
 
   it("a 7-month range needs only 1 band for columns but 2 for rows", () => {
-    expect(countBandsInRange("2025-01-01", "2025-07-31", 1, "columns", true)).toBe(1);
-    expect(countBandsInRange("2025-01-01", "2025-07-31", 1, "rows", true)).toBe(2);
+    expect(
+      countBandsInRange("2025-01-01", "2025-07-31", 1, "columns", true),
+    ).toBe(1);
+    expect(countBandsInRange("2025-01-01", "2025-07-31", 1, "rows", true)).toBe(
+      2,
+    );
   });
 
   it("falls back to week-slot counting when splitByMonth is off", () => {
     const start = "2025-01-06"; // a Monday
-    const longEnd = formatDateToISO8601(addDays(parseUTCDate(start), 60 * 7 - 1)) as string; // 60-week span
+    const longEnd = formatDateToISO8601(
+      addDays(parseUTCDate(start), 60 * 7 - 1),
+    ) as string; // 60-week span
     expect(countBandsInRange(start, longEnd, 1, "columns", false)).toBe(2);
   });
 });
@@ -121,7 +136,12 @@ describe("buildHeatmapGridHtml", () => {
 
   it("colors in-range cells from customColor first, then mapped intensity", () => {
     const entriesByDate: Record<string, Entry> = {
-      "2026-07-13": { date: "2026-07-13", value: 8, intensity: 3, customColor: "#d18616" },
+      "2026-07-13": {
+        date: "2026-07-13",
+        value: 8,
+        intensity: 3,
+        customColor: "#d18616",
+      },
       "2026-07-14": { date: "2026-07-14", value: 5, intensity: 2 },
     };
 
@@ -142,7 +162,12 @@ describe("buildHeatmapGridHtml", () => {
     // A leave day whose entry carries a placeholder intensity of 1 just to
     // stay colored/logged, even though no real hours were worked.
     const entriesByDate: Record<string, Entry> = {
-      "2026-07-13": { date: "2026-07-13", value: 1, intensity: 1, customColor: "#8b949e" },
+      "2026-07-13": {
+        date: "2026-07-13",
+        value: 1,
+        intensity: 1,
+        customColor: "#8b949e",
+      },
     };
 
     const html = buildHeatmapGridHtml({
@@ -190,8 +215,12 @@ describe("buildHeatmapGridHtml", () => {
       orientation: "columns",
     });
 
-    expect(htmlMonday.indexOf(">Mon<")).toBeLessThan(htmlMonday.indexOf(">Sun<"));
-    expect(htmlSunday.indexOf(">Sun<")).toBeLessThan(htmlSunday.indexOf(">Mon<"));
+    expect(htmlMonday.indexOf(">Mon<")).toBeLessThan(
+      htmlMonday.indexOf(">Sun<"),
+    );
+    expect(htmlSunday.indexOf(">Sun<")).toBeLessThan(
+      htmlSunday.indexOf(">Mon<"),
+    );
   });
 
   it("uses single-letter weekday labels in rows mode, where they're column headers", () => {
@@ -237,7 +266,9 @@ describe("buildHeatmapGridHtml", () => {
 
   describe("band wrapping", () => {
     const start = "2025-01-06"; // a Monday
-    const longEnd = formatDateToISO8601(addDays(parseUTCDate(start), 60 * 7 - 1)) as string; // 60-week span
+    const longEnd = formatDateToISO8601(
+      addDays(parseUTCDate(start), 60 * 7 - 1),
+    ) as string; // 60-week span
 
     it("renders a single grid (one band) for a short range", () => {
       const html = buildHeatmapGridHtml({
@@ -253,7 +284,9 @@ describe("buildHeatmapGridHtml", () => {
     });
 
     it("cuts a range longer than MAX_WEEKS_PER_BAND into multiple bands, stacked vertically for columns", () => {
-      expect(countWeeksInRange(start, longEnd, 1)).toBeGreaterThan(MAX_WEEKS_PER_BAND);
+      expect(countWeeksInRange(start, longEnd, 1)).toBeGreaterThan(
+        MAX_WEEKS_PER_BAND,
+      );
 
       const html = buildHeatmapGridHtml({
         entriesByDate: {},
@@ -380,7 +413,9 @@ describe("buildHeatmapGridHtml", () => {
 
       const bands = splitBands(html);
       expect(bands).toHaveLength(6);
-      bands.forEach((band) => expect(countMonthLabels(band)).toBeLessThanOrEqual(8));
+      bands.forEach((band) =>
+        expect(countMonthLabels(band)).toBeLessThanOrEqual(8),
+      );
     });
   });
 
@@ -420,7 +455,9 @@ describe("buildHeatmapGridHtml", () => {
       expect(html).toContain(">2026<");
       // Year sits in column 1, month in column 2 — year renders first.
       expect(html.indexOf(">2025<")).toBeLessThan(html.indexOf(">Dec<"));
-      expect(html).toMatch(/grid-column:1;grid-row:\d+ \/ span \d+;[^"]*">2025</);
+      expect(html).toMatch(
+        /grid-column:1;grid-row:\d+ \/ span \d+;[^"]*">2025</,
+      );
     });
 
     it("renders the rows-mode year label with vertical text, to stay narrow across many side-by-side bands", () => {
@@ -435,7 +472,9 @@ describe("buildHeatmapGridHtml", () => {
         showMonthLabels: true,
       });
 
-      expect(html).toMatch(/grid-column:1;grid-row:\d+ \/ span \d+;[^"]*writing-mode:vertical-rl[^"]*">2025</);
+      expect(html).toMatch(
+        /grid-column:1;grid-row:\d+ \/ span \d+;[^"]*writing-mode:vertical-rl[^"]*">2025</,
+      );
     });
 
     it("renders the rows-mode month label horizontally, centered across its whole span (unlike the rotated year column)", () => {
@@ -455,7 +494,9 @@ describe("buildHeatmapGridHtml", () => {
         showMonthLabels: true,
       });
 
-      const decMatch = html.match(/<div style="grid-column:2;grid-row:\d+ \/ span \d+;([^"]*)">Dec<\/div>/);
+      const decMatch = html.match(
+        /<div style="grid-column:2;grid-row:\d+ \/ span \d+;([^"]*)">Dec<\/div>/,
+      );
       expect(decMatch).not.toBeNull();
       const [, style] = decMatch as RegExpMatchArray;
       expect(style).not.toContain("writing-mode");
@@ -480,9 +521,13 @@ describe("buildHeatmapGridHtml", () => {
       });
 
       // Year column (col 1) spans its whole multi-row run.
-      expect(html).toMatch(/grid-column:1;grid-row:\d+ \/ span \d+;[^"]*margin-right:4px[^"]*">2025</);
+      expect(html).toMatch(
+        /grid-column:1;grid-row:\d+ \/ span \d+;[^"]*margin-right:4px[^"]*">2025</,
+      );
       // Month column (col 2) does too.
-      expect(html).toMatch(/grid-column:2;grid-row:\d+ \/ span \d+;[^"]*margin-right:4px[^"]*">Dec</);
+      expect(html).toMatch(
+        /grid-column:2;grid-row:\d+ \/ span \d+;[^"]*margin-right:4px[^"]*">Dec</,
+      );
     });
 
     it("keeps the columns-mode year row horizontal (not rotated)", () => {

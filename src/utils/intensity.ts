@@ -259,8 +259,15 @@ export function fillEntriesWithIntensityByDate(
   });
 
   const intensities = getEntriesIntensities(Object.values(aggregated));
-  const intensitiesMap = getIntensitiesInfo(intensities, intensityConfig, colorsList);
-  const [minimumIntensity, maximumIntensity] = getMinMaxIntensities(intensities, intensityConfig);
+  const intensitiesMap = getIntensitiesInfo(
+    intensities,
+    intensityConfig,
+    colorsList,
+  );
+  const [minimumIntensity, maximumIntensity] = getMinMaxIntensities(
+    intensities,
+    intensityConfig,
+  );
 
   Object.entries(aggregated).forEach(([dateKey, e]) => {
     const currentIntensity = e.intensity ?? intensityConfig.defaultIntensity;
@@ -273,7 +280,13 @@ export function fillEntriesWithIntensityByDate(
       newIntensity = foundIntensityInfo.intensity;
     } else if (intensityConfig.showOutOfRange && currentIntensity !== 0) {
       newIntensity = Math.round(
-        mapRange(currentIntensity, minimumIntensity, maximumIntensity, 1, colorsList.length),
+        mapRange(
+          currentIntensity,
+          minimumIntensity,
+          maximumIntensity,
+          1,
+          colorsList.length,
+        ),
       );
     }
 

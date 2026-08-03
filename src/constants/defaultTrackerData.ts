@@ -21,10 +21,10 @@ export const DEFAULT_TRACKER_DATA: TrackerData = {
   heatmapSubtitle: undefined,
   basePath: undefined,
   ui: {
-      defaultView: IHeatmapView.HeatmapTracker,
-      hideTabs: false,
-      hideYear: false,
-      hideTitle: false,
-      hideSubtitle: false,
-  }
+    defaultView: IHeatmapView.HeatmapTracker,
+    hideTabs: false,
+    hideYear: false,
+    hideTitle: false,
+    hideSubtitle: false,
+  },
 };

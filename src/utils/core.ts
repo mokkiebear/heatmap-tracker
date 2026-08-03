@@ -161,7 +161,8 @@ export function mergeTrackerData(
 
       // `intensityConfig` (current API) wins when set; the legacy fields are
       // only used as a fallback so old codeblocks keep working.
-      scaleStart: userTrackerData.intensityConfig?.scaleStart ?? intensityScaleStart,
+      scaleStart:
+        userTrackerData.intensityConfig?.scaleStart ?? intensityScaleStart,
       scaleEnd: userTrackerData.intensityConfig?.scaleEnd ?? intensityScaleEnd,
       defaultIntensity:
         userTrackerData.intensityConfig?.defaultIntensity ??

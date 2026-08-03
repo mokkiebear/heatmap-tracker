@@ -7,7 +7,9 @@ import {
   validateHeatmapForm,
 } from "../heatmapModal.utils";
 
-function makeState(overrides: Partial<HeatmapModalFormState> = {}): HeatmapModalFormState {
+function makeState(
+  overrides: Partial<HeatmapModalFormState> = {},
+): HeatmapModalFormState {
   return {
     ...createInitialFormState(),
     ...overrides,
@@ -43,25 +45,29 @@ describe("validateHeatmapForm", () => {
   it("requires a positive integer when dateRangeMode is 'days'", () => {
     const base = { properties: ["exercise"], dateRangeMode: "days" as const };
 
-    expect(validateHeatmapForm(makeState({ ...base, daysToShow: "" }))).toContain(
-      "Enter a positive number of days to show.",
-    );
-    expect(validateHeatmapForm(makeState({ ...base, daysToShow: "0" }))).toContain(
-      "Enter a positive number of days to show.",
-    );
-    expect(validateHeatmapForm(makeState({ ...base, daysToShow: "-5" }))).toContain(
-      "Enter a positive number of days to show.",
-    );
-    expect(validateHeatmapForm(makeState({ ...base, daysToShow: "30" }))).toEqual([]);
+    expect(
+      validateHeatmapForm(makeState({ ...base, daysToShow: "" })),
+    ).toContain("Enter a positive number of days to show.");
+    expect(
+      validateHeatmapForm(makeState({ ...base, daysToShow: "0" })),
+    ).toContain("Enter a positive number of days to show.");
+    expect(
+      validateHeatmapForm(makeState({ ...base, daysToShow: "-5" })),
+    ).toContain("Enter a positive number of days to show.");
+    expect(
+      validateHeatmapForm(makeState({ ...base, daysToShow: "30" })),
+    ).toEqual([]);
   });
 
   it("requires a positive integer when dateRangeMode is 'months'", () => {
     const base = { properties: ["exercise"], dateRangeMode: "months" as const };
 
-    expect(validateHeatmapForm(makeState({ ...base, monthsToShow: "" }))).toContain(
-      "Enter a positive number of months to show.",
-    );
-    expect(validateHeatmapForm(makeState({ ...base, monthsToShow: "3" }))).toEqual([]);
+    expect(
+      validateHeatmapForm(makeState({ ...base, monthsToShow: "" })),
+    ).toContain("Enter a positive number of months to show.");
+    expect(
+      validateHeatmapForm(makeState({ ...base, monthsToShow: "3" })),
+    ).toEqual([]);
   });
 
   it("requires valid, ordered ISO dates when dateRangeMode is 'custom'", () => {
@@ -93,9 +99,9 @@ describe("validateHeatmapForm", () => {
   it("requires at least one custom color when useCustomColors is on", () => {
     const base = { properties: ["exercise"], useCustomColors: true };
 
-    expect(validateHeatmapForm(makeState({ ...base, customColors: [] }))).toContain(
-      "Add at least one custom color, or turn off custom colors.",
-    );
+    expect(
+      validateHeatmapForm(makeState({ ...base, customColors: [] })),
+    ).toContain("Add at least one custom color, or turn off custom colors.");
     expect(
       validateHeatmapForm(makeState({ ...base, customColors: ["#ffffff"] })),
     ).toEqual([]);
@@ -105,7 +111,9 @@ describe("validateHeatmapForm", () => {
     const errors = validateHeatmapForm(
       makeState({ properties: ["exercise"], scaleStart: "10", scaleEnd: "5" }),
     );
-    expect(errors).toContain("Intensity scale start must not be greater than scale end.");
+    expect(errors).toContain(
+      "Intensity scale start must not be greater than scale end.",
+    );
   });
 
   it("allows an intensity scale with only one bound set", () => {
@@ -133,7 +141,7 @@ describe("validateHeatmapForm", () => {
       }),
     );
     expect(withMissingValue).toContain(
-      "Each filter condition needs a value, or use \"Is not empty\".",
+      'Each filter condition needs a value, or use "Is not empty".',
     );
 
     const notEmptyOk = validateHeatmapForm(
@@ -182,22 +190,34 @@ describe("buildHeatmapConfig", () => {
   });
 
   it("includes layout only when set to 'monthly'", () => {
-    expect(buildHeatmapConfig(makeState({ properties: ["p"], layout: "monthly" })).layout).toBe(
-      "monthly",
-    );
-    expect(buildHeatmapConfig(makeState({ properties: ["p"], layout: "default" })).layout).toBeUndefined();
+    expect(
+      buildHeatmapConfig(makeState({ properties: ["p"], layout: "monthly" }))
+        .layout,
+    ).toBe("monthly");
+    expect(
+      buildHeatmapConfig(makeState({ properties: ["p"], layout: "default" }))
+        .layout,
+    ).toBeUndefined();
   });
 
   it("resolves the date-range mode to the matching single field", () => {
     expect(
       buildHeatmapConfig(
-        makeState({ properties: ["p"], dateRangeMode: "months", monthsToShow: "3" }),
+        makeState({
+          properties: ["p"],
+          dateRangeMode: "months",
+          monthsToShow: "3",
+        }),
       ),
     ).toMatchObject({ monthsToShow: 3 });
 
     expect(
       buildHeatmapConfig(
-        makeState({ properties: ["p"], dateRangeMode: "days", daysToShow: "14" }),
+        makeState({
+          properties: ["p"],
+          dateRangeMode: "days",
+          daysToShow: "14",
+        }),
       ),
     ).toMatchObject({ daysToShow: 14 });
 
@@ -230,12 +250,19 @@ describe("buildHeatmapConfig", () => {
         palette: "danger",
       }),
     );
-    expect(config.colorScheme).toEqual({ customColors: ["#111111", "#222222"] });
+    expect(config.colorScheme).toEqual({
+      customColors: ["#111111", "#222222"],
+    });
   });
 
   it("falls back to the palette when custom colors is on but empty", () => {
     const config = buildHeatmapConfig(
-      makeState({ properties: ["p"], useCustomColors: true, customColors: [], palette: "danger" }),
+      makeState({
+        properties: ["p"],
+        useCustomColors: true,
+        customColors: [],
+        palette: "danger",
+      }),
     );
     expect(config.colorScheme).toEqual({ paletteName: "danger" });
   });
@@ -306,7 +333,10 @@ describe("buildHeatmapConfig", () => {
 describe("buildPreviewTrackerData", () => {
   it("falls back to placeholder title/subtitle and carries through the given entries", () => {
     const entries = [{ date: "2026-01-01", intensity: 1 }];
-    const preview = buildPreviewTrackerData(makeState({ properties: ["p"] }), entries);
+    const preview = buildPreviewTrackerData(
+      makeState({ properties: ["p"] }),
+      entries,
+    );
 
     expect(preview.heatmapTitle).toBe("Preview title");
     expect(preview.heatmapSubtitle).toBe("Preview subtitle");
@@ -315,7 +345,11 @@ describe("buildPreviewTrackerData", () => {
 
   it("uses the user-entered title/subtitle when provided", () => {
     const preview = buildPreviewTrackerData(
-      makeState({ properties: ["p"], heatmapTitle: "My habit", heatmapSubtitle: "Daily" }),
+      makeState({
+        properties: ["p"],
+        heatmapTitle: "My habit",
+        heatmapSubtitle: "Daily",
+      }),
       [],
     );
 

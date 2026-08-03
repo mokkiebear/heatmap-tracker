@@ -26,7 +26,9 @@ export class PaletteSettings {
       cls: "heatmap-tracker-settings-palettes__palette-header",
     });
 
-    paletteHeaderContainer.createEl("h4", { text: `${i18n.t('settings.paletteName')}: ${paletteName}` });
+    paletteHeaderContainer.createEl("h4", {
+      text: `${i18n.t("settings.paletteName")}: ${paletteName}`,
+    });
 
     if (paletteName !== "default") {
       const deleteColorButton = paletteHeaderContainer.createEl("button", {
@@ -35,13 +37,19 @@ export class PaletteSettings {
 
       setIcon(deleteColorButton, "trash");
 
-      deleteColorButton.addEventListener("click", () => this.deletePalette(paletteName));
+      deleteColorButton.addEventListener("click", () =>
+        this.deletePalette(paletteName),
+      );
     }
   }
 
-  private renderAddColorSection(container: HTMLElement, paletteName: string, paletteColors: ColorsList) {
+  private renderAddColorSection(
+    container: HTMLElement,
+    paletteName: string,
+    paletteColors: ColorsList,
+  ) {
     container.createDiv({
-      text: i18n.t('settings.addNewColorToPalette', { paletteName }),
+      text: i18n.t("settings.addNewColorToPalette", { paletteName }),
       cls: "heatmap-tracker-settings-palettes__add-color-header",
     });
 
@@ -60,7 +68,7 @@ export class PaletteSettings {
 
     const addColorButton = inputContainer.createEl("button", {
       cls: "mod-cta heatmap-tracker-settings-palettes__add-color-button",
-      text: i18n.t('settings.addColor'),
+      text: i18n.t("settings.addColor"),
     });
 
     // Add listeners.
@@ -69,13 +77,15 @@ export class PaletteSettings {
     });
 
     addColorButton.addEventListener("click", () => {
-      this.plugin.settings.palettes[paletteName] = [...paletteColors, colorPreview.style.backgroundColor];
+      this.plugin.settings.palettes[paletteName] = [
+        ...paletteColors,
+        colorPreview.style.backgroundColor,
+      ];
 
       this.plugin.saveSettings();
 
       this.settings.display();
-    }
-    );
+    });
   }
 
   private renderAddNewPaletteSection(parent: HTMLElement) {
@@ -85,11 +95,11 @@ export class PaletteSettings {
 
     paletteContainer.createEl("h4", {
       cls: "heatmap-tracker-settings-palettes__new-palette-header",
-      text: i18n.t('settings.enterPaletteName'),
+      text: i18n.t("settings.enterPaletteName"),
     });
 
     const newPaletteContent = paletteContainer.createDiv({
-      cls: "heatmap-tracker-settings-palettes__new-palette-content"
+      cls: "heatmap-tracker-settings-palettes__new-palette-content",
     });
 
     const newPaletteInput = this.addNewPaletteInput(newPaletteContent);
@@ -99,16 +109,19 @@ export class PaletteSettings {
   private addNewPaletteInput(parent: HTMLElement) {
     const newPaletteInput = parent.createEl("input", {
       cls: "heatmap-tracker-settings-palettes__new-palette-input",
-      attr: { placeholder: i18n.t('settings.paletteName'), type: "text" },
+      attr: { placeholder: i18n.t("settings.paletteName"), type: "text" },
     });
 
     return newPaletteInput;
   }
 
-  private addNewPaletteButton(parent: HTMLElement, newPaletteInput: HTMLInputElement) {
+  private addNewPaletteButton(
+    parent: HTMLElement,
+    newPaletteInput: HTMLInputElement,
+  ) {
     const addColorButton = parent.createEl("button", {
       cls: "mod-cta heatmap-tracker-settings-palettes__new-palette-button",
-      text: i18n.t('settings.addNewPalette'),
+      text: i18n.t("settings.addNewPalette"),
     });
 
     addColorButton.addEventListener("click", async () => {
@@ -122,31 +135,38 @@ export class PaletteSettings {
     });
   }
 
-
   private displayColorHelp(parent: HTMLElement) {
     parent.createEl("p", {
-      text: i18n.t('settings.addPaletteNote'),
+      text: i18n.t("settings.addPaletteNote"),
     });
     parent.createEl("p", {
-      text: i18n.t('settings.colorsUsageNote'),
+      text: i18n.t("settings.colorsUsageNote"),
     });
   }
 
-  private renderPalette(parent: HTMLElement, paletteName: string, paletteColors: ColorsList) {
+  private renderPalette(
+    parent: HTMLElement,
+    paletteName: string,
+    paletteColors: ColorsList,
+  ) {
     const paletteContainer = parent.createDiv({
       cls: "heatmap-tracker-settings-palettes__palette-container",
     });
 
     this.addPaletteHeader(paletteContainer, paletteName);
 
-    const paletteContent = paletteContainer.createDiv({ cls: "heatmap-tracker-settings-palettes__palette-content", });
+    const paletteContent = paletteContainer.createDiv({
+      cls: "heatmap-tracker-settings-palettes__palette-content",
+    });
 
-    const colorsContainer = paletteContent.createEl('div', { cls: "heatmap-tracker-settings-palettes__palette-colors" });
+    const colorsContainer = paletteContent.createEl("div", {
+      cls: "heatmap-tracker-settings-palettes__palette-colors",
+    });
 
     for (const colorIndex in paletteColors) {
       const color = paletteColors[colorIndex];
 
-      const paletteColor = colorsContainer.createEl('div', {
+      const paletteColor = colorsContainer.createEl("div", {
         cls: "heatmap-tracker-settings-palettes__palette-color",
       });
 
@@ -162,26 +182,26 @@ export class PaletteSettings {
         },
       });
 
-      const colorInput = paletteColor.createEl('input', {
-        cls: 'heatmap-tracker-settings-palettes__color-input',
-        attr: { type: 'text' },
+      const colorInput = paletteColor.createEl("input", {
+        cls: "heatmap-tracker-settings-palettes__color-input",
+        attr: { type: "text" },
         value: color,
       });
 
-      if (paletteName === 'default') {
+      if (paletteName === "default") {
         colorInput.disabled = true;
       }
 
-      if (paletteName !== 'default') {
+      if (paletteName !== "default") {
         // “Save” button to confirm the typed color
-        const saveButton = paletteColor.createEl('button', {
-          cls: 'clickable-icon heatmap-tracker-settings-palettes__save-color',
-          attr: { 'aria-label': i18n.t('settings.saveColor'), disabled: true },
+        const saveButton = paletteColor.createEl("button", {
+          cls: "clickable-icon heatmap-tracker-settings-palettes__save-color",
+          attr: { "aria-label": i18n.t("settings.saveColor"), disabled: true },
         });
-        setIcon(saveButton, 'check');
+        setIcon(saveButton, "check");
 
         // Update the color preview whenever user types
-        colorInput.addEventListener('input', (event) => {
+        colorInput.addEventListener("input", (event) => {
           const newColor = (event as any).target.value;
 
           colorPreview.style.backgroundColor = newColor;
@@ -189,7 +209,7 @@ export class PaletteSettings {
           saveButton.disabled = newColor === color;
         });
 
-        saveButton.addEventListener('click', async () => {
+        saveButton.addEventListener("click", async () => {
           paletteColors[colorIndex] = colorPreview.style.backgroundColor;
           this.plugin.settings.palettes[paletteName] = paletteColors;
 
@@ -197,13 +217,13 @@ export class PaletteSettings {
           this.settings.display();
         });
 
-        const removeColorButton = paletteColor.createEl('button', {
-          cls: 'clickable-icon heatmap-tracker-settings-palettes__delete-color',
-          attr: { 'aria-label': i18n.t('settings.removeColor') },
+        const removeColorButton = paletteColor.createEl("button", {
+          cls: "clickable-icon heatmap-tracker-settings-palettes__delete-color",
+          attr: { "aria-label": i18n.t("settings.removeColor") },
         });
-        setIcon(removeColorButton, 'x');
+        setIcon(removeColorButton, "x");
 
-        removeColorButton.addEventListener('click', async () => {
+        removeColorButton.addEventListener("click", async () => {
           paletteColors.splice(Number(colorIndex), 1);
           this.plugin.settings.palettes[paletteName] = paletteColors;
 
@@ -224,13 +244,15 @@ export class PaletteSettings {
 
   public displayPaletteSettings() {
     const palettesContainer = this.settings.containerEl.createDiv({
-      cls: "heatmap-tracker-settings-palettes__container"
+      cls: "heatmap-tracker-settings-palettes__container",
     });
 
-    palettesContainer.createEl("h3", { text: i18n.t('settings.palettes'), });
+    palettesContainer.createEl("h3", { text: i18n.t("settings.palettes") });
     this.displayColorHelp(palettesContainer);
 
-    for (const [paletteName, paletteColors] of Object.entries(this.plugin.settings.palettes)) {
+    for (const [paletteName, paletteColors] of Object.entries(
+      this.plugin.settings.palettes,
+    )) {
       this.renderPalette(palettesContainer, paletteName, paletteColors);
     }
 

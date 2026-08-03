@@ -1,5 +1,9 @@
 import { Entry } from "src/types";
-import { buildReportModel, computeDataRange, getWeekStartDate } from "../reportModel";
+import {
+  buildReportModel,
+  computeDataRange,
+  getWeekStartDate,
+} from "../reportModel";
 
 function entry(overrides: Partial<Entry> & { date: string }): Entry {
   return overrides as Entry;
@@ -10,19 +14,25 @@ const colorsList = ["#ebedf0", "#c6e48b", "#7bc96f", "#239a3b", "#196127"];
 describe("getWeekStartDate", () => {
   it("returns the same date when it already is the week start", () => {
     const monday = new Date(Date.UTC(2026, 6, 13)); // 2026-07-13 is a Monday
-    expect(getWeekStartDate(monday, 1).toISOString()).toBe(monday.toISOString());
+    expect(getWeekStartDate(monday, 1).toISOString()).toBe(
+      monday.toISOString(),
+    );
   });
 
   it("rolls back to the most recent occurrence of weekStartDay", () => {
     const thursday = new Date(Date.UTC(2026, 6, 16)); // 2026-07-16
     const weekStart = getWeekStartDate(thursday, 1); // Monday-start week
-    expect(weekStart.toISOString()).toBe(new Date(Date.UTC(2026, 6, 13)).toISOString());
+    expect(weekStart.toISOString()).toBe(
+      new Date(Date.UTC(2026, 6, 13)).toISOString(),
+    );
   });
 
   it("supports a Sunday week start", () => {
     const thursday = new Date(Date.UTC(2026, 6, 16)); // 2026-07-16
     const weekStart = getWeekStartDate(thursday, 0);
-    expect(weekStart.toISOString()).toBe(new Date(Date.UTC(2026, 6, 12)).toISOString());
+    expect(weekStart.toISOString()).toBe(
+      new Date(Date.UTC(2026, 6, 12)).toISOString(),
+    );
   });
 });
 
@@ -65,7 +75,10 @@ describe("buildReportModel", () => {
 
     expect(model.weeks).toHaveLength(2);
     expect(model.weeks[0].weekStart).toBe("2026-07-13");
-    expect(model.weeks[0].days.map((d) => d.date)).toEqual(["2026-07-13", "2026-07-16"]);
+    expect(model.weeks[0].days.map((d) => d.date)).toEqual([
+      "2026-07-13",
+      "2026-07-16",
+    ]);
     expect(model.weeks[1].weekStart).toBe("2026-07-20");
     expect(model.weeks[1].days.map((d) => d.date)).toEqual(["2026-07-20"]);
   });
@@ -87,7 +100,10 @@ describe("buildReportModel", () => {
 
     expect(model.weeks).toHaveLength(1);
     expect(model.weeks[0].weekStart).toBe("2025-12-29");
-    expect(model.weeks[0].days.map((d) => d.date)).toEqual(["2025-12-30", "2026-01-02"]);
+    expect(model.weeks[0].days.map((d) => d.date)).toEqual([
+      "2025-12-30",
+      "2026-01-02",
+    ]);
   });
 
   it("returns an empty model when nothing falls in range", () => {
@@ -101,7 +117,11 @@ describe("buildReportModel", () => {
     });
 
     expect(model.weeks).toEqual([]);
-    expect(model.summary).toEqual({ totalDays: 0, totalValue: 0, activeWeeks: 0 });
+    expect(model.summary).toEqual({
+      totalDays: 0,
+      totalValue: 0,
+      activeWeeks: 0,
+    });
   });
 
   it("computes summary totals across all included days", () => {
@@ -119,12 +139,21 @@ describe("buildReportModel", () => {
       weekStartDay: 1,
     });
 
-    expect(model.summary).toEqual({ totalDays: 2, totalValue: 13, activeWeeks: 1 });
+    expect(model.summary).toEqual({
+      totalDays: 2,
+      totalValue: 13,
+      activeWeeks: 1,
+    });
   });
 
   it("resolves the day color from customColor first, then the mapped intensity", () => {
     const entriesByDate: Record<string, Entry> = {
-      "2026-07-13": entry({ date: "2026-07-13", value: 8, intensity: 3, customColor: "#d18616" }),
+      "2026-07-13": entry({
+        date: "2026-07-13",
+        value: 8,
+        intensity: 3,
+        customColor: "#d18616",
+      }),
       "2026-07-14": entry({ date: "2026-07-14", value: 5, intensity: 2 }),
     };
 
@@ -188,7 +217,12 @@ describe("buildReportModel", () => {
 
   it("falls back to string content when there is no filePath", () => {
     const entriesByDate: Record<string, Entry> = {
-      "2026-07-13": entry({ date: "2026-07-13", value: 8, intensity: 3, content: "inline note" }),
+      "2026-07-13": entry({
+        date: "2026-07-13",
+        value: 8,
+        intensity: 3,
+        content: "inline note",
+      }),
     };
 
     const model = buildReportModel({
@@ -209,7 +243,12 @@ describe("buildReportModel", () => {
       // (needed just to keep it colored/logged), even though no real hours
       // were worked — the legend says "Leave" should always report as 0.
       const entriesByDate: Record<string, Entry> = {
-        "2026-07-13": entry({ date: "2026-07-13", value: 1, intensity: 1, customColor: "#8b949e" }),
+        "2026-07-13": entry({
+          date: "2026-07-13",
+          value: 1,
+          intensity: 1,
+          customColor: "#8b949e",
+        }),
       };
 
       const model = buildReportModel({
@@ -247,7 +286,12 @@ describe("buildReportModel", () => {
 
     it("leaves the raw value alone when the matching legend entry has no override set", () => {
       const entriesByDate: Record<string, Entry> = {
-        "2026-07-13": entry({ date: "2026-07-13", value: 1, intensity: 1, customColor: "#7bc96f" }),
+        "2026-07-13": entry({
+          date: "2026-07-13",
+          value: 1,
+          intensity: 1,
+          customColor: "#7bc96f",
+        }),
       };
 
       const model = buildReportModel({
@@ -277,11 +321,16 @@ describe("computeDataRange", () => {
       "2026-05-20": entry({ date: "2026-05-20" }),
     };
 
-    expect(computeDataRange(entriesByDate)).toEqual({ start: "2026-03-15", end: "2026-06-01" });
+    expect(computeDataRange(entriesByDate)).toEqual({
+      start: "2026-03-15",
+      end: "2026-06-01",
+    });
   });
 
   it("handles a single entry", () => {
-    expect(computeDataRange({ "2026-01-01": entry({ date: "2026-01-01" }) })).toEqual({
+    expect(
+      computeDataRange({ "2026-01-01": entry({ date: "2026-01-01" }) }),
+    ).toEqual({
       start: "2026-01-01",
       end: "2026-01-01",
     });

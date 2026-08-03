@@ -1,6 +1,12 @@
 import { App, Modal, Setting, setIcon } from "obsidian";
 import { EMPTY_CELL_COLOR } from "../utils/report/heatmapHtml";
-import { LegendEntry, LegendVisibility, getLegendVisibility, nextLegendVisibility, setLegendVisibility } from "../utils/report/legend";
+import {
+  LegendEntry,
+  LegendVisibility,
+  getLegendVisibility,
+  nextLegendVisibility,
+  setLegendVisibility,
+} from "../utils/report/legend";
 import { normalizeColor } from "../utils/report/legendMatch";
 
 function isBlankColor(color: string): boolean {
@@ -40,11 +46,17 @@ export type LegendDisplayMode = "separate" | "gradient";
  * color only drops out here once it no longer appears at all, not merely
  * because the currently selected range doesn't happen to include it.
  */
-export function mergeLegendWithDefaults(entries: LegendEntry[], defaults: LegendEntry[]): LegendEntry[] {
-  const isInDefaults = (color: string) => defaults.some((d) => normalizeColor(d.color) === normalizeColor(color));
+export function mergeLegendWithDefaults(
+  entries: LegendEntry[],
+  defaults: LegendEntry[],
+): LegendEntry[] {
+  const isInDefaults = (color: string) =>
+    defaults.some((d) => normalizeColor(d.color) === normalizeColor(color));
   const kept = entries.filter((entry) => isInDefaults(entry.color));
   const keptColors = new Set(kept.map((entry) => normalizeColor(entry.color)));
-  const added = defaults.filter((d) => !keptColors.has(normalizeColor(d.color)));
+  const added = defaults.filter(
+    (d) => !keptColors.has(normalizeColor(d.color)),
+  );
   return [...kept, ...added];
 }
 
@@ -59,9 +71,16 @@ export function mergeLegendWithDefaults(entries: LegendEntry[], defaults: Legend
  * the blank/background color) is never included here and keeps its own full
  * row instead.
  */
-export function paletteEntriesInOrder(entries: LegendEntry[], colorsList: string[]): LegendEntry[] {
+export function paletteEntriesInOrder(
+  entries: LegendEntry[],
+  colorsList: string[],
+): LegendEntry[] {
   return colorsList
-    .map((color) => entries.find((entry) => normalizeColor(entry.color) === normalizeColor(color)))
+    .map((color) =>
+      entries.find(
+        (entry) => normalizeColor(entry.color) === normalizeColor(color),
+      ),
+    )
     .filter((entry): entry is LegendEntry => entry !== undefined);
 }
 
@@ -87,7 +106,11 @@ export function reorderLegendEntries(
   const anchor = target.find((entry) => rest.includes(entry));
   const insertIndex = anchor ? rest.indexOf(anchor) : rest.length;
 
-  return [...rest.slice(0, insertIndex), ...dragged, ...rest.slice(insertIndex)];
+  return [
+    ...rest.slice(0, insertIndex),
+    ...dragged,
+    ...rest.slice(insertIndex),
+  ];
 }
 
 /**
@@ -127,7 +150,12 @@ class GradientWeightsModal extends Modal {
     this.listEl = contentEl.createDiv({ cls: "heatmap-legend-modal__list" });
     this.renderRows();
 
-    new Setting(contentEl).addButton((btn) => btn.setButtonText("Done").setCta().onClick(() => this.close()));
+    new Setting(contentEl).addButton((btn) =>
+      btn
+        .setButtonText("Done")
+        .setCta()
+        .onClick(() => this.close()),
+    );
   }
 
   onClose() {
@@ -148,7 +176,10 @@ class GradientWeightsModal extends Modal {
       const swatch = row.createDiv({ cls: "heatmap-legend-modal__swatch" });
       swatch.style.backgroundColor = entry.color;
 
-      row.createSpan({ cls: "heatmap-legend-modal__color-text", text: entry.color });
+      row.createSpan({
+        cls: "heatmap-legend-modal__color-text",
+        text: entry.color,
+      });
 
       const valueOverrideInput = row.createEl("input", {
         cls: "heatmap-legend-modal__value-input",
@@ -156,14 +187,17 @@ class GradientWeightsModal extends Modal {
           type: "number",
           step: "any",
           placeholder: "value",
-          "aria-label": "Fixed value for this color, overriding its actual logged value",
+          "aria-label":
+            "Fixed value for this color, overriding its actual logged value",
         },
-        value: entry.valueOverride !== undefined ? String(entry.valueOverride) : "",
+        value:
+          entry.valueOverride !== undefined ? String(entry.valueOverride) : "",
       });
       valueOverrideInput.addEventListener("input", () => {
         const trimmed = valueOverrideInput.value.trim();
         const parsed = Number(trimmed);
-        entry.valueOverride = trimmed === "" || Number.isNaN(parsed) ? undefined : parsed;
+        entry.valueOverride =
+          trimmed === "" || Number.isNaN(parsed) ? undefined : parsed;
       });
 
       const weightInput = row.createEl("input", {
@@ -173,14 +207,16 @@ class GradientWeightsModal extends Modal {
           step: "any",
           min: "0",
           placeholder: "weight",
-          "aria-label": "Day-count weight (e.g. 0.5 for a half day, or 0 to exclude entirely)",
+          "aria-label":
+            "Day-count weight (e.g. 0.5 for a half day, or 0 to exclude entirely)",
         },
         value: entry.countWeight !== undefined ? String(entry.countWeight) : "",
       });
       weightInput.addEventListener("input", () => {
         const trimmed = weightInput.value.trim();
         const parsed = Number(trimmed);
-        entry.countWeight = trimmed === "" || Number.isNaN(parsed) ? undefined : parsed;
+        entry.countWeight =
+          trimmed === "" || Number.isNaN(parsed) ? undefined : parsed;
       });
     });
   }
@@ -241,7 +277,11 @@ export class LegendModal extends Modal {
   private colorsList: string[];
   private legendMode: LegendDisplayMode;
   private gradientLabel: string;
-  private onSave: (entries: LegendEntry[], legendMode: LegendDisplayMode, gradientLabel: string) => void;
+  private onSave: (
+    entries: LegendEntry[],
+    legendMode: LegendDisplayMode,
+    gradientLabel: string,
+  ) => void;
   private listEl: HTMLElement | null = null;
   /** The entries currently being dragged - a single entry for a normal row, or every palette-color entry at once for the gradient group row. */
   private dragPayload: LegendEntry[] | null = null;
@@ -253,7 +293,11 @@ export class LegendModal extends Modal {
     colorsList: string[],
     initialLegendMode: LegendDisplayMode,
     initialGradientLabel: string,
-    onSave: (entries: LegendEntry[], legendMode: LegendDisplayMode, gradientLabel: string) => void,
+    onSave: (
+      entries: LegendEntry[],
+      legendMode: LegendDisplayMode,
+      gradientLabel: string,
+    ) => void,
   ) {
     super(app);
     this.entries = initialEntries.map((entry) => ({ ...entry }));
@@ -289,22 +333,33 @@ export class LegendModal extends Modal {
     this.listEl = contentEl.createDiv({ cls: "heatmap-legend-modal__list" });
     this.renderRows();
 
-    const footnote = contentEl.createEl("p", { cls: "heatmap-legend-modal__footnote" });
+    const footnote = contentEl.createEl("p", {
+      cls: "heatmap-legend-modal__footnote",
+    });
     footnote.appendText(
       "Drag rows to reorder. Click the eye to cycle through shown, summary-hidden, and fully hidden.",
     );
     footnote.createEl("br");
-    footnote.appendText("Optionally set fixed values to make every day in that category use the same value.");
+    footnote.appendText(
+      "Optionally set fixed values to make every day in that category use the same value.",
+    );
 
-    const buttonRow = contentEl.createDiv({ cls: "heatmap-legend-modal__button-row" });
+    const buttonRow = contentEl.createDiv({
+      cls: "heatmap-legend-modal__button-row",
+    });
 
     // "dropdown" is Obsidian's own class for select elements (applied
     // automatically by its DropdownComponent elsewhere) - without it, a bare
     // <select> picks up the same border/background/height as a <button> and
     // reads as one more button in the row instead of a distinct dropdown.
-    const modeSelect = buttonRow.createEl("select", { cls: "heatmap-legend-modal__mode-select dropdown" });
+    const modeSelect = buttonRow.createEl("select", {
+      cls: "heatmap-legend-modal__mode-select dropdown",
+    });
     modeSelect.createEl("option", { value: "separate", text: "Separate rows" });
-    modeSelect.createEl("option", { value: "gradient", text: "Single gradient row" });
+    modeSelect.createEl("option", {
+      value: "gradient",
+      text: "Single gradient row",
+    });
     modeSelect.value = this.legendMode;
 
     modeSelect.addEventListener("change", () => {
@@ -313,7 +368,10 @@ export class LegendModal extends Modal {
     });
 
     const refreshBtn = buttonRow.createEl("button", {
-      attr: { "aria-label": "Fetch new colors and drop stale ones, keeping everything else as-is" },
+      attr: {
+        "aria-label":
+          "Fetch new colors and drop stale ones, keeping everything else as-is",
+      },
       text: "Refresh colors",
     });
     refreshBtn.addEventListener("click", () => {
@@ -372,7 +430,9 @@ export class LegendModal extends Modal {
     // encountered) rather than always first - that's what makes it draggable
     // to a genuinely different position, not just visually fixed up front.
     const paletteColors = this.paletteColorSet();
-    const paletteBlock = this.entries.filter((entry) => paletteColors.has(normalizeColor(entry.color)));
+    const paletteBlock = this.entries.filter((entry) =>
+      paletteColors.has(normalizeColor(entry.color)),
+    );
     let groupRendered = false;
 
     this.entries.forEach((entry) => {
@@ -445,7 +505,11 @@ export class LegendModal extends Modal {
 
   private handleDrop(targetPayload: LegendEntry[]) {
     if (!this.dragPayload) return;
-    this.entries = reorderLegendEntries(this.entries, this.dragPayload, targetPayload);
+    this.entries = reorderLegendEntries(
+      this.entries,
+      this.dragPayload,
+      targetPayload,
+    );
     this.dragPayload = null;
     this.renderRows();
   }
@@ -466,7 +530,10 @@ export class LegendModal extends Modal {
    * ordered - that's a display/data-entry concern, unrelated to this row's
    * position among the others.
    */
-  private renderGradientGroupRow(container: HTMLElement, paletteBlock: LegendEntry[]) {
+  private renderGradientGroupRow(
+    container: HTMLElement,
+    paletteBlock: LegendEntry[],
+  ) {
     const intensityOrder = paletteEntriesInOrder(this.entries, this.colorsList);
     const groupVisibility = aggregateVisibility(intensityOrder);
 
@@ -479,9 +546,13 @@ export class LegendModal extends Modal {
     setIcon(handle, "grip-vertical");
     handle.addEventListener("mousedown", arm);
 
-    const strip = row.createDiv({ cls: "heatmap-legend-modal__gradient-strip" });
+    const strip = row.createDiv({
+      cls: "heatmap-legend-modal__gradient-strip",
+    });
     intensityOrder.forEach((entry) => {
-      const swatch = strip.createDiv({ cls: "heatmap-legend-modal__gradient-strip-swatch" });
+      const swatch = strip.createDiv({
+        cls: "heatmap-legend-modal__gradient-strip-swatch",
+      });
       swatch.style.backgroundColor = entry.color;
     });
 
@@ -496,7 +567,10 @@ export class LegendModal extends Modal {
 
     const gearBtn = row.createEl("button", {
       cls: "heatmap-legend-modal__gear-button clickable-icon",
-      attr: { "aria-label": "Set each palette color's day-count weight and fixed value" },
+      attr: {
+        "aria-label":
+          "Set each palette color's day-count weight and fixed value",
+      },
     });
     setIcon(gearBtn, "settings");
     gearBtn.addEventListener("click", () => {
@@ -521,66 +595,68 @@ export class LegendModal extends Modal {
 
   private renderEntryRow(container: HTMLElement, entry: LegendEntry) {
     const row = container.createDiv({ cls: "heatmap-legend-modal__row" });
-      const visibility = getLegendVisibility(entry);
-      row.toggleClass("is-excluded", visibility === "summaryHidden");
-      row.toggleClass("is-hidden", visibility === "hidden");
-      const arm = this.wireDraggable(row, [entry]);
+    const visibility = getLegendVisibility(entry);
+    row.toggleClass("is-excluded", visibility === "summaryHidden");
+    row.toggleClass("is-hidden", visibility === "hidden");
+    const arm = this.wireDraggable(row, [entry]);
 
-      const handle = row.createDiv({ cls: "heatmap-legend-modal__handle" });
-      setIcon(handle, "grip-vertical");
-      handle.addEventListener("mousedown", arm);
+    const handle = row.createDiv({ cls: "heatmap-legend-modal__handle" });
+    setIcon(handle, "grip-vertical");
+    handle.addEventListener("mousedown", arm);
 
-      const swatch = row.createDiv({ cls: "heatmap-legend-modal__swatch" });
-      swatch.style.backgroundColor = entry.color;
+    const swatch = row.createDiv({ cls: "heatmap-legend-modal__swatch" });
+    swatch.style.backgroundColor = entry.color;
 
-      // Colors are sourced automatically from the calendar's real palette
-      // (see the class doc comment) - never editable, so shown as plain text
-      // next to the swatch rather than a (disabled-looking) input box.
-      const blank = isBlankColor(entry.color);
-      row.createSpan({
-        cls: "heatmap-legend-modal__color-text",
-        text: blank ? "Blank" : entry.color,
-      });
+    // Colors are sourced automatically from the calendar's real palette
+    // (see the class doc comment) - never editable, so shown as plain text
+    // next to the swatch rather than a (disabled-looking) input box.
+    const blank = isBlankColor(entry.color);
+    row.createSpan({
+      cls: "heatmap-legend-modal__color-text",
+      text: blank ? "Blank" : entry.color,
+    });
 
-      const labelInput = row.createEl("input", {
-        cls: "heatmap-legend-modal__label-input",
-        attr: { type: "text", placeholder: "Label (e.g. Workday)" },
-        value: entry.label,
-      });
-      labelInput.addEventListener("input", () => {
-        entry.label = labelInput.value;
-      });
+    const labelInput = row.createEl("input", {
+      cls: "heatmap-legend-modal__label-input",
+      attr: { type: "text", placeholder: "Label (e.g. Workday)" },
+      value: entry.label,
+    });
+    labelInput.addEventListener("input", () => {
+      entry.label = labelInput.value;
+    });
 
-      const valueOverrideInput = row.createEl("input", {
-        cls: "heatmap-legend-modal__value-input",
-        attr: {
-          type: "number",
-          step: "any",
-          placeholder: "value",
-          "aria-label": "To set fixed value (overriding actual values)",
-        },
-        value: entry.valueOverride !== undefined ? String(entry.valueOverride) : "",
-      });
-      valueOverrideInput.addEventListener("input", () => {
-        const trimmed = valueOverrideInput.value.trim();
-        const parsed = Number(trimmed);
-        entry.valueOverride = trimmed === "" || Number.isNaN(parsed) ? undefined : parsed;
-      });
+    const valueOverrideInput = row.createEl("input", {
+      cls: "heatmap-legend-modal__value-input",
+      attr: {
+        type: "number",
+        step: "any",
+        placeholder: "value",
+        "aria-label": "To set fixed value (overriding actual values)",
+      },
+      value:
+        entry.valueOverride !== undefined ? String(entry.valueOverride) : "",
+    });
+    valueOverrideInput.addEventListener("input", () => {
+      const trimmed = valueOverrideInput.value.trim();
+      const parsed = Number(trimmed);
+      entry.valueOverride =
+        trimmed === "" || Number.isNaN(parsed) ? undefined : parsed;
+    });
 
-      // Day-count weight only ever applies to palette colors being combined
-      // in gradient mode - this row is only ever rendered for a color that
-      // ISN'T in the palette (palette colors are squashed into the gradient
-      // group row instead - see `renderGradientGroupRow`/`GradientWeightsModal`),
-      // so there's nothing to weight here.
+    // Day-count weight only ever applies to palette colors being combined
+    // in gradient mode - this row is only ever rendered for a color that
+    // ISN'T in the palette (palette colors are squashed into the gradient
+    // group row instead - see `renderGradientGroupRow`/`GradientWeightsModal`),
+    // so there's nothing to weight here.
 
-      const includeToggle = row.createEl("button", {
-        cls: "heatmap-legend-modal__include-toggle clickable-icon",
-        attr: { "aria-label": VISIBILITY_TITLE[visibility] },
-      });
-      setIcon(includeToggle, VISIBILITY_ICON[visibility]);
-      includeToggle.addEventListener("click", () => {
-        setLegendVisibility(entry, nextLegendVisibility(visibility));
-        this.renderRows();
-      });
+    const includeToggle = row.createEl("button", {
+      cls: "heatmap-legend-modal__include-toggle clickable-icon",
+      attr: { "aria-label": VISIBILITY_TITLE[visibility] },
+    });
+    setIcon(includeToggle, VISIBILITY_ICON[visibility]);
+    includeToggle.addEventListener("click", () => {
+      setLegendVisibility(entry, nextLegendVisibility(visibility));
+      this.renderRows();
+    });
   }
 }

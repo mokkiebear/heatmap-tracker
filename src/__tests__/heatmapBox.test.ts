@@ -7,6 +7,8 @@ import {
   getDailyNoteSettings,
 } from "obsidian-daily-notes-interface";
 import { notify } from "../utils/notify";
+// `jest.mock("../modals/ConfirmModal")` below is hoisted, so this resolves to the mock.
+import { ConfirmModal } from "../modals/ConfirmModal";
 import moment from "moment";
 
 // Mock dependencies
@@ -38,7 +40,7 @@ describe("heatmapBox utils", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Setup Obsidian App mocks
     mockLeaf = {
       openFile: jest.fn(),
@@ -59,10 +61,9 @@ describe("heatmapBox utils", () => {
 
   describe("createNewFile", () => {
     it("should create and open a new file when user confirms", async () => {
-      const { ConfirmModal } = require("../modals/ConfirmModal");
       const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
       ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
-      
+
       const mockFile = {} as TFile;
       mockVault.create.mockResolvedValue(mockFile);
 
@@ -70,7 +71,7 @@ describe("heatmapBox utils", () => {
 
       expect(ConfirmModal).toHaveBeenCalledWith(
         app,
-        "Do you want to create a new file 'test.md' at 'folder/test.md'?"
+        "Do you want to create a new file 'test.md' at 'folder/test.md'?",
       );
       expect(mockOpenAndAwait).toHaveBeenCalled();
       expect(mockVault.create).toHaveBeenCalledWith("folder/test.md", "");
@@ -80,7 +81,6 @@ describe("heatmapBox utils", () => {
     });
 
     it("should return false when user cancels creation", async () => {
-      const { ConfirmModal } = require("../modals/ConfirmModal");
       const mockOpenAndAwait = jest.fn().mockResolvedValue(false);
       ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
 
@@ -90,19 +90,18 @@ describe("heatmapBox utils", () => {
       expect(mockVault.create).not.toHaveBeenCalled();
       expect(result).toBe(false);
     });
-    
+
     it("should return true but not open file if creation fails (returns null/undefined)", async () => {
-        const { ConfirmModal } = require("../modals/ConfirmModal");
-        const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
-        ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
-        mockVault.create.mockResolvedValue(null);
-  
-        const result = await createNewFile(app, "test.md", "folder/test.md");
-  
-        expect(mockVault.create).toHaveBeenCalled();
-        expect(mockWorkspace.getLeaf).not.toHaveBeenCalled();
-        expect(result).toBe(true);
-      });
+      const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
+      ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
+      mockVault.create.mockResolvedValue(null);
+
+      const result = await createNewFile(app, "test.md", "folder/test.md");
+
+      expect(mockVault.create).toHaveBeenCalled();
+      expect(mockWorkspace.getLeaf).not.toHaveBeenCalled();
+      expect(result).toBe(true);
+    });
   });
 
   describe("handleBoxClick", () => {
@@ -123,34 +122,38 @@ describe("heatmapBox utils", () => {
 
         await handleBoxClick(boxWithFile, app, {} as any);
 
-        expect(mockVault.getAbstractFileByPath).toHaveBeenCalledWith("path/to/file.md");
+        expect(mockVault.getAbstractFileByPath).toHaveBeenCalledWith(
+          "path/to/file.md",
+        );
         expect(mockLeaf.openFile).toHaveBeenCalledWith(mockFile);
       });
 
       it("should return if file missing and creation disabled", async () => {
         mockVault.getAbstractFileByPath.mockReturnValue(null);
 
-        await handleBoxClick(boxWithFile, app, { disableFileCreation: true } as any);
+        await handleBoxClick(boxWithFile, app, {
+          disableFileCreation: true,
+        } as any);
 
         expect(mockVault.create).not.toHaveBeenCalled();
       });
 
       it("should prompt to create file if missing and creation enabled", async () => {
-        const { ConfirmModal } = require("../modals/ConfirmModal");
         const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
         ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
-        
+
         mockVault.getAbstractFileByPath.mockReturnValue(null);
         mockVault.create.mockResolvedValue({} as TFile);
 
-        await handleBoxClick(boxWithFile, app, { disableFileCreation: false } as any);
+        await handleBoxClick(boxWithFile, app, {
+          disableFileCreation: false,
+        } as any);
 
         expect(ConfirmModal).toHaveBeenCalled();
         expect(mockVault.create).toHaveBeenCalledWith("path/to/file.md", "");
       });
-      
+
       it("should handle undefined trackerData when checking disableFileCreation with filePath", async () => {
-        const { ConfirmModal } = require("../modals/ConfirmModal");
         const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
         ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
 
@@ -172,39 +175,47 @@ describe("heatmapBox utils", () => {
 
         await handleBoxClick(mockBox, app, trackerData as any);
 
-        expect(mockVault.getAbstractFileByPath).toHaveBeenCalledWith("journal/2023-01-01.md");
+        expect(mockVault.getAbstractFileByPath).toHaveBeenCalledWith(
+          "journal/2023-01-01.md",
+        );
         expect(mockLeaf.openFile).toHaveBeenCalledWith(mockFile);
       });
 
       it("should handle basePath slashes correctly", async () => {
-         const mockFile = new TFile();
-         mockVault.getAbstractFileByPath.mockReturnValue(mockFile);
- 
-         await handleBoxClick(mockBox, app, { basePath: "/journal/" } as any);
- 
-         expect(mockVault.getAbstractFileByPath).toHaveBeenCalledWith("journal/2023-01-01.md");
+        const mockFile = new TFile();
+        mockVault.getAbstractFileByPath.mockReturnValue(mockFile);
+
+        await handleBoxClick(mockBox, app, { basePath: "/journal/" } as any);
+
+        expect(mockVault.getAbstractFileByPath).toHaveBeenCalledWith(
+          "journal/2023-01-01.md",
+        );
       });
-      
+
       it("should handle basePath with only slashes", async () => {
-         const mockFile = new TFile();
-         mockVault.getAbstractFileByPath.mockReturnValue(mockFile);
- 
-         await handleBoxClick(mockBox, app, { basePath: "///" } as any);
- 
-         // Should normalize to empty string and just use filename
-         expect(mockVault.getAbstractFileByPath).toHaveBeenCalledWith("2023-01-01.md");
+        const mockFile = new TFile();
+        mockVault.getAbstractFileByPath.mockReturnValue(mockFile);
+
+        await handleBoxClick(mockBox, app, { basePath: "///" } as any);
+
+        // Should normalize to empty string and just use filename
+        expect(mockVault.getAbstractFileByPath).toHaveBeenCalledWith(
+          "2023-01-01.md",
+        );
       });
 
       it("should return if file missing and creation disabled", async () => {
         mockVault.getAbstractFileByPath.mockReturnValue(null);
 
-        await handleBoxClick(mockBox, app, { ...trackerData, disableFileCreation: true } as any);
+        await handleBoxClick(mockBox, app, {
+          ...trackerData,
+          disableFileCreation: true,
+        } as any);
 
         expect(mockVault.create).not.toHaveBeenCalled();
       });
 
       it("should prompt to create file if missing", async () => {
-        const { ConfirmModal } = require("../modals/ConfirmModal");
         const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
         ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
 
@@ -212,17 +223,19 @@ describe("heatmapBox utils", () => {
 
         await handleBoxClick(mockBox, app, trackerData as any);
 
-        expect(mockVault.create).toHaveBeenCalledWith("journal/2023-01-01.md", "");
+        expect(mockVault.create).toHaveBeenCalledWith(
+          "journal/2023-01-01.md",
+          "",
+        );
       });
-      
+
       it("should handle undefined trackerData when checking disableFileCreation with basePath", async () => {
-        const { ConfirmModal } = require("../modals/ConfirmModal");
         const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
         ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
 
         mockVault.getAbstractFileByPath.mockReturnValue(null);
         mockVault.create.mockResolvedValue({} as TFile);
-        
+
         await handleBoxClick(mockBox, app, { basePath: "journal" } as any);
 
         expect(mockVault.create).toHaveBeenCalled();
@@ -230,11 +243,14 @@ describe("heatmapBox utils", () => {
     });
 
     describe("fallback to Daily Notes API", () => {
-        beforeEach(() => {
-            (getAllDailyNotes as jest.Mock).mockReturnValue({});
-            (getDailyNote as jest.Mock).mockReturnValue(null);
-            (getDailyNoteSettings as jest.Mock).mockReturnValue({ format: "YYYY-MM-DD", folder: "dailies" });
+      beforeEach(() => {
+        (getAllDailyNotes as jest.Mock).mockReturnValue({});
+        (getDailyNote as jest.Mock).mockReturnValue(null);
+        (getDailyNoteSettings as jest.Mock).mockReturnValue({
+          format: "YYYY-MM-DD",
+          folder: "dailies",
         });
+      });
 
       it("should open existing daily note", async () => {
         const mockFile = new TFile();
@@ -246,13 +262,14 @@ describe("heatmapBox utils", () => {
       });
 
       it("should return if daily note missing and creation disabled", async () => {
-        await handleBoxClick(mockBox, app, { disableFileCreation: true } as any);
+        await handleBoxClick(mockBox, app, {
+          disableFileCreation: true,
+        } as any);
 
         expect(createDailyNote).not.toHaveBeenCalled();
       });
 
       it("should prompt to create daily note if missing", async () => {
-        const { ConfirmModal } = require("../modals/ConfirmModal");
         const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
         ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
 
@@ -267,7 +284,6 @@ describe("heatmapBox utils", () => {
       });
 
       it("should not create daily note if user cancels", async () => {
-        const { ConfirmModal } = require("../modals/ConfirmModal");
         const mockOpenAndAwait = jest.fn().mockResolvedValue(false);
         ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
 
@@ -277,7 +293,6 @@ describe("heatmapBox utils", () => {
       });
 
       it("should handle missing daily note settings (defaults)", async () => {
-        const { ConfirmModal } = require("../modals/ConfirmModal");
         const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
         ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
 
@@ -293,7 +308,6 @@ describe("heatmapBox utils", () => {
       });
 
       it("should handle daily note creation failure", async () => {
-        const { ConfirmModal } = require("../modals/ConfirmModal");
         const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
         ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
 
@@ -304,69 +318,76 @@ describe("heatmapBox utils", () => {
         expect(createDailyNote).toHaveBeenCalled();
         expect(mockLeaf.openFile).not.toHaveBeenCalled();
       });
-      
-      it("should handle undefined trackerData for disableFileCreation check", async () => {
-         const { ConfirmModal } = require("../modals/ConfirmModal");
-         const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
-         ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
 
-         (createDailyNote as jest.Mock).mockResolvedValue({} as TFile);
-         
-         await handleBoxClick(mockBox, app, undefined as any);
-         
-         expect(createDailyNote).toHaveBeenCalled();
+      it("should handle undefined trackerData for disableFileCreation check", async () => {
+        const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
+        ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
+
+        (createDailyNote as jest.Mock).mockResolvedValue({} as TFile);
+
+        await handleBoxClick(mockBox, app, undefined as any);
+
+        expect(createDailyNote).toHaveBeenCalled();
       });
     });
-    
+
     describe("Error handling and manual fallback", () => {
-         it("should catch error in Daily Notes block and try manual search", async () => {
-            (getAllDailyNotes as jest.Mock).mockImplementation(() => { throw new Error("Daily notes error"); });
-            
-            // Mock manual search finding a file
-            const mockFile = { name: "2023-01-01.md" } as TFile;
-            mockVault.getFiles.mockReturnValue([mockFile]);
-            
-            await handleBoxClick(mockBox, app, {} as any);
-            
-            expect(mockLeaf.openFile).toHaveBeenCalledWith(mockFile);
-         });
+      it("should catch error in Daily Notes block and try manual search", async () => {
+        (getAllDailyNotes as jest.Mock).mockImplementation(() => {
+          throw new Error("Daily notes error");
+        });
 
-         it("should try to create new file if manual search fails", async () => {
-            const { ConfirmModal } = require("../modals/ConfirmModal");
-            const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
-            ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
+        // Mock manual search finding a file
+        const mockFile = { name: "2023-01-01.md" } as TFile;
+        mockVault.getFiles.mockReturnValue([mockFile]);
 
-            (getAllDailyNotes as jest.Mock).mockImplementation(() => { throw new Error("Daily notes error"); });
-            mockVault.getFiles.mockReturnValue([]);
-            
-            await handleBoxClick(mockBox, app, {} as any);
-            
-            expect(mockVault.create).toHaveBeenCalledWith("2023-01-01.md", "");
-            expect(notify).toHaveBeenCalled();
-         });
+        await handleBoxClick(mockBox, app, {} as any);
 
-         it("should respect disableFileCreation in manual fallback", async () => {
-            (getAllDailyNotes as jest.Mock).mockImplementation(() => { throw new Error("Daily notes error"); });
-            mockVault.getFiles.mockReturnValue([]);
-            
-            await handleBoxClick(mockBox, app, { disableFileCreation: true } as any);
-            
-            expect(mockVault.create).not.toHaveBeenCalled();
-            expect(notify).not.toHaveBeenCalled();
-         });
+        expect(mockLeaf.openFile).toHaveBeenCalledWith(mockFile);
+      });
 
-         it("should handle undefined trackerData in manual fallback", async () => {
-            const { ConfirmModal } = require("../modals/ConfirmModal");
-            const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
-            ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
+      it("should try to create new file if manual search fails", async () => {
+        const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
+        ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
 
-            (getAllDailyNotes as jest.Mock).mockImplementation(() => { throw new Error("Daily notes error"); });
-            mockVault.getFiles.mockReturnValue([]);
-            
-            await handleBoxClick(mockBox, app, undefined as any);
-            
-            expect(mockVault.create).toHaveBeenCalled();
-         });
+        (getAllDailyNotes as jest.Mock).mockImplementation(() => {
+          throw new Error("Daily notes error");
+        });
+        mockVault.getFiles.mockReturnValue([]);
+
+        await handleBoxClick(mockBox, app, {} as any);
+
+        expect(mockVault.create).toHaveBeenCalledWith("2023-01-01.md", "");
+        expect(notify).toHaveBeenCalled();
+      });
+
+      it("should respect disableFileCreation in manual fallback", async () => {
+        (getAllDailyNotes as jest.Mock).mockImplementation(() => {
+          throw new Error("Daily notes error");
+        });
+        mockVault.getFiles.mockReturnValue([]);
+
+        await handleBoxClick(mockBox, app, {
+          disableFileCreation: true,
+        } as any);
+
+        expect(mockVault.create).not.toHaveBeenCalled();
+        expect(notify).not.toHaveBeenCalled();
+      });
+
+      it("should handle undefined trackerData in manual fallback", async () => {
+        const mockOpenAndAwait = jest.fn().mockResolvedValue(true);
+        ConfirmModal.prototype.openAndAwait = mockOpenAndAwait;
+
+        (getAllDailyNotes as jest.Mock).mockImplementation(() => {
+          throw new Error("Daily notes error");
+        });
+        mockVault.getFiles.mockReturnValue([]);
+
+        await handleBoxClick(mockBox, app, undefined as any);
+
+        expect(mockVault.create).toHaveBeenCalled();
+      });
     });
   });
 });

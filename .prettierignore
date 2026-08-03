@@ -1,0 +1,17 @@
+build/
+dist/
+coverage/
+node_modules/
+.claude/
+EXAMPLE_VAULT/
+package-lock.json
+# Written by version-bump.mjs with tab indentation and no trailing newline.
+# Formatting them here would make `format:check` fail after every version bump.
+manifest.json
+versions.json
+# Jest owns the formatting of these; running Prettier over them would make every
+# snapshot update produce a spurious diff.
+**/__snapshots__/
+# Prose, not code. The drift Prettier is here to stop is in the source; reflowing
+# README/CHANGELOG would be pure churn over hand-tuned structure.
+*.md

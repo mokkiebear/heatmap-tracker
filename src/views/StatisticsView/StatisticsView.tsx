@@ -20,7 +20,8 @@ function StatisticsMetric({ label, value }: StatisticsMetricProps) {
 
 function StatisticsView() {
   const { t } = useTranslation();
-  const { entriesWithIntensity, trackerData, allFilteredEntries } = useHeatmapContext();
+  const { entriesWithIntensity, trackerData, allFilteredEntries } =
+    useHeatmapContext();
 
   const {
     currentStreak,
@@ -29,10 +30,7 @@ function StatisticsView() {
     longestStreakStartDate,
     currentStreakStartDate,
     currentStreakEndDate,
-  } = useMemo(
-    () => calculateStreaks(allFilteredEntries),
-    [allFilteredEntries]
-  );
+  } = useMemo(() => calculateStreaks(allFilteredEntries), [allFilteredEntries]);
 
   const currentStreakValue = useMemo(() => {
     if (!currentStreakStartDate || !currentStreakEndDate) {
@@ -58,9 +56,9 @@ function StatisticsView() {
     () =>
       processCustomMetrics(
         trackerData.insights,
-        Object.values(entriesWithIntensity)
+        Object.values(entriesWithIntensity),
       ),
-    [trackerData.insights, entriesWithIntensity]
+    [trackerData.insights, entriesWithIntensity],
   );
 
   return (

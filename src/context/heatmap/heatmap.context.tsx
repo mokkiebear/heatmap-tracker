@@ -10,8 +10,15 @@ import {
 } from "src/types";
 import { getColors } from "src/utils/colors";
 import { getBoxes, getEntriesForYear } from "src/utils/core";
-import { DateRange, getCurrentFullYear, resolveDateRange } from "src/utils/date";
-import { fillEntriesWithIntensity, fillEntriesWithIntensityByDate } from "src/utils/intensity";
+import {
+  DateRange,
+  getCurrentFullYear,
+  resolveDateRange,
+} from "src/utils/date";
+import {
+  fillEntriesWithIntensity,
+  fillEntriesWithIntensityByDate,
+} from "src/utils/intensity";
 
 export const HeatmapContext = createContext<HeatmapContextProps | null>(null);
 
@@ -43,8 +50,19 @@ export function HeatmapProvider({
   const isMonthlyLayout = trackerData.layout === "monthly";
 
   const dateRange = useMemo<DateRange | null>(
-    () => resolveDateRange(trackerData.startDate, trackerData.endDate, trackerData.daysToShow, trackerData.monthsToShow),
-    [trackerData.startDate, trackerData.endDate, trackerData.daysToShow, trackerData.monthsToShow],
+    () =>
+      resolveDateRange(
+        trackerData.startDate,
+        trackerData.endDate,
+        trackerData.daysToShow,
+        trackerData.monthsToShow,
+      ),
+    [
+      trackerData.startDate,
+      trackerData.endDate,
+      trackerData.daysToShow,
+      trackerData.monthsToShow,
+    ],
   );
 
   const allFilteredEntries = useMemo(() => {
@@ -57,9 +75,10 @@ export function HeatmapProvider({
   }, [trackerData.entries, trackerData.intensityConfig?.excludeFalsy]);
 
   const currentYearEntries = useMemo(
-    () => (isMonthlyLayout && dateRange)
-      ? allFilteredEntries
-      : getEntriesForYear(allFilteredEntries, currentYear),
+    () =>
+      isMonthlyLayout && dateRange
+        ? allFilteredEntries
+        : getEntriesForYear(allFilteredEntries, currentYear),
     [allFilteredEntries, currentYear, isMonthlyLayout, dateRange],
   );
 
@@ -94,7 +113,12 @@ export function HeatmapProvider({
             colorsList,
           )
         : {},
-    [isMonthlyLayout, currentYearEntries, mergedTrackerData.intensityConfig, colorsList],
+    [
+      isMonthlyLayout,
+      currentYearEntries,
+      mergedTrackerData.intensityConfig,
+      colorsList,
+    ],
   );
 
   const boxes = useMemo(

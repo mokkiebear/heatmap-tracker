@@ -16,7 +16,8 @@ export async function readNoteBody(
   }
 
   const raw = await app.vault.cachedRead(file);
-  const frontmatterEnd = app.metadataCache.getFileCache(file)?.frontmatterPosition?.end.offset;
+  const frontmatterEnd =
+    app.metadataCache.getFileCache(file)?.frontmatterPosition?.end.offset;
 
   const body =
     frontmatterEnd !== undefined
@@ -34,7 +35,9 @@ export async function readNoteBodies(
   const uniquePaths = Array.from(new Set(filePaths));
 
   const results = await Promise.all(
-    uniquePaths.map(async (path) => [path, await readNoteBody(app, path)] as const),
+    uniquePaths.map(
+      async (path) => [path, await readNoteBody(app, path)] as const,
+    ),
   );
 
   const bodiesByPath: Record<string, string> = {};

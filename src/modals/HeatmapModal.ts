@@ -13,7 +13,10 @@ import React from "react";
 import { Root } from "react-dom/client";
 import { renderApp } from "../render";
 import ReactApp from "../App";
-import { buildEntriesFromDataview, normalizeTag } from "../utils/dataviewEntries";
+import {
+  buildEntriesFromDataview,
+  normalizeTag,
+} from "../utils/dataviewEntries";
 import {
   DateRangeMode,
   FilterOperator,
@@ -50,7 +53,9 @@ class ChipList {
       onChange: () => void;
     },
   ) {
-    this.chipsEl = containerEl.createDiv({ cls: "heatmap-create-modal__chips" });
+    this.chipsEl = containerEl.createDiv({
+      cls: "heatmap-create-modal__chips",
+    });
     this.renderChips();
 
     const addFromList = new Setting(containerEl).setClass(
@@ -136,7 +141,9 @@ class ChipList {
     }
 
     values.forEach((value) => {
-      const chip = this.chipsEl.createDiv({ cls: "heatmap-create-modal__chip" });
+      const chip = this.chipsEl.createDiv({
+        cls: "heatmap-create-modal__chip",
+      });
       chip.createSpan({ text: value });
 
       const removeBtn = chip.createEl("button", {
@@ -334,7 +341,7 @@ export class HeatmapModal extends Modal {
     new Setting(contentEl)
       .setName("Additional conditions")
       .setDesc(
-        "Optionally narrow results further by frontmatter value (e.g. only notes where \"status\" equals \"done\"). All conditions must match.",
+        'Optionally narrow results further by frontmatter value (e.g. only notes where "status" equals "done"). All conditions must match.',
       );
     this.filtersEl = contentEl.createDiv({
       cls: "heatmap-create-modal__filters",
@@ -417,7 +424,10 @@ export class HeatmapModal extends Modal {
     this.customColorsEl = contentEl.createDiv({
       cls: "heatmap-create-modal__custom-colors",
     });
-    this.customColorsEl.toggleClass("is-hidden", !this.formState.useCustomColors);
+    this.customColorsEl.toggleClass(
+      "is-hidden",
+      !this.formState.useCustomColors,
+    );
     this.renderCustomColorsEditor();
 
     new Setting(contentEl)
@@ -470,7 +480,9 @@ export class HeatmapModal extends Modal {
 
     new Setting(contentEl)
       .setName("Show out-of-range entries")
-      .setDesc("If off, entries outside the scale start/end are hidden instead of clamped.")
+      .setDesc(
+        "If off, entries outside the scale start/end are hidden instead of clamped.",
+      )
       .addToggle((toggle) => {
         toggle.setValue(this.formState.showOutOfRange);
         toggle.onChange((value) => {
@@ -481,7 +493,9 @@ export class HeatmapModal extends Modal {
 
     new Setting(contentEl)
       .setName("Exclude zero/falsy values")
-      .setDesc("If enabled, 0 or blank values will be ignored and won't break streaks.")
+      .setDesc(
+        "If enabled, 0 or blank values will be ignored and won't break streaks.",
+      )
       .addToggle((toggle) => {
         toggle.setValue(this.formState.excludeFalsy);
         toggle.onChange((value) => {
@@ -596,7 +610,9 @@ export class HeatmapModal extends Modal {
     if (!dv) return [];
 
     const props = new Set<string>();
-    const pages = dv.pages(this.formState.path ? `"${this.formState.path}"` : undefined);
+    const pages = dv.pages(
+      this.formState.path ? `"${this.formState.path}"` : undefined,
+    );
     for (const page of pages) {
       if (page.file?.frontmatter) {
         for (const key of Object.keys(page.file.frontmatter)) {
@@ -693,7 +709,11 @@ export class HeatmapModal extends Modal {
       text: "Add condition",
     });
     addBtn.addEventListener("click", () => {
-      this.formState.filters.push({ property: "", operator: "equals", value: "" });
+      this.formState.filters.push({
+        property: "",
+        operator: "equals",
+        value: "",
+      });
       this.renderFiltersEditor();
       this.refresh();
     });

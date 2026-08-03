@@ -69,7 +69,9 @@ describe("computeDayTypeCounts", () => {
   });
 
   it("matches case-insensitively and ignores surrounding whitespace", () => {
-    const days = [day({ date: "2026-07-13", color: " #196127 ".trim().toUpperCase() })];
+    const days = [
+      day({ date: "2026-07-13", color: " #196127 ".trim().toUpperCase() }),
+    ];
     const { counts, otherCount } = computeDayTypeCounts(days, legend);
 
     expect(countFor(counts, "#196127")).toBe(1);
@@ -112,7 +114,9 @@ describe("computeDayTypeCounts", () => {
 
   it("does not add a blank count when totalDaysInRange is omitted", () => {
     const days = [day({ date: "2026-07-13", color: "#196127" })];
-    const legendWithBlank: LegendEntry[] = [{ color: EMPTY_CELL_COLOR, label: "Rest day" }];
+    const legendWithBlank: LegendEntry[] = [
+      { color: EMPTY_CELL_COLOR, label: "Rest day" },
+    ];
 
     const { counts } = computeDayTypeCounts(days, legendWithBlank);
 
@@ -126,7 +130,9 @@ describe("buildLegendHtml", () => {
   });
 
   it("renders a swatch + escaped label per entry", () => {
-    const html = buildLegendHtml([{ color: "#196127", label: "<b>Workday</b>" }]);
+    const html = buildLegendHtml([
+      { color: "#196127", label: "<b>Workday</b>" },
+    ]);
 
     expect(html).toContain("background-color:#196127");
     expect(html).toContain("&lt;b&gt;Workday&lt;/b&gt;");
@@ -144,7 +150,11 @@ describe("buildLegendHtml", () => {
   });
 
   it("returns an empty string when every entry is unlabeled", () => {
-    expect(buildLegendHtml([{ color: "#8b949e", label: "", includeInSummary: false }])).toBe("");
+    expect(
+      buildLegendHtml([
+        { color: "#8b949e", label: "", includeInSummary: false },
+      ]),
+    ).toBe("");
   });
 
   it("skips an entry hidden entirely (includeInLegend: false), even with a label", () => {
@@ -161,18 +171,29 @@ describe("buildLegendHtml", () => {
 
 describe("legend visibility state machine", () => {
   it("defaults to shown for a plain entry", () => {
-    expect(getLegendVisibility({ color: "#196127", label: "Workday" })).toBe("shown");
+    expect(getLegendVisibility({ color: "#196127", label: "Workday" })).toBe(
+      "shown",
+    );
   });
 
   it("reads summaryHidden from includeInSummary: false alone", () => {
-    expect(getLegendVisibility({ color: "#196127", label: "Workday", includeInSummary: false })).toBe(
-      "summaryHidden",
-    );
+    expect(
+      getLegendVisibility({
+        color: "#196127",
+        label: "Workday",
+        includeInSummary: false,
+      }),
+    ).toBe("summaryHidden");
   });
 
   it("reads hidden from includeInLegend: false, regardless of includeInSummary", () => {
     expect(
-      getLegendVisibility({ color: "#196127", label: "Workday", includeInLegend: false, includeInSummary: false }),
+      getLegendVisibility({
+        color: "#196127",
+        label: "Workday",
+        includeInLegend: false,
+        includeInSummary: false,
+      }),
     ).toBe("hidden");
   });
 
@@ -225,7 +246,9 @@ describe("buildGradientLegendHtml", () => {
 
   it("renders one swatch per palette color, in the given order", () => {
     const html = buildGradientLegendHtml(colors, "Activity");
-    colors.forEach((color) => expect(html).toContain(`background-color:${color}`));
+    colors.forEach((color) =>
+      expect(html).toContain(`background-color:${color}`),
+    );
     expect(html.indexOf(colors[0])).toBeLessThan(html.indexOf(colors[1]));
     expect(html.indexOf(colors[2])).toBeLessThan(html.indexOf(colors[3]));
   });
@@ -245,11 +268,14 @@ describe("buildGradientLegendHtml", () => {
     expect(escaped).not.toContain("<b>Activity</b>");
 
     const blank = buildGradientLegendHtml(colors, "   ");
-    expect(blank).not.toContain("<span style=\"font-size:0.85em;\">");
+    expect(blank).not.toContain('<span style="font-size:0.85em;">');
   });
 
   it("never includes the blank/background color in the strip, even if passed in", () => {
-    const html = buildGradientLegendHtml([...colors, EMPTY_CELL_COLOR], "Activity");
+    const html = buildGradientLegendHtml(
+      [...colors, EMPTY_CELL_COLOR],
+      "Activity",
+    );
     expect(html).not.toContain(`background-color:${EMPTY_CELL_COLOR}`);
   });
 
@@ -265,11 +291,17 @@ describe("buildGradientLegendHtml", () => {
     expect(html).toContain(">Rest day work<");
     // Exactly one wrapping row (one top-level flex container), not a
     // separate line below the gradient strip.
-    expect(html.match(/flex-wrap:wrap;gap:12px;margin:8px 0 16px;align-items:center;/g)?.length).toBe(1);
+    expect(
+      html.match(
+        /flex-wrap:wrap;gap:12px;margin:8px 0 16px;align-items:center;/g,
+      )?.length,
+    ).toBe(1);
   });
 
   it("omits an independent entry with no label", () => {
-    const html = buildGradientLegendHtml(colors, "Activity", [{ color: "#8b95a5", label: "" }]);
+    const html = buildGradientLegendHtml(colors, "Activity", [
+      { color: "#8b95a5", label: "" },
+    ]);
     expect(html).not.toContain("#8b95a5");
   });
 
@@ -282,7 +314,9 @@ describe("buildGradientLegendHtml", () => {
   });
 
   it("still renders independent entries even when the palette itself is empty", () => {
-    const html = buildGradientLegendHtml([], "Activity", [{ color: "#8b95a5", label: "Leave" }]);
+    const html = buildGradientLegendHtml([], "Activity", [
+      { color: "#8b95a5", label: "Leave" },
+    ]);
     expect(html).toContain(">Leave<");
   });
 
@@ -292,7 +326,11 @@ describe("buildGradientLegendHtml", () => {
       { color: "#c6e48b", label: "" },
       { color: "#7bc96f", label: "" },
     ];
-    const html = buildGradientLegendHtml(["#c6e48b", "#7bc96f"], "Activity", legend);
+    const html = buildGradientLegendHtml(
+      ["#c6e48b", "#7bc96f"],
+      "Activity",
+      legend,
+    );
 
     // "Leave" comes first in the array, so it renders before the gradient
     // item too - dragging the gradient group row (see LegendModal) must be
@@ -305,7 +343,11 @@ describe("buildGradientLegendHtml", () => {
       { color: "#c6e48b", label: "", includeInLegend: false },
       { color: "#7bc96f", label: "", includeInLegend: false },
     ];
-    const html = buildGradientLegendHtml(["#c6e48b", "#7bc96f"], "Activity", legend);
+    const html = buildGradientLegendHtml(
+      ["#c6e48b", "#7bc96f"],
+      "Activity",
+      legend,
+    );
 
     expect(html).toBe("");
   });
@@ -315,7 +357,11 @@ describe("buildGradientLegendHtml", () => {
       { color: "#c6e48b", label: "", includeInLegend: false },
       { color: "#7bc96f", label: "" },
     ];
-    const html = buildGradientLegendHtml(["#c6e48b", "#7bc96f"], "Activity", legend);
+    const html = buildGradientLegendHtml(
+      ["#c6e48b", "#7bc96f"],
+      "Activity",
+      legend,
+    );
 
     expect(html).toContain(">Activity<");
   });
@@ -409,9 +455,9 @@ describe("buildSummaryModel", () => {
     ];
 
     // Leave's day is matched (not "Other"), just not displayed as its own line.
-    expect(buildSummaryModel(model, { valueLabel: "hours", legend }).dayTypeParts).toEqual([
-      { label: "Workday", value: 2 },
-    ]);
+    expect(
+      buildSummaryModel(model, { valueLabel: "hours", legend }).dayTypeParts,
+    ).toEqual([{ label: "Workday", value: 2 }]);
   });
 
   it("still matches a blank-labeled, summary-excluded entry's color instead of counting it as Other", () => {
@@ -423,9 +469,9 @@ describe("buildSummaryModel", () => {
       { color: "#8b949e", label: "", includeInSummary: false },
     ];
 
-    expect(buildSummaryModel(model, { valueLabel: "hours", legend }).dayTypeParts).toEqual([
-      { label: "Workday", value: 2 },
-    ]);
+    expect(
+      buildSummaryModel(model, { valueLabel: "hours", legend }).dayTypeParts,
+    ).toEqual([{ label: "Workday", value: 2 }]);
   });
 
   it("returns an empty dayTypeParts array (not a blank placeholder) when every legend entry is excluded", () => {
@@ -447,7 +493,9 @@ describe("buildSummaryModel", () => {
   });
 
   it("omits the day count fallback too when hideSummary is set and there's no legend", () => {
-    expect(buildSummaryModel(model, { hideSummary: true }).dayTypeParts).toEqual([]);
+    expect(
+      buildSummaryModel(model, { hideSummary: true }).dayTypeParts,
+    ).toEqual([]);
   });
 
   it("omits only the total when hideTotalValue is set", () => {
@@ -465,7 +513,9 @@ describe("buildSummaryModel", () => {
   });
 
   it("omits everything when both hideSummary and hideAllValues are set", () => {
-    expect(buildSummaryModel(model, { hideSummary: true, hideAllValues: true })).toEqual({
+    expect(
+      buildSummaryModel(model, { hideSummary: true, hideAllValues: true }),
+    ).toEqual({
       dayTypeParts: [],
       total: null,
     });
@@ -481,7 +531,12 @@ describe("buildSummaryModel", () => {
       ];
 
       expect(
-        buildSummaryModel(model, { legend, legendMode: "gradient", gradientLabel: "Activity", colorsList }).dayTypeParts,
+        buildSummaryModel(model, {
+          legend,
+          legendMode: "gradient",
+          gradientLabel: "Activity",
+          colorsList,
+        }).dayTypeParts,
       ).toEqual([{ label: "Activity", value: 3 }]);
     });
 
@@ -514,7 +569,12 @@ describe("buildSummaryModel", () => {
       ];
 
       expect(
-        buildSummaryModel(model, { legend, legendMode: "gradient", gradientLabel: "Workday", colorsList }).dayTypeParts,
+        buildSummaryModel(model, {
+          legend,
+          legendMode: "gradient",
+          gradientLabel: "Workday",
+          colorsList,
+        }).dayTypeParts,
       ).toEqual([{ label: "Workday", value: 2.5 }]);
     });
 
@@ -567,7 +627,9 @@ describe("buildSummaryModel", () => {
         summary: { totalDays: 3, totalValue: 0, activeWeeks: 1 },
       };
       // 3 * 0.1 === 0.30000000000000004 in raw IEEE754 arithmetic.
-      const legend: LegendEntry[] = [{ color: "#196127", label: "", countWeight: 0.1 }];
+      const legend: LegendEntry[] = [
+        { color: "#196127", label: "", countWeight: 0.1 },
+      ];
 
       expect(
         buildSummaryModel(threeDayModel, {
@@ -616,7 +678,12 @@ describe("buildSummaryModel", () => {
       ];
 
       expect(
-        buildSummaryModel(model, { legend, legendMode: "gradient", gradientLabel: "Activity", colorsList }).dayTypeParts,
+        buildSummaryModel(model, {
+          legend,
+          legendMode: "gradient",
+          gradientLabel: "Activity",
+          colorsList,
+        }).dayTypeParts,
       ).toEqual([{ label: "Activity", value: 2 }]);
     });
 
@@ -624,7 +691,11 @@ describe("buildSummaryModel", () => {
       const legend: LegendEntry[] = [{ color: "#196127", label: "" }];
 
       expect(
-        buildSummaryModel(model, { legend, legendMode: "gradient", colorsList: ["#196127"] }).dayTypeParts,
+        buildSummaryModel(model, {
+          legend,
+          legendMode: "gradient",
+          colorsList: ["#196127"],
+        }).dayTypeParts,
       ).toEqual([{ label: "Other", value: 1 }]);
     });
 

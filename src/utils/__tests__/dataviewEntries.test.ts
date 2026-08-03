@@ -44,7 +44,10 @@ describe("buildEntriesFromDataview", () => {
 
   it("scopes the query to the given folder when path is set", () => {
     const dv = makeDv([]);
-    buildEntriesFromDataview(dv as any, { path: "daily notes", property: "exercise" });
+    buildEntriesFromDataview(dv as any, {
+      path: "daily notes",
+      property: "exercise",
+    });
     expect(dv.pages).toHaveBeenCalledWith('"daily notes"');
   });
 
@@ -54,10 +57,17 @@ describe("buildEntriesFromDataview", () => {
       makePage("2026-01-02", { exercise: undefined }),
     ]);
 
-    const entries = buildEntriesFromDataview(dv as any, { property: "exercise" });
+    const entries = buildEntriesFromDataview(dv as any, {
+      property: "exercise",
+    });
 
     expect(entries).toEqual([
-      { date: "2026-01-01", filePath: "folder/2026-01-01.md", intensity: 10, content: undefined },
+      {
+        date: "2026-01-01",
+        filePath: "folder/2026-01-01.md",
+        intensity: 10,
+        content: undefined,
+      },
     ]);
   });
 
@@ -153,7 +163,10 @@ describe("buildEntriesFromDataview", () => {
         filters: [{ property: "notes", operator: "contains", value: "ok" }],
       });
 
-      expect(entries.map((e) => e.date).sort()).toEqual(["2026-01-01", "2026-01-02"]);
+      expect(entries.map((e) => e.date).sort()).toEqual([
+        "2026-01-01",
+        "2026-01-02",
+      ]);
     });
 
     it("supports 'notEmpty'", () => {

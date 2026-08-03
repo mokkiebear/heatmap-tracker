@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- CI workflow running type-check, lint, format check, the test suite (in three timezones) and a build on every pull request and push to `main`. Previously nothing ran automatically until a release tag was pushed.
+- Prettier, `.editorconfig` and a `format`/`format:check` script pair, so code style stops being a review topic. `.git-blame-ignore-revs` keeps the one-time reformat out of `git blame`.
+- Test coverage for `MonthlyHeatmapView` (previously 0%) and for the export path helpers.
+
+### Changed
+- Test coverage now includes `.tsx` files. It previously matched `src/**/*.ts` only, so every component, view and the whole context data pipeline were silently absent from the report — the real number was 69.68%, not the 74.41% being reported. Coverage is no longer collected on every local run; use `npm run test:coverage`.
+- Replaced the seven whole-app snapshots in `ReactApp.test.tsx` (23,618 lines of `.snap`) with targeted assertions. A one-line DOM change used to rewrite thousands of snapshot lines, which made real regressions indistinguishable from formatting noise in review.
+- ESLint no longer ignores `.ts` test files (it already linted `.tsx` ones), and now ignores nested git worktrees under `.claude/` that were producing most of its output. Fixed the 15 errors this surfaced: tests used `require()` for modules that `jest.mock` hoisting already makes importable.
+- Moved the export filename/path helpers out of the 675-line `ExportView` into `src/utils/report/exportPath.ts`, alongside the rest of the report logic, and made `nextAvailablePath` take a predicate instead of the Obsidian `App` so it is pure.
+- Release workflow uses Node 20 (18 is end-of-life) and `npm ci` instead of `npm install`.
 
 ## [2.7.2] - 2026-08-04
 ### Added

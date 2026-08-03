@@ -1,7 +1,12 @@
 import { ReportDay, ReportModel } from "src/utils/report/reportModel";
 import { escapeHtml } from "src/utils/report/heatmapHtml";
 import { formatDayLabel, formatWeekLabel } from "src/utils/report/dateLabels";
-import { LegendEntry, buildGradientLegendHtml, buildLegendHtml, buildSummaryModel } from "src/utils/report/legend";
+import {
+  LegendEntry,
+  buildGradientLegendHtml,
+  buildLegendHtml,
+  buildSummaryModel,
+} from "src/utils/report/legend";
 
 export interface ReportHtmlOptions {
   title: string;
@@ -99,11 +104,18 @@ export function buildReportHtml(
     hideTotalValue,
     hideAllValues,
   });
-  const dayTypeLine = dayTypeParts.map((p) => `${escapeHtml(p.label)}: ${p.value}`).join(" · ");
+  const dayTypeLine = dayTypeParts
+    .map((p) => `${escapeHtml(p.label)}: ${p.value}`)
+    .join(" · ");
   const totalLine = total ? `${escapeHtml(total.label)}: ${total.value}` : "";
-  const summaryLine = dayTypeLine && totalLine ? `${dayTypeLine}<br>${totalLine}` : dayTypeLine || totalLine;
+  const summaryLine =
+    dayTypeLine && totalLine
+      ? `${dayTypeLine}<br>${totalLine}`
+      : dayTypeLine || totalLine;
   const legendHtml =
-    legendMode === "gradient" ? buildGradientLegendHtml(colorsList, gradientLabel, legend) : buildLegendHtml(legend);
+    legendMode === "gradient"
+      ? buildGradientLegendHtml(colorsList, gradientLabel, legend)
+      : buildLegendHtml(legend);
 
   const weeksHtml = model.weeks
     .map(

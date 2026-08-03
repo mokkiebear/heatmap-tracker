@@ -1,5 +1,9 @@
 import { LegendEntry } from "src/types";
-import { matchLegendEntry, normalizeColor, resolveDisplayValue } from "../legendMatch";
+import {
+  matchLegendEntry,
+  normalizeColor,
+  resolveDisplayValue,
+} from "../legendMatch";
 
 describe("normalizeColor", () => {
   it("trims and lowercases", () => {

@@ -51,7 +51,9 @@ function pageMatchesFilters(
   page: Record<string, Literal>,
   filters: FilterCondition[],
 ): boolean {
-  return filters.every((filter) => matchesFilter(page[filter.property], filter));
+  return filters.every((filter) =>
+    matchesFilter(page[filter.property], filter),
+  );
 }
 
 /**

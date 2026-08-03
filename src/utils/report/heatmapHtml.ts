@@ -1,5 +1,10 @@
 import { ColorsList, Entry, LegendEntry } from "src/types";
-import { addDays, formatDateToISO8601, getShiftedWeekdays, parseUTCDate } from "src/utils/date";
+import {
+  addDays,
+  formatDateToISO8601,
+  getShiftedWeekdays,
+  parseUTCDate,
+} from "src/utils/date";
 import { getWeekStartDate } from "src/utils/report/reportModel";
 import { resolveDisplayValue } from "src/utils/report/legendMatch";
 
@@ -79,7 +84,18 @@ const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 // the full abbreviation, matching the native plugin's own look.
 const WEEKDAY_LABELS_SHORT = ["S", "M", "T", "W", "T", "F", "S"];
 const MONTH_LABELS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 
 // `min-width:0` overrides the grid item default of `min-width:auto`, which
@@ -150,15 +166,32 @@ interface DaySlot {
  * leaving the weekday row unchanged, splitting a straddling week across two
  * slots exactly where the live grid does.
  */
-function placeDays(start: Date, end: Date, weekStartDay: number, splitByMonth: boolean): DaySlot[] {
+function placeDays(
+  start: Date,
+  end: Date,
+  weekStartDay: number,
+  splitByMonth: boolean,
+): DaySlot[] {
   const slots: DaySlot[] = [];
   let position = (start.getUTCDay() - weekStartDay + 7) % 7;
 
-  for (let date = start; date.getTime() <= end.getTime(); date = addDays(date, 1)) {
-    if (splitByMonth && date.getTime() !== start.getTime() && date.getUTCDate() === 1) {
+  for (
+    let date = start;
+    date.getTime() <= end.getTime();
+    date = addDays(date, 1)
+  ) {
+    if (
+      splitByMonth &&
+      date.getTime() !== start.getTime() &&
+      date.getUTCDate() === 1
+    ) {
       position += 7;
     }
-    slots.push({ date, weekIndex: Math.floor(position / 7), weekdayIndex: position % 7 });
+    slots.push({
+      date,
+      weekIndex: Math.floor(position / 7),
+      weekdayIndex: position % 7,
+    });
     position += 1;
   }
 
@@ -172,7 +205,12 @@ export function countWeeksInRange(
   weekStartDay: number,
   splitByMonth = false,
 ): number {
-  const slots = placeDays(parseUTCDate(startDate), parseUTCDate(endDate), weekStartDay, splitByMonth);
+  const slots = placeDays(
+    parseUTCDate(startDate),
+    parseUTCDate(endDate),
+    weekStartDay,
+    splitByMonth,
+  );
   return slots.length === 0 ? 0 : slots[slots.length - 1].weekIndex + 1;
 }
 
@@ -190,7 +228,11 @@ function computeRuns(labels: (string | null)[]): RunEntry[] {
   while (i < labels.length) {
     const label = labels[i];
     let span = 1;
-    while (label !== null && i + span < labels.length && labels[i + span] === label) {
+    while (
+      label !== null &&
+      i + span < labels.length &&
+      labels[i + span] === label
+    ) {
       span += 1;
     }
     runs.push({ start: i, span, label });
@@ -250,18 +292,29 @@ function computeBandRanges(
   const maxBands = orientation === "rows" ? MAX_BANDS_ROWS : undefined;
 
   if (!splitByMonth) {
-    return computeEvenBandRanges(maxWeekIndex + 1, MAX_WEEKS_PER_BAND, maxBands);
+    return computeEvenBandRanges(
+      maxWeekIndex + 1,
+      MAX_WEEKS_PER_BAND,
+      maxBands,
+    );
   }
 
-  const monthRuns = computeRuns(monthLabelByWeekIndex).filter((run) => run.label !== null);
-  const maxMonthsPerBand = orientation === "columns" ? MAX_MONTHS_PER_BAND_COLUMNS : MAX_MONTHS_PER_BAND_ROWS;
-
-  return computeEvenBandRanges(monthRuns.length, maxMonthsPerBand, maxBands).map(
-    ([firstRun, lastRun]): [number, number] => [
-      monthRuns[firstRun].start,
-      monthRuns[lastRun].start + monthRuns[lastRun].span - 1,
-    ],
+  const monthRuns = computeRuns(monthLabelByWeekIndex).filter(
+    (run) => run.label !== null,
   );
+  const maxMonthsPerBand =
+    orientation === "columns"
+      ? MAX_MONTHS_PER_BAND_COLUMNS
+      : MAX_MONTHS_PER_BAND_ROWS;
+
+  return computeEvenBandRanges(
+    monthRuns.length,
+    maxMonthsPerBand,
+    maxBands,
+  ).map(([firstRun, lastRun]): [number, number] => [
+    monthRuns[firstRun].start,
+    monthRuns[lastRun].start + monthRuns[lastRun].span - 1,
+  ]);
 }
 
 /**
@@ -271,7 +324,10 @@ function computeBandRanges(
  * single year's label into multiple pieces around it; going via non-gap
  * month runs merges across those gaps so the year's span stays continuous.
  */
-function computeYearRunsFromMonthRuns(monthRuns: RunEntry[], yearLabelByWeekIndex: (string | null)[]): RunEntry[] {
+function computeYearRunsFromMonthRuns(
+  monthRuns: RunEntry[],
+  yearLabelByWeekIndex: (string | null)[],
+): RunEntry[] {
   const realMonthRuns = monthRuns.filter((run) => run.label !== null);
   const runs: RunEntry[] = [];
   let i = 0;
@@ -279,7 +335,10 @@ function computeYearRunsFromMonthRuns(monthRuns: RunEntry[], yearLabelByWeekInde
   while (i < realMonthRuns.length) {
     const year = yearLabelByWeekIndex[realMonthRuns[i].start];
     let span = 1;
-    while (i + span < realMonthRuns.length && yearLabelByWeekIndex[realMonthRuns[i + span].start] === year) {
+    while (
+      i + span < realMonthRuns.length &&
+      yearLabelByWeekIndex[realMonthRuns[i + span].start] === year
+    ) {
       span += 1;
     }
     const lastRun = realMonthRuns[i + span - 1];
@@ -302,19 +361,33 @@ export function countBandsInRange(
   orientation: HeatmapOrientation,
   splitByMonth = false,
 ): number {
-  const slots = placeDays(parseUTCDate(startDate), parseUTCDate(endDate), weekStartDay, splitByMonth);
-  const maxWeekIndex = slots.length === 0 ? -1 : Math.max(...slots.map((s) => s.weekIndex));
+  const slots = placeDays(
+    parseUTCDate(startDate),
+    parseUTCDate(endDate),
+    weekStartDay,
+    splitByMonth,
+  );
+  const maxWeekIndex =
+    slots.length === 0 ? -1 : Math.max(...slots.map((s) => s.weekIndex));
 
-  const monthLabelByWeekIndex: (string | null)[] = new Array(maxWeekIndex + 1).fill(null);
+  const monthLabelByWeekIndex: (string | null)[] = new Array(
+    maxWeekIndex + 1,
+  ).fill(null);
   if (splitByMonth) {
     slots.forEach((slot) => {
       if (monthLabelByWeekIndex[slot.weekIndex] === null) {
-        monthLabelByWeekIndex[slot.weekIndex] = MONTH_LABELS[slot.date.getUTCMonth()];
+        monthLabelByWeekIndex[slot.weekIndex] =
+          MONTH_LABELS[slot.date.getUTCMonth()];
       }
     });
   }
 
-  return computeBandRanges(maxWeekIndex, monthLabelByWeekIndex, orientation, splitByMonth).length;
+  return computeBandRanges(
+    maxWeekIndex,
+    monthLabelByWeekIndex,
+    orientation,
+    splitByMonth,
+  ).length;
 }
 
 /**
@@ -351,41 +424,61 @@ export function buildHeatmapGridHtml({
   const start = parseUTCDate(startDate);
   const end = parseUTCDate(endDate);
 
-  const weekdayLabelSource = orientation === "rows" ? WEEKDAY_LABELS_SHORT : WEEKDAY_LABELS;
-  const shiftedWeekdayLabels = getShiftedWeekdays(weekdayLabelSource, weekStartDay);
+  const weekdayLabelSource =
+    orientation === "rows" ? WEEKDAY_LABELS_SHORT : WEEKDAY_LABELS;
+  const shiftedWeekdayLabels = getShiftedWeekdays(
+    weekdayLabelSource,
+    weekStartDay,
+  );
   const dayEntries = shiftedWeekdayLabels
-    .map((label, weekdayIndex) => ({ label, weekdayIndex, dow: (weekStartDay + weekdayIndex) % 7 }))
+    .map((label, weekdayIndex) => ({
+      label,
+      weekdayIndex,
+      dow: (weekStartDay + weekdayIndex) % 7,
+    }))
     .filter((d) => !skipWeekends || (d.dow !== 0 && d.dow !== 6));
 
   const slots = placeDays(start, end, weekStartDay, splitByMonth);
-  const maxWeekIndex = slots.length === 0 ? -1 : Math.max(...slots.map((s) => s.weekIndex));
+  const maxWeekIndex =
+    slots.length === 0 ? -1 : Math.max(...slots.map((s) => s.weekIndex));
 
   const dateByPosition = new Map<string, Date>();
-  const monthLabelByWeekIndex: (string | null)[] = new Array(maxWeekIndex + 1).fill(null);
-  const yearLabelByWeekIndex: (string | null)[] = new Array(maxWeekIndex + 1).fill(null);
+  const monthLabelByWeekIndex: (string | null)[] = new Array(
+    maxWeekIndex + 1,
+  ).fill(null);
+  const yearLabelByWeekIndex: (string | null)[] = new Array(
+    maxWeekIndex + 1,
+  ).fill(null);
   // The calendar week (its Monday-equivalent start) each week-slot's earliest
   // day belongs to — precomputed once per slot so `weekHeaderLabel` can tell
   // whether a slot is a genuine week start or just the tail half of a week
   // that a month-split pushed into a new slot (see below).
-  const weekStartByWeekIndex: (Date | null)[] = new Array(maxWeekIndex + 1).fill(null);
+  const weekStartByWeekIndex: (Date | null)[] = new Array(
+    maxWeekIndex + 1,
+  ).fill(null);
 
   slots.forEach((slot) => {
     dateByPosition.set(`${slot.weekIndex}:${slot.weekdayIndex}`, slot.date);
     if (monthLabelByWeekIndex[slot.weekIndex] === null) {
-      monthLabelByWeekIndex[slot.weekIndex] = MONTH_LABELS[slot.date.getUTCMonth()];
+      monthLabelByWeekIndex[slot.weekIndex] =
+        MONTH_LABELS[slot.date.getUTCMonth()];
     }
     if (yearLabelByWeekIndex[slot.weekIndex] === null) {
       yearLabelByWeekIndex[slot.weekIndex] = String(slot.date.getUTCFullYear());
     }
     if (weekStartByWeekIndex[slot.weekIndex] === null) {
-      weekStartByWeekIndex[slot.weekIndex] = getWeekStartDate(slot.date, weekStartDay);
+      weekStartByWeekIndex[slot.weekIndex] = getWeekStartDate(
+        slot.date,
+        weekStartDay,
+      );
     }
   });
 
   // Only worth a header row/column when the month header is itself shown
   // (it reads relative to "on top of"/"left of" the month) and the range
   // actually crosses a year boundary — a single-year export doesn't need it.
-  const showYearRow = showMonthLabels && start.getUTCFullYear() !== end.getUTCFullYear();
+  const showYearRow =
+    showMonthLabels && start.getUTCFullYear() !== end.getUTCFullYear();
 
   /**
    * The week-start day-of-month for a slot, or "" if this slot doesn't show
@@ -400,9 +493,11 @@ export function buildHeatmapGridHtml({
     const weekStart = weekStartByWeekIndex[weekIndex];
     if (!weekStart) return "";
 
-    const previousWeekStart = weekIndex > 0 ? weekStartByWeekIndex[weekIndex - 1] : null;
+    const previousWeekStart =
+      weekIndex > 0 ? weekStartByWeekIndex[weekIndex - 1] : null;
     const isContinuationOfSplitWeek =
-      previousWeekStart !== null && previousWeekStart.getTime() === weekStart.getTime();
+      previousWeekStart !== null &&
+      previousWeekStart.getTime() === weekStart.getTime();
     if (isContinuationOfSplitWeek) return "";
 
     return String(weekStart.getUTCDate());
@@ -418,25 +513,39 @@ export function buildHeatmapGridHtml({
     const dateKey = formatDateToISO8601(date) as string;
     const entry = entriesByDate[dateKey];
     const color = entry
-      ? (entry.customColor ?? (entry.intensity !== undefined ? colorsList[entry.intensity - 1] : undefined))
+      ? (entry.customColor ??
+        (entry.intensity !== undefined
+          ? colorsList[entry.intensity - 1]
+          : undefined))
       : undefined;
-    const displayValue = entry ? resolveDisplayValue(entry.value, color, legend) : undefined;
-    const title = displayValue !== undefined ? `${dateKey}: ${displayValue}` : dateKey;
+    const displayValue = entry
+      ? resolveDisplayValue(entry.value, color, legend)
+      : undefined;
+    const title =
+      displayValue !== undefined ? `${dateKey}: ${displayValue}` : dateKey;
 
     return `<div style="${size}background-color:${color ?? EMPTY_CELL_COLOR};" title="${escapeHtml(title)}"></div>`;
   }
 
   function buildBandHtml(bandStart: number, bandEnd: number): string {
     const bandSize = bandEnd - bandStart + 1;
-    const monthRuns = showMonthLabels ? computeRuns(monthLabelByWeekIndex.slice(bandStart, bandEnd + 1)) : [];
+    const monthRuns = showMonthLabels
+      ? computeRuns(monthLabelByWeekIndex.slice(bandStart, bandEnd + 1))
+      : [];
     const yearRuns = showYearRow
-      ? computeYearRunsFromMonthRuns(monthRuns, yearLabelByWeekIndex.slice(bandStart, bandEnd + 1))
+      ? computeYearRunsFromMonthRuns(
+          monthRuns,
+          yearLabelByWeekIndex.slice(bandStart, bandEnd + 1),
+        )
       : [];
     const items: string[] = [];
 
     if (orientation === "columns") {
       const gridTemplateColumns = `auto repeat(${bandSize}, ${cellSize}px)`;
-      const numHeaderRows = (showYearRow ? 1 : 0) + (showMonthLabels ? 1 : 0) + (showWeekStartDate ? 1 : 0);
+      const numHeaderRows =
+        (showYearRow ? 1 : 0) +
+        (showMonthLabels ? 1 : 0) +
+        (showWeekStartDate ? 1 : 0);
       const gridTemplateRows =
         numHeaderRows > 0
           ? `repeat(${numHeaderRows}, auto) repeat(${dayEntries.length}, ${cellSize}px)`
@@ -487,8 +596,11 @@ export function buildHeatmapGridHtml({
         );
         for (let i = 0; i < bandSize; i++) {
           const col = 2 + i;
-          const date = dateByPosition.get(`${bandStart + i}:${weekdayIndex}`) ?? null;
-          items.push(`<div style="grid-column:${col};grid-row:${dayRow};">${dayCellDiv(date)}</div>`);
+          const date =
+            dateByPosition.get(`${bandStart + i}:${weekdayIndex}`) ?? null;
+          items.push(
+            `<div style="grid-column:${col};grid-row:${dayRow};">${dayCellDiv(date)}</div>`,
+          );
         }
       });
 
@@ -496,7 +608,10 @@ export function buildHeatmapGridHtml({
     }
 
     // rows mode: weeks as rows, weekdays as columns — a direct transpose of the above.
-    const numLeadingCols = (showYearRow ? 1 : 0) + (showMonthLabels ? 1 : 0) + (showWeekStartDate ? 1 : 0);
+    const numLeadingCols =
+      (showYearRow ? 1 : 0) +
+      (showMonthLabels ? 1 : 0) +
+      (showWeekStartDate ? 1 : 0);
     const gridTemplateColumns =
       numLeadingCols > 0
         ? `repeat(${numLeadingCols}, auto) repeat(${dayEntries.length}, ${cellSize}px)`
@@ -510,7 +625,9 @@ export function buildHeatmapGridHtml({
     const firstDayCol = col;
 
     dayEntries.forEach(({ label }, i) => {
-      items.push(`<div style="grid-column:${firstDayCol + i};grid-row:1;${LABEL_STYLE}">${escapeHtml(label)}</div>`);
+      items.push(
+        `<div style="grid-column:${firstDayCol + i};grid-row:1;${LABEL_STYLE}">${escapeHtml(label)}</div>`,
+      );
     });
 
     if (yearCol !== null) {
@@ -546,15 +663,23 @@ export function buildHeatmapGridHtml({
       }
       dayEntries.forEach(({ weekdayIndex }, j) => {
         const dayCol = firstDayCol + j;
-        const date = dateByPosition.get(`${bandStart + i}:${weekdayIndex}`) ?? null;
-        items.push(`<div style="grid-column:${dayCol};grid-row:${gridRow};">${dayCellDiv(date)}</div>`);
+        const date =
+          dateByPosition.get(`${bandStart + i}:${weekdayIndex}`) ?? null;
+        items.push(
+          `<div style="grid-column:${dayCol};grid-row:${gridRow};">${dayCellDiv(date)}</div>`,
+        );
       });
     }
 
     return `<div style="display:inline-grid;grid-template-columns:${gridTemplateColumns};grid-template-rows:${gridTemplateRows};gap:2px;align-items:center;justify-items:center;">${items.join("")}</div>`;
   }
 
-  const bandRanges = computeBandRanges(maxWeekIndex, monthLabelByWeekIndex, orientation, splitByMonth);
+  const bandRanges = computeBandRanges(
+    maxWeekIndex,
+    monthLabelByWeekIndex,
+    orientation,
+    splitByMonth,
+  );
 
   const bandsHtml = bandRanges.map(([s, e]) => buildBandHtml(s, e)).join("");
   const bandsContainerStyle =

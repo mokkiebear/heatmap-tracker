@@ -11,7 +11,7 @@ export function getDayOfYear(date: Date): number {
   const current = Date.UTC(
     date.getUTCFullYear(),
     date.getUTCMonth(),
-    date.getUTCDate()
+    date.getUTCDate(),
   );
 
   const diff = current - startOfYear;
@@ -19,16 +19,21 @@ export function getDayOfYear(date: Date): number {
 }
 
 export function getISOWeekNumber(date: Date): number {
-  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const d = new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+  );
   const dayNum = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 }
 
-export function getShiftedWeekdays(weekdays: string[], weekStartDay: number): string[] {
+export function getShiftedWeekdays(
+  weekdays: string[],
+  weekStartDay: number,
+): string[] {
   if (weekStartDay < 0 || weekStartDay > 6) {
-    throw new Error('weekStartDay must be between 0 and 6');
+    throw new Error("weekStartDay must be between 0 and 6");
   }
 
   return weekdays.slice(weekStartDay).concat(weekdays.slice(0, weekStartDay));
@@ -38,13 +43,16 @@ export function getFirstDayOfYear(year: number): Date {
   return new Date(Date.UTC(year, 0, 1));
 }
 
-export function getNumberOfEmptyDaysBeforeYearStarts(year: number, weekStartDay: number): number {
+export function getNumberOfEmptyDaysBeforeYearStarts(
+  year: number,
+  weekStartDay: number,
+): number {
   if (isNaN(weekStartDay) || weekStartDay < 0 || weekStartDay > 6) {
-    throw new Error('weekStartDay must be a number between 0 and 6');
+    throw new Error("weekStartDay must be a number between 0 and 6");
   }
 
   if (isNaN(year)) {
-    throw new Error('year must be a number');
+    throw new Error("year must be a number");
   }
 
   const firstDayOfYear = getFirstDayOfYear(year);
@@ -71,8 +79,8 @@ export function formatDateToISO8601(date: Date | null): string | null {
   }
 
   const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date.getUTCDate()).padStart(2, '0');
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
@@ -97,10 +105,14 @@ export function parseUTCDate(dateStr: string): Date {
   const match = dateStr.match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
   if (match) {
     const [, year, month, day] = match;
-    return new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
+    return new Date(
+      Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)),
+    );
   }
   const date = new Date(dateStr);
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  return new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+  );
 }
 
 export function addDays(date: Date, days: number): Date {
@@ -136,8 +148,12 @@ export function resolveDateRange(
 ): DateRange | null {
   if (monthsToShow !== undefined && monthsToShow >= 0) {
     const today = getToday();
-    const endOfMonth = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, 0));
-    const startOfRange = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - monthsToShow, 1));
+    const endOfMonth = new Date(
+      Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, 0),
+    );
+    const startOfRange = new Date(
+      Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - monthsToShow, 1),
+    );
     return { start: startOfRange, end: endOfMonth };
   }
 

@@ -29,11 +29,11 @@ export async function openFileInLeaf(app: App, file: TFile): Promise<void> {
 export async function createNewFile(
   app: App,
   fileName: string,
-  path: string
+  path: string,
 ): Promise<boolean> {
   const shouldCreate = await new ConfirmModal(
     app,
-    `Do you want to create a new file '${fileName}' at '${path}'?`
+    `Do you want to create a new file '${fileName}' at '${path}'?`,
   ).openAndAwait();
 
   if (shouldCreate) {
@@ -56,7 +56,7 @@ async function handleFileOpen(
   app: App,
   filePath: string,
   date: moment.Moment,
-  trackerData: TrackerData
+  trackerData: TrackerData,
 ): Promise<boolean> {
   const abstract = app.vault.getAbstractFileByPath(filePath);
 
@@ -83,7 +83,7 @@ async function handleFileOpen(
 async function tryOpenExplicitFile(
   app: App,
   box: Box,
-  trackerData: TrackerData
+  trackerData: TrackerData,
 ): Promise<boolean> {
   if (!box?.filePath) {
     return false;
@@ -103,7 +103,7 @@ async function tryOpenExplicitFile(
 async function tryOpenBasePathFile(
   app: App,
   date: moment.Moment,
-  trackerData: TrackerData
+  trackerData: TrackerData,
 ): Promise<boolean> {
   if (!trackerData?.basePath) {
     return false;
@@ -129,7 +129,7 @@ async function tryOpenBasePathFile(
 async function tryOpenDailyNote(
   app: App,
   date: moment.Moment,
-  trackerData: TrackerData
+  trackerData: TrackerData,
 ): Promise<boolean> {
   try {
     const allDailyNotes = getAllDailyNotes();
@@ -152,7 +152,7 @@ async function tryOpenDailyNote(
 
     const shouldCreate = await new ConfirmModal(
       app,
-      `No page found for ${date.format(format)}.\nCreate at: ${expectedPath}?`
+      `No page found for ${date.format(format)}.\nCreate at: ${expectedPath}?`,
     ).openAndAwait();
 
     if (!shouldCreate) {
@@ -183,7 +183,7 @@ async function tryOpenDailyNote(
 async function tryOpenFallbackFile(
   app: App,
   date: moment.Moment,
-  trackerData: TrackerData
+  trackerData: TrackerData,
 ): Promise<void> {
   const fileName = `${date.format("YYYY-MM-DD")}.md`;
   const file = app.vault.getFiles().find((f) => f.name === fileName);
@@ -200,7 +200,7 @@ async function tryOpenFallbackFile(
   await createNewFile(app, fileName, fileName);
   notify(
     `* Heatmap Tracker *\nWe tried to create/open a Daily Note, but something went wrong.\nTry to use:\n- 'filePath' for entry (page.file.path)\n- 'basePath' for trackerData object\n- 'customHref' to set a custom link\n- use 'daily notes' Obsidian's plugin`,
-    5000
+    5000,
   );
 }
 
@@ -219,7 +219,7 @@ async function tryOpenFallbackFile(
 export async function handleBoxClick(
   box: Box,
   app: App,
-  trackerData: TrackerData
+  trackerData: TrackerData,
 ) {
   if (!box?.date) {
     return;
