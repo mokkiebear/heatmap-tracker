@@ -270,7 +270,7 @@ Every heatmap has an **Export** tab alongside Heatmap Tracker / Statistics / Leg
 - **Layout**: "Weeks as columns" or "Weeks as rows", rendered pixel-for-pixel like the heatmap itself — including exact day-level month-splitting (with a year label whenever the range crosses a year boundary) and, when a date range is too wide/tall for one grid, automatic wrapping into multiple bands, evenly split rather than front-loading one band and leaving a small leftover.
 - **Date range**: pick start/end dates directly, or jump to a range with a preset — Logged (the full span of your tracked data), Last year, Year to date, Last month, or Month to date.
 - **Display options**: which day the week starts on, whether to show each week's start date, split the grid by month, show month labels, and hide weekends.
-- **Legend editor**: colors are pre-populated from what's actually used in your data, so you just fill in what each one means. Reorder entries by drag-and-drop, and toggle per-category whether it's counted in the summary line.
+- **Legend editor**: colors are pre-populated from what's actually used in your data, so you just fill in what each one means. Reorder entries by drag-and-drop, and toggle each category's visibility — shown everywhere, summary-only, or hidden entirely. Optionally combine the intensity colors into a single gradient swatch with one shared label and count, instead of a row per color.
 - **Summary line**: a compact, customizable breakdown like `Workday: 22 · Leave: 1 · Rest day but worked: 1` with a total (e.g. `Total hours: 169`) — or hide the breakdown, the total, or all values entirely.
 - **Output**: save as a Markdown note or a self-contained HTML file, to whichever folder in your vault you choose.
 

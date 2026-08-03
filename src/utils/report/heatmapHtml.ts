@@ -37,7 +37,7 @@ export const MAX_WEEKS_PER_BAND = 53;
  * export would otherwise grow uncomfortably wide, so it gets a smaller cap
  * — see `MAX_BANDS_ROWS` below for the other half of that constraint.
  */
-export const MAX_MONTHS_PER_BAND_COLUMNS = 10;
+export const MAX_MONTHS_PER_BAND_COLUMNS = 8;
 export const MAX_MONTHS_PER_BAND_ROWS = 6;
 
 /**
@@ -104,13 +104,32 @@ const LABEL_STYLE =
 const LEADING_LABEL_STYLE =
   "font-size:10px;color:var(--text-muted,#6b7280);white-space:nowrap;display:flex;align-items:center;justify-content:flex-end;text-align:right;margin-right:4px;justify-self:end;";
 
-// The year column in rows mode spans many week-rows but sits in its own
-// leading column alongside every other band's — with horizontal text, a
-// 4-digit year would force that column (and so every band) noticeably
-// wider. Rotating it vertical keeps the column about as narrow as a single
-// character, which matters here since rows-mode bands stack side by side.
+// The year column in rows mode spans many week-rows (potentially a whole
+// band's worth) but sits in its own leading column, one per band stacked
+// side by side. A 4-digit year rendered as ordinary horizontal, centered
+// text (LABEL_STYLE) would force the column (and so every band) noticeably
+// wider. Rotating the text vertical keeps the column about as narrow as a
+// single character, with the label becoming a full-height strip running the
+// whole span instead of one wide line of text. `margin-right` gives it
+// breathing room from whichever column is next. The month column
+// (SPANNING_LABEL_STYLE below) has the same multi-row span and centering,
+// just without the rotation - a year run can cover many months, too long to
+// stay narrow if written normally, while a month name is short enough not
+// to need it.
 const VERTICAL_LABEL_STYLE =
-  "font-size:10px;color:var(--text-muted,#6b7280);white-space:nowrap;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;text-orientation:mixed;";
+  "font-size:10px;color:var(--text-muted,#6b7280);white-space:nowrap;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;text-orientation:mixed;margin-right:4px;";
+
+// The month column in rows mode, like the year column above, spans many
+// week-rows in its own leading column - but a month name is short enough to
+// read normally (horizontal) instead of needing to be rotated. Centered
+// (align-items:center) across the whole span, exactly mirroring how columns
+// mode centers its own month header horizontally across the week-columns it
+// spans (LABEL_STYLE) - here just the other axis. Sits in an `auto`-sized
+// column like LEADING_LABEL_STYLE (so no `min-width:0` guard), but centered
+// rather than right-aligned, since there's no adjacent fixed-size track it
+// needs to read flush against the way the week-start-date column does.
+const SPANNING_LABEL_STYLE =
+  "font-size:10px;color:var(--text-muted,#6b7280);white-space:nowrap;display:flex;align-items:center;justify-content:center;margin-right:4px;";
 
 interface DaySlot {
   date: Date;
@@ -509,7 +528,7 @@ export function buildHeatmapGridHtml({
       monthRuns.forEach((run) => {
         const rowStart = 2 + run.start;
         items.push(
-          `<div style="grid-column:${monthCol};grid-row:${rowStart} / span ${run.span};${LABEL_STYLE}">${
+          `<div style="grid-column:${monthCol};grid-row:${rowStart} / span ${run.span};${SPANNING_LABEL_STYLE}">${
             run.label ? escapeHtml(run.label) : ""
           }</div>`,
         );

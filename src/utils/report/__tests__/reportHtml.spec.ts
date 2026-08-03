@@ -1,5 +1,6 @@
 import { ReportModel } from "../reportModel";
 import { buildReportHtml } from "../reportHtml";
+import { EMPTY_CELL_COLOR } from "../heatmapHtml";
 
 const model: ReportModel = {
   startDate: "2026-07-13",
@@ -217,5 +218,79 @@ describe("buildReportHtml", () => {
     // regardless (it's just unused); check no actual span is rendered.
     expect(html).not.toContain('<span class="wlr-day__value">');
     expect(html).toContain("<h3>Mon, Jul 13, 2026</h3>");
+  });
+
+  describe("legendMode: gradient", () => {
+    it("combines the non-blank legend entry into the gradient swatch strip with a shared count", () => {
+      const html = buildReportHtml(model, {
+        title: "Work Log Report",
+        generatedAt: "2026-07-17",
+        heatmapHtml: "",
+        legend: [{ color: "#7bc96f", label: "" }],
+        legendMode: "gradient",
+        gradientLabel: "Activity",
+        colorsList: ["#7bc96f"],
+      });
+
+      expect(html).toContain("background-color:#7bc96f");
+      const summaryText = (html.match(/<div class="wlr-summary">(.*?)<\/div>/g) ?? []).join(" ");
+      expect(summaryText).toContain("Activity: 1");
+      expect(summaryText).toContain("Other: 1");
+    });
+
+    it("still renders the blank entry as its own separate swatch and summary line", () => {
+      const html = buildReportHtml(model, {
+        title: "Work Log Report",
+        generatedAt: "2026-07-17",
+        heatmapHtml: "",
+        legend: [
+          { color: "#7bc96f", label: "" },
+          { color: EMPTY_CELL_COLOR, label: "Rest day" },
+        ],
+        legendMode: "gradient",
+        gradientLabel: "Activity",
+        colorsList: ["#7bc96f"],
+      });
+
+      expect(html).toContain(">Rest day<");
+      // This fixture's 2-day range is fully logged (no gap days), so the
+      // blank count is 0 - the point here is that it renders as its own
+      // line at all, separately from the gradient's combined count.
+      const summaryText = (html.match(/<div class="wlr-summary">(.*?)<\/div>/g) ?? []).join(" ");
+      expect(summaryText).toContain("Rest day: 0");
+    });
+
+    it("does not render individual per-color swatch rows for non-blank entries", () => {
+      const html = buildReportHtml(model, {
+        title: "Work Log Report",
+        generatedAt: "2026-07-17",
+        heatmapHtml: "",
+        legend: [{ color: "#7bc96f", label: "Workday" }],
+        legendMode: "gradient",
+        gradientLabel: "Activity",
+        colorsList: ["#7bc96f"],
+      });
+
+      // "Workday" is the per-entry label, unused for display in gradient mode.
+      expect(html).not.toContain(">Workday<");
+    });
+
+    it("still renders a matched color outside the palette as its own legend swatch, alongside the gradient strip", () => {
+      const html = buildReportHtml(model, {
+        title: "Work Log Report",
+        generatedAt: "2026-07-17",
+        heatmapHtml: "",
+        legend: [
+          { color: "#7bc96f", label: "" },
+          { color: "#f59e0b", label: "Rest day work" },
+        ],
+        legendMode: "gradient",
+        gradientLabel: "Activity",
+        colorsList: ["#7bc96f"],
+      });
+
+      expect(html).toContain(">Rest day work<");
+      expect(html).toContain("background-color:#f59e0b");
+    });
   });
 });

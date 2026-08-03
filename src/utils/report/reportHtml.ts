@@ -1,7 +1,7 @@
 import { ReportDay, ReportModel } from "src/utils/report/reportModel";
 import { escapeHtml } from "src/utils/report/heatmapHtml";
 import { formatDayLabel, formatWeekLabel } from "src/utils/report/dateLabels";
-import { LegendEntry, buildLegendHtml, buildSummaryModel } from "src/utils/report/legend";
+import { LegendEntry, buildGradientLegendHtml, buildLegendHtml, buildSummaryModel } from "src/utils/report/legend";
 
 export interface ReportHtmlOptions {
   title: string;
@@ -12,6 +12,12 @@ export interface ReportHtmlOptions {
   valueLabel?: string;
   /** Drives both the embedded legend and the summary's day-type breakdown. */
   legend?: LegendEntry[];
+  /** "separate" (default) or "gradient" — see buildSummaryModel/buildGradientLegendHtml. */
+  legendMode?: "separate" | "gradient";
+  /** Shared label for the gradient's combined swatch strip, when legendMode is "gradient". */
+  gradientLabel?: string;
+  /** Full intensity color palette, low→high — renders the gradient strip regardless of which colors are actually used in this range. */
+  colorsList?: string[];
   /** Omits the day-count/day-type breakdown line entirely. */
   hideSummary?: boolean;
   /** Omits the "Total <value label>" line. */
@@ -75,6 +81,9 @@ export function buildReportHtml(
     heatmapHtml,
     valueLabel,
     legend = [],
+    legendMode = "separate",
+    gradientLabel = "",
+    colorsList = [],
     hideSummary,
     hideTotalValue,
     hideAllValues = false,
@@ -83,6 +92,9 @@ export function buildReportHtml(
   const { dayTypeParts, total } = buildSummaryModel(model, {
     valueLabel,
     legend,
+    legendMode,
+    gradientLabel,
+    colorsList,
     hideSummary,
     hideTotalValue,
     hideAllValues,
@@ -90,7 +102,8 @@ export function buildReportHtml(
   const dayTypeLine = dayTypeParts.map((p) => `${escapeHtml(p.label)}: ${p.value}`).join(" · ");
   const totalLine = total ? `${escapeHtml(total.label)}: ${total.value}` : "";
   const summaryLine = dayTypeLine && totalLine ? `${dayTypeLine}<br>${totalLine}` : dayTypeLine || totalLine;
-  const legendHtml = buildLegendHtml(legend);
+  const legendHtml =
+    legendMode === "gradient" ? buildGradientLegendHtml(colorsList, gradientLabel, legend) : buildLegendHtml(legend);
 
   const weeksHtml = model.weeks
     .map(

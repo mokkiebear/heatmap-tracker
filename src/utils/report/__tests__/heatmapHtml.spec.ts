@@ -53,7 +53,7 @@ describe("countWeeksInRange", () => {
 });
 
 describe("countBandsInRange", () => {
-  it("fits a 12-month range in 2 bands for columns (max 10 months/band)", () => {
+  it("fits a 12-month range in 2 bands for columns (max 8 months/band)", () => {
     expect(countBandsInRange("2025-01-01", "2025-12-31", 1, "columns", true)).toBe(2);
   });
 
@@ -301,7 +301,7 @@ describe("buildHeatmapGridHtml", () => {
     });
 
     it("uses a smaller per-band month cap for rows than columns", () => {
-      // Same 7-month range: fits in 1 band for columns (cap 10), needs 2 for rows (cap 6).
+      // Same 7-month range: fits in 1 band for columns (cap 8), needs 2 for rows (cap 6).
       const columnsHtml = buildHeatmapGridHtml({
         entriesByDate: {},
         colorsList,
@@ -365,8 +365,8 @@ describe("buildHeatmapGridHtml", () => {
     });
 
     it("does not cap columns mode's band count the same way", () => {
-      // Same 42-month range: columns has no band-count cap, only a
-      // 10-months-per-band cap, so it should use 5 bands (ceil(42/10)), not 4.
+      // Same 42-month range: columns has no band-count cap, only an
+      // 8-months-per-band cap, so it should use 6 bands (ceil(42/8)), not 4.
       const html = buildHeatmapGridHtml({
         entriesByDate: {},
         colorsList,
@@ -379,8 +379,8 @@ describe("buildHeatmapGridHtml", () => {
       });
 
       const bands = splitBands(html);
-      expect(bands).toHaveLength(5);
-      bands.forEach((band) => expect(countMonthLabels(band)).toBeLessThanOrEqual(10));
+      expect(bands).toHaveLength(6);
+      bands.forEach((band) => expect(countMonthLabels(band)).toBeLessThanOrEqual(8));
     });
   });
 
@@ -436,6 +436,53 @@ describe("buildHeatmapGridHtml", () => {
       });
 
       expect(html).toMatch(/grid-column:1;grid-row:\d+ \/ span \d+;[^"]*writing-mode:vertical-rl[^"]*">2025</);
+    });
+
+    it("renders the rows-mode month label horizontally, centered across its whole span (unlike the rotated year column)", () => {
+      // Mirrors columns mode centering its own month header horizontally
+      // across the week-columns it spans (LABEL_STYLE) - here on the other
+      // axis. Still spans the whole multi-row run and centers within it,
+      // same as the year column - just not rotated, since a month name is
+      // short enough to read normally there.
+      const html = buildHeatmapGridHtml({
+        entriesByDate: {},
+        colorsList,
+        startDate: "2025-12-01",
+        endDate: "2026-02-28",
+        weekStartDay: 1,
+        orientation: "rows",
+        splitByMonth: true,
+        showMonthLabels: true,
+      });
+
+      const decMatch = html.match(/<div style="grid-column:2;grid-row:\d+ \/ span \d+;([^"]*)">Dec<\/div>/);
+      expect(decMatch).not.toBeNull();
+      const [, style] = decMatch as RegExpMatchArray;
+      expect(style).not.toContain("writing-mode");
+      expect(style).toContain("justify-content:center");
+    });
+
+    it("gives the rows-mode year and month leading columns breathing room from their neighbors", () => {
+      // With weekends shown and week-start-date on too, the year, month, and
+      // week-start-date columns sit right next to each other with only the
+      // grid's 2px gap between them, which read as touching/overlapping.
+      const html = buildHeatmapGridHtml({
+        entriesByDate: {},
+        colorsList,
+        startDate: "2025-12-01",
+        endDate: "2026-02-28",
+        weekStartDay: 1,
+        orientation: "rows",
+        splitByMonth: true,
+        showMonthLabels: true,
+        showWeekStartDate: true,
+        skipWeekends: false,
+      });
+
+      // Year column (col 1) spans its whole multi-row run.
+      expect(html).toMatch(/grid-column:1;grid-row:\d+ \/ span \d+;[^"]*margin-right:4px[^"]*">2025</);
+      // Month column (col 2) does too.
+      expect(html).toMatch(/grid-column:2;grid-row:\d+ \/ span \d+;[^"]*margin-right:4px[^"]*">Dec</);
     });
 
     it("keeps the columns-mode year row horizontal (not rotated)", () => {

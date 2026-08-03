@@ -4,7 +4,7 @@ import { ColorsList, Entry } from "src/types";
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
 import { useAppContext } from "src/context/app/app.context";
 import { fillEntriesWithIntensityByDate } from "src/utils/intensity";
-import { formatDateToISO8601, getFirstDayOfYear, getLastDayOfYear, getToday } from "src/utils/date";
+import { formatDateToISO8601, getFirstDayOfYear, getLastDayOfYear, getToday, parseUTCDate } from "src/utils/date";
 import { openFileInLeaf } from "src/utils/heatmapBox";
 import { formatGeneratedAt } from "src/utils/report/dateLabels";
 import { readNoteBodies } from "src/utils/report/noteBody";
@@ -18,8 +18,10 @@ import {
 import { buildReportHtml } from "src/utils/report/reportHtml";
 import { buildReportMarkdown } from "src/utils/report/reportMarkdown";
 import { notify } from "src/utils/notify";
-import { LegendModal } from "src/modals/LegendModal";
+import { LegendModal, LegendDisplayMode } from "src/modals/LegendModal";
 import { LegendEntry } from "src/utils/report/legend";
+import { normalizeColor } from "src/utils/report/legendMatch";
+import { DatePicker } from "src/components/DatePicker/DatePicker";
 
 const PREVIEW_DEBOUNCE_MS = 300;
 const SETTINGS_SAVE_DEBOUNCE_MS = 500;
@@ -65,27 +67,75 @@ function defaultRange(
 }
 
 /**
- * Colors actually in use within the current range, palette-intensity colors
- * first (in their natural low→high order), then any other custom colors, then
- * the blank/no-entry color last — so the legend editor can be pre-populated
- * with real swatches instead of asking the user to know/type hex codes.
+ * Every color the calendar can ever show — every configured intensity color
+ * (in their natural low→high order), then any other custom colors actually
+ * used in the current range but outside that palette, then the blank/
+ * no-entry color last. There's no manual "Add row" anymore (see
+ * `LegendModal`), so this is the complete, automatic source of truth for
+ * what the legend editor offers.
+ *
+ * A color not currently used in this range defaults to excluded from the
+ * summary/gradient total (and so, per `buildSummaryModel`/`buildLegendHtml`,
+ * hidden from the rendered legend/summary too) until the user explicitly
+ * turns it back on — otherwise a freshly auto-populated legend would
+ * immediately clutter the export with zero-count categories that have never
+ * actually happened yet. The blank color follows the same rule based on
+ * whether the range has any gap (unlogged) days at all.
  */
-function getDetectedColors(model: ReportModel | null, colorsList: ColorsList): string[] {
-  const used = new Set<string>();
-  model?.weeks.forEach((week) => week.days.forEach((day) => {
-    if (day.color) used.add(day.color);
-  }));
+export function buildDefaultLegendEntries(model: ReportModel | null, colorsList: ColorsList): LegendEntry[] {
+  const usedColors = new Set<string>();
+  let loggedDayCount = 0;
+  model?.weeks.forEach((week) =>
+    week.days.forEach((day) => {
+      loggedDayCount += 1;
+      if (day.color) usedColors.add(day.color);
+    }),
+  );
 
-  const ordered: string[] = [];
-  colorsList.forEach((color) => {
-    if (used.has(color)) {
-      ordered.push(color);
-      used.delete(color);
-    }
+  const extraCustomColors = [...usedColors].filter((color) => !colorsList.includes(color));
+  const totalDaysInRange = model
+    ? Math.round(
+        (parseUTCDate(model.endDate).getTime() - parseUTCDate(model.startDate).getTime()) /
+          (1000 * 60 * 60 * 24),
+      ) + 1
+    : 0;
+  const hasBlankDays = totalDaysInRange > loggedDayCount;
+
+  return [...colorsList, ...extraCustomColors, EMPTY_CELL_COLOR].map((color) => {
+    const isBlank = normalizeColor(color) === normalizeColor(EMPTY_CELL_COLOR);
+    const isUsed = isBlank ? hasBlankDays : usedColors.has(color);
+    return { color, label: "", includeInSummary: isUsed ? undefined : false };
   });
-  ordered.push(...used);
-  ordered.push(EMPTY_CELL_COLOR);
-  return ordered;
+}
+
+/**
+ * The "Refresh" merge target — every color used ANYWHERE in `entriesByDate`
+ * (already unfiltered by the export's own start/end date pickers - see
+ * `ExportView`'s own `entriesByDate`, built straight from `allFilteredEntries`),
+ * not just within whichever narrower range is currently selected. Without
+ * this, refreshing while viewing a short range would treat a color that's
+ * only used outside that range as "gone", dropping its label/weight/
+ * visibility customizations instead of just leaving them dormant until the
+ * range includes one of its days again. `weekStartDay` doesn't affect which
+ * colors turn up, only how days would be grouped into weeks - irrelevant
+ * here, so a fixed value keeps this callable without any component state.
+ */
+export function buildRefreshBaseline(
+  entriesByDate: Record<string, Entry>,
+  colorsList: ColorsList,
+): LegendEntry[] {
+  const fullRange = computeDataRange(entriesByDate);
+  if (!fullRange) return buildDefaultLegendEntries(null, colorsList);
+
+  const fullModel = buildReportModel({
+    entriesByDate,
+    colorsList,
+    bodiesByPath: {},
+    startDate: fullRange.start,
+    endDate: fullRange.end,
+    weekStartDay: 1,
+  });
+  return buildDefaultLegendEntries(fullModel, colorsList);
 }
 
 function sanitizeFilename(name: string): string {
@@ -163,6 +213,8 @@ function ExportView() {
   const [hideAllValues, setHideAllValues] = useState(exportDefaults?.hideAllValues ?? false);
   const [valueLabel, setValueLabel] = useState(exportDefaults?.valueLabel ?? "");
   const [legend, setLegend] = useState<LegendEntry[]>(exportDefaults?.legend ?? []);
+  const [legendMode, setLegendMode] = useState<LegendDisplayMode>(exportDefaults?.legendMode ?? "separate");
+  const [gradientLabel, setGradientLabel] = useState(exportDefaults?.gradientLabel ?? "");
   const [exportFolder, setExportFolder] = useState(exportDefaults?.exportFolder ?? "");
 
   const debounceRef = useRef<number | null>(null);
@@ -199,6 +251,8 @@ function ExportView() {
           hideAllValues,
           valueLabel,
           legend,
+          legendMode,
+          gradientLabel,
           exportFolder,
         },
       });
@@ -223,6 +277,8 @@ function ExportView() {
     hideAllValues,
     valueLabel,
     legend,
+    legendMode,
+    gradientLabel,
     exportFolder,
   ]);
 
@@ -319,6 +375,9 @@ function ExportView() {
       heatmapHtml: heatmapGridHtml,
       valueLabel,
       legend,
+      legendMode,
+      gradientLabel,
+      colorsList,
       hideSummary,
       hideTotalValue,
       hideAllValues,
@@ -330,6 +389,9 @@ function ExportView() {
     heatmapGridHtml,
     valueLabel,
     legend,
+    legendMode,
+    gradientLabel,
+    colorsList,
     hideSummary,
     hideTotalValue,
     hideAllValues,
@@ -392,6 +454,9 @@ function ExportView() {
       heatmapHtml: heatmapGridHtml,
       valueLabel,
       legend,
+      legendMode,
+      gradientLabel,
+      colorsList,
       hideSummary,
       hideTotalValue,
       hideAllValues,
@@ -417,15 +482,22 @@ function ExportView() {
   }
 
   function handleEditLegend() {
-    const detected = getDetectedColors(model, colorsList);
-    const existingColors = new Set(legend.map((entry) => entry.color.trim().toLowerCase()));
-    const withDetected = [
-      ...legend,
-      ...detected
-        .filter((color) => !existingColors.has(color.trim().toLowerCase()))
-        .map((color) => ({ color, label: "" })),
-    ];
-    new LegendModal(app, withDetected, detected, setLegend).open();
+    // Whole-calendar-scoped, not just the export's currently selected date
+    // range, so every color the calendar can ever show is available to
+    // populate from/reset/refresh back to - regardless of whether any of its
+    // days happen to fall within the range selected right now.
+    const baseline = buildRefreshBaseline(entriesByDate, colorsList);
+    // Only auto-populate from the baseline on true first-time entry (nothing
+    // saved yet) - once the legend exists, reopening the editor shows
+    // exactly what was last saved, untouched. Re-syncing against the palette
+    // (new colors, dropped stale ones) only happens when the user explicitly
+    // clicks "Refresh" or "Reset" inside the modal.
+    const initialEntries = legend.length > 0 ? legend : baseline;
+    new LegendModal(app, initialEntries, baseline, colorsList, legendMode, gradientLabel, (entries, mode, label) => {
+      setLegend(entries);
+      setLegendMode(mode);
+      setGradientLabel(label);
+    }).open();
   }
 
   return (
@@ -433,21 +505,11 @@ function ExportView() {
       <div className="heatmap-export__controls">
         <label>
           {t("report.startDate")}
-          <input
-            className="heatmap-export__date-input"
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
+          <DatePicker value={startDate} onChange={setStartDate} weekStartDay={weekStartDay} ariaLabel={t("report.startDate")} />
         </label>
         <label>
           {t("report.endDate")}
-          <input
-            className="heatmap-export__date-input"
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
+          <DatePicker value={endDate} onChange={setEndDate} weekStartDay={weekStartDay} ariaLabel={t("report.endDate")} />
         </label>
         <div className="heatmap-export__presets">
           <button onClick={handlePresetAllLoggedData}>{t("report.presetAllLoggedData")}</button>
@@ -462,6 +524,7 @@ function ExportView() {
         <label>
           {t("report.orientation")}
           <select
+            className="dropdown"
             value={orientation}
             onChange={(e) => setOrientation(e.target.value as HeatmapOrientation)}
           >
@@ -471,7 +534,11 @@ function ExportView() {
         </label>
         <label>
           {t("report.weekStartDay")}
-          <select value={weekStartDay} onChange={(e) => setWeekStartDay(Number(e.target.value))}>
+          <select
+            className="dropdown"
+            value={weekStartDay}
+            onChange={(e) => setWeekStartDay(Number(e.target.value))}
+          >
             {WEEK_START_DAY_OPTIONS.map(({ value, key }) => (
               <option key={key} value={value}>
                 {t(`weekdaysLong.${key}`)}

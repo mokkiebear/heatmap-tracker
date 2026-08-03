@@ -1,0 +1,202 @@
+.date-picker {
+  position: relative;
+  display: inline-block;
+
+  &__trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.25em;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    background: var(--background-primary);
+    padding: 0 0.4em;
+
+    &:focus-within {
+      border-color: var(--interactive-accent);
+    }
+  }
+
+  &__input {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0.25em 0 !important;
+    width: 96px;
+  }
+
+  // The calendar icon should read as part of the input box it sits in, not
+  // as its own button — Obsidian's default button chrome (background,
+  // shadow, padding box) needs `!important` to actually go away here, since
+  // a plain reset without it gets overridden by the theme's own button
+  // styling. Same reasoning applies to every other "flat" control below
+  // (nav/label/action buttons, day/month/year cells): a `<button>` is used
+  // for accessibility and click handling, not for its default appearance.
+  &__calendar-btn {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    color: var(--text-muted);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--text-normal);
+    }
+  }
+
+  &__panel {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: var(--layer-popover, 70);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    width: 248px;
+    padding: 0.75em;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+    background: var(--background-primary);
+    box-shadow: var(--shadow-s);
+
+    &.is-flipped {
+      left: auto;
+      right: 0;
+    }
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__nav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: var(--radius-s) !important;
+    padding: 0.3em !important;
+    color: var(--text-muted);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--background-modifier-hover) !important;
+      color: var(--text-normal);
+    }
+  }
+
+  &__label-btn {
+    flex: 1;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0.2em !important;
+    border-radius: var(--radius-s) !important;
+    font-weight: 600;
+    font-size: 0.95em;
+    text-align: center;
+    cursor: pointer;
+
+    &:hover:not(.is-static) {
+      background: var(--background-modifier-hover) !important;
+    }
+
+    &.is-static {
+      cursor: default;
+    }
+  }
+
+  &__weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-size: 0.7em;
+    color: var(--text-muted);
+  }
+
+  &__grid {
+    display: grid;
+    gap: 2px;
+
+    &--days {
+      grid-template-columns: repeat(7, 1fr);
+    }
+
+    &--months,
+    &--years {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+    }
+  }
+
+  &__day,
+  &__cell {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0.4em 0 !important;
+    border-radius: var(--radius-s) !important;
+    font-size: 0.8em;
+    text-align: center;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--background-modifier-hover) !important;
+    }
+
+    &.is-outside {
+      color: var(--text-faint);
+    }
+
+    &.is-today {
+      color: var(--text-accent);
+      font-weight: 600;
+    }
+
+    &.is-current {
+      color: var(--text-accent);
+      font-weight: 600;
+    }
+
+    &.is-selected {
+      background: var(--interactive-accent) !important;
+      color: var(--text-on-accent);
+      font-weight: 600;
+    }
+  }
+
+  &__cell {
+    padding: 0.6em 0 !important;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--background-modifier-border);
+    padding-top: 0.5em;
+  }
+
+  &__action {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0.2em 0.4em !important;
+    border-radius: var(--radius-s) !important;
+    font-size: 0.8em;
+    color: var(--text-muted);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--background-modifier-hover) !important;
+      color: var(--text-normal);
+    }
+  }
+}
