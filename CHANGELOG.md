@@ -5,6 +5,8 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+## [2.7.1] - 2026-08-04
 ### Changed
 - Export tab: redesigned the legend editor. Intensity colors can now be combined into a single gradient row, with a gear icon for setting each color’s day-count weight and fixed value. Category visibility now uses a three-state toggle: shown everywhere, hidden from summaries, or fully hidden. Drag-to-reorder interactions are smoother and provide clearer visual feedback. Refresh and reset functions are redesigned and they now behave more intuitively.
 - Export tab: redesigned the DatePicker.
