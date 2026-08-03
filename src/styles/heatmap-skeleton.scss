@@ -1,0 +1,32 @@
+.heatmap-tracker-skeleton {
+  // Keeps the container height stable while a lazy view loads, so the note
+  // below the heatmap does not jump.
+  min-height: 140px;
+  display: flex;
+  align-items: stretch;
+  padding: 12px;
+}
+
+.heatmap-tracker-skeleton__block {
+  flex: 1;
+  border-radius: var(--radius-s);
+  background-color: var(--background-modifier-hover);
+  animation: heatmap-tracker-skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes heatmap-tracker-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heatmap-tracker-skeleton__block {
+    animation: none;
+    opacity: 0.6;
+  }
+}

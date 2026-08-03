@@ -11,13 +11,38 @@
   overflow: hidden;
   contain: layout paint;
 
-  &:hover {
+  // Keyboard users get the same magnified state as the mouse, otherwise the
+  // hover affordance is unreachable without a pointer.
+  &:hover,
+  &:focus-visible,
+  &:focus-within {
     transform: scale(1.4);
-    border: solid var(--border-width) rgb(61, 61, 61);
+    // Themed so the outline stays visible on dark themes too.
+    border: solid var(--border-width) var(--background-modifier-border-hover);
     cursor: pointer;
+  }
+
+  &:focus-visible,
+  &:focus-within {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 1px;
+    // The magnified box would otherwise be clipped by its neighbours.
+    z-index: 1;
   }
 }
 
 .heatmap-tracker-box:not(.task-list-item)::before {
   content: unset;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heatmap-tracker-box {
+    transition: none;
+
+    &:hover,
+    &:focus-visible,
+    &:focus-within {
+      transform: none;
+    }
+  }
 }

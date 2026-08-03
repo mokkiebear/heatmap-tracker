@@ -1,6 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
 import { HeatmapTabs } from "../HeatmapTabs/HeatmapTabs";
+import { ChevronLeftIcon } from "../icons/ChevronLeftIcon";
+import { ChevronRightIcon } from "../icons/ChevronRightIcon";
 
 export function HeatmapHeader() {
   const { t } = useTranslation();
@@ -25,7 +27,7 @@ export function HeatmapHeader() {
                 aria-label={t("header.previousYear")}
                 onClick={onArrowBackClick}
               >
-                ◀
+                <ChevronLeftIcon />
               </button>
               <div className="heatmap-tracker-year-display">{currentYear}</div>
               <button
@@ -33,7 +35,7 @@ export function HeatmapHeader() {
                 aria-label={t("header.nextYear")}
                 onClick={onArrowForwardClick}
               >
-                ▶
+                <ChevronRightIcon />
               </button>
             </>
           )}

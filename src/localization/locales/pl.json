@@ -86,5 +86,9 @@
   "support.header": "☕️ Hej!",
   "support.text1": "Jeśli ta wtyczka sprawia, że Twój dzień jest choć trochę łatwiejszy albo pomaga Ci się lepiej zorganizować, to daje mi ogromną radość ❤️",
   "support.text2": "W rozwój i ulepszanie włożyłem dziesiątki godzin — Twoje wsparcie pomaga mi dostarczać kolejne pomysły i aktualizacje ✨",
-  "support.cta": "Zajmuje to mniej niż 2 minuty, nie wymaga rejestracji, a nawet kawka za 5 $ robi różnicę ☕️💛"
+  "support.cta": "Zajmuje to mniej niż 2 minuty, nie wymaga rejestracji, a nawet kawka za 5 $ robi różnicę ☕️💛",
+  "box": {
+    "value": "wartość: {{value}}",
+    "noData": "brak danych"
+  }
 }

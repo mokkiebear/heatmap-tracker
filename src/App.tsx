@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { HeatmapHeader } from "./components/HeatmapHeader/HeatmapHeader";
 
 import HeatmapFooter from "./components/HeatmapFooter/HeatmapFooter";
+import { ViewSkeleton } from "./components/ViewSkeleton/ViewSkeleton";
 
 const HeatmapTrackerView = lazy(
   () => import("./views/HeatmapTrackerView/HeatmapTrackerView")
@@ -61,7 +62,7 @@ function ReactApp() {
   return (
     <div className="heatmap-tracker__container">
       <HeatmapHeader />
-      <Suspense fallback={null}>{content}</Suspense>
+      <Suspense fallback={<ViewSkeleton />}>{content}</Suspense>
       <HeatmapFooter />
     </div>
   );

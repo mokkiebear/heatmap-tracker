@@ -11,6 +11,8 @@ export function ChevronRightIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
       className="lucide lucide-chevron-right"
+      aria-hidden="true"
+      focusable="false"
     >
       <path d="m9 18 6-6-6-6" />
     </svg>

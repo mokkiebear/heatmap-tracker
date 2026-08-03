@@ -104,6 +104,7 @@ export function getBoxes(
       const entry = entriesWithIntensity[day];
 
       box.content = entry.content || undefined;
+      box.value = entry.value;
       box.filePath = entry.filePath || undefined;
       box.customHref = entry.customHref || undefined;
       box.backgroundColor =

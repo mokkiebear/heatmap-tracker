@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.7.2] - 2026-08-04
+### Added
+- Heatmap boxes can now be activated from the keyboard with `Enter` or `Space`, and show a visible focus ring when focused.
+- Screen readers now announce the tracked value alongside the date (e.g. "2024-01-01, value: 42", or "no data" for days without an entry) instead of the bare date.
+- Lazily-loaded views (statistics, legend, export, documentation) now render a placeholder while loading, so switching tabs no longer collapses the heatmap container and shifts the surrounding note content.
+
+### Changed
+- Year navigation arrows now use the same Lucide chevron icons as the date picker instead of the `◀`/`▶` text glyphs, which rendered inconsistently across platforms and ignored the icon sizing of the rest of the UI. Their size now scales with the Obsidian font size.
+- The heatmap box hover border uses the theme's border color instead of a hardcoded dark gray, so it stays visible on dark themes.
+
+### Fixed
+- Box magnification and the loading placeholder animation now respect the `prefers-reduced-motion` system setting.
+- The month spacers and the padding cells before January are no longer exposed as focusable buttons — they carry no date and did nothing when activated, but added ~80 dead stops to the keyboard tab order.
+- Boxes that link to a note no longer nest an interactive element inside another one, which made screen readers announce the same day twice.
+- `npm run build` no longer fails with `sh: node_modules/.bin/cpx: Permission denied` on macOS/Linux. The `cpx` package ships its bin without the executable bit and npm no longer sets it on install, so the copy steps now invoke it through `node` directly.
+
 ## [2.7.1] - 2026-08-04
 ### Changed
 - Export tab: redesigned the legend editor. Intensity colors can now be combined into a single gradient row, with a gear icon for setting each color’s day-count weight and fixed value. Category visibility now uses a three-state toggle: shown everywhere, hidden from summaries, or fully hidden. Drag-to-reorder interactions are smoother and provide clearer visual feedback. Refresh and reset functions are redesigned and they now behave more intuitively.

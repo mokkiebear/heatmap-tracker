@@ -86,5 +86,9 @@
   "support.header": "☕️ ¡Hola!",
   "support.text1": "Si este plugin hace tu día un poco más fácil o te ayuda a organizarte, me hace muy feliz ❤️",
   "support.text2": "He invertido decenas de horas en crearlo y mejorarlo — tu apoyo me ayuda a seguir trayendo nuevas ideas y actualizaciones ✨",
-  "support.cta": "Toma menos de 2 minutos, no necesitas registrarte, y hasta un café de $5 marca la diferencia ☕️💛"
+  "support.cta": "Toma menos de 2 minutos, no necesitas registrarte, y hasta un café de $5 marca la diferencia ☕️💛",
+  "box": {
+    "value": "valor: {{value}}",
+    "noData": "sin datos"
+  }
 }
