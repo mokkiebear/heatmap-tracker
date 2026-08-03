@@ -31,12 +31,27 @@ export interface LegendEntry {
   /** Whether this category's count appears in the summary line. Default: true. */
   includeInSummary?: boolean;
   /**
+   * Whether this category appears in the legend at all (its swatch+label
+   * line in separate mode, or its own independent line in gradient mode).
+   * Default: true. Setting this to `false` implies `includeInSummary: false`
+   * too — there's no sensible "counted but not shown anywhere" state.
+   */
+  includeInLegend?: boolean;
+  /**
    * Fixed value every day matching this color contributes, replacing the
    * day's own raw value. For categories like "Leave" whose underlying entry
    * still carries a non-zero placeholder intensity (needed just to keep the
    * day colored/logged), this forces the real reported value (e.g. 0 hours).
    */
   valueOverride?: number;
+  /**
+   * Multiplies this color's day count when it's combined into the gradient
+   * mode's shared total (see `buildSummaryModel`'s "gradient" legendMode) —
+   * e.g. 0.5 for a lighter "half day" color so its days count as half a day
+   * toward the shared count instead of a full one. Default: 1. Has no effect
+   * in separate-rows mode, where each color already shows its own raw count.
+   */
+  countWeight?: number;
 }
 
 /** Remembered Export-tab preferences, persisted across sessions. */
@@ -53,6 +68,15 @@ export interface ExportDefaults {
   skipWeekends?: boolean;
   valueLabel?: string;
   legend?: LegendEntry[];
+  /**
+   * "separate" (default): one legend/summary line per intensity color.
+   * "gradient": all non-blank intensity colors combine into a single
+   * GitHub-style swatch strip with one shared label and one combined count;
+   * the blank/background color always stays its own separate line either way.
+   */
+  legendMode?: "separate" | "gradient";
+  /** Shared label shown next to the gradient swatch strip when legendMode is "gradient". */
+  gradientLabel?: string;
   exportFolder?: string;
   /** Omits the day-count/day-type breakdown line entirely. */
   hideSummary?: boolean;

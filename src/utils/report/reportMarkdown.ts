@@ -1,6 +1,6 @@
 import { ReportModel } from "src/utils/report/reportModel";
 import { formatDayLabel, formatWeekLabel } from "src/utils/report/dateLabels";
-import { LegendEntry, buildLegendHtml, buildSummaryModel } from "src/utils/report/legend";
+import { LegendEntry, buildGradientLegendHtml, buildLegendHtml, buildSummaryModel } from "src/utils/report/legend";
 
 export interface ReportMarkdownOptions {
   title: string;
@@ -11,6 +11,12 @@ export interface ReportMarkdownOptions {
   valueLabel?: string;
   /** Drives both the embedded legend and the summary's day-type breakdown. */
   legend?: LegendEntry[];
+  /** "separate" (default) or "gradient" — see buildSummaryModel/buildGradientLegendHtml. */
+  legendMode?: "separate" | "gradient";
+  /** Shared label for the gradient's combined swatch strip, when legendMode is "gradient". */
+  gradientLabel?: string;
+  /** Full intensity color palette, low→high — renders the gradient strip regardless of which colors are actually used in this range. */
+  colorsList?: string[];
   /** Omits the day-count/day-type breakdown line entirely. */
   hideSummary?: boolean;
   /** Omits the "Total <value label>" line. */
@@ -32,6 +38,9 @@ export function buildReportMarkdown(
     heatmapHtml,
     valueLabel,
     legend = [],
+    legendMode = "separate",
+    gradientLabel = "",
+    colorsList = [],
     hideSummary,
     hideTotalValue,
     hideAllValues,
@@ -51,6 +60,9 @@ export function buildReportMarkdown(
   const { dayTypeParts, total } = buildSummaryModel(model, {
     valueLabel,
     legend,
+    legendMode,
+    gradientLabel,
+    colorsList,
     hideSummary,
     hideTotalValue,
     hideAllValues,
@@ -64,7 +76,8 @@ export function buildReportMarkdown(
   }
   lines.push(heatmapHtml);
   lines.push("");
-  const legendHtml = buildLegendHtml(legend);
+  const legendHtml =
+    legendMode === "gradient" ? buildGradientLegendHtml(colorsList, gradientLabel, legend) : buildLegendHtml(legend);
   if (legendHtml) {
     lines.push(legendHtml);
     lines.push("");

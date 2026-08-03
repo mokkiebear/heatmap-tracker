@@ -19,10 +19,6 @@
     }
   }
 
-  &__date-input {
-    width: 120px;
-  }
-
   &__presets {
     display: flex;
     gap: 0.3em;
@@ -69,6 +65,10 @@
     color: var(--text-muted);
     font-size: 0.9em;
     margin-bottom: 0.75em;
+
+    &--italic {
+      font-style: italic;
+    }
   }
 
   &__footnote {
@@ -89,13 +89,50 @@
     display: flex;
     align-items: center;
     gap: 0.5em;
+    border-radius: var(--radius-s);
+    // Reserved (transparent) so lighting up border-top-color below doesn't
+    // shift layout - a highlighted box around the whole row left it
+    // ambiguous whether the drop would land above or below it; a line
+    // is unambiguous, since a drop always lands immediately before
+    // whichever row it's shown on.
+    border-top: 3px solid transparent;
+    transition: opacity 0.15s ease, border-top-color 0.15s ease;
 
     &.is-dragging {
       opacity: 0.4;
     }
 
+    &.is-drag-over {
+      border-top-color: var(--interactive-accent);
+    }
+
+    // Dim everything except the color swatch when excluded from the
+    // summary — the swatch needs to stay at full color so the user can
+    // still tell what it represents even while it's hidden elsewhere.
     &.is-excluded {
-      opacity: 0.55;
+      .heatmap-legend-modal__handle,
+      .heatmap-legend-modal__color-text,
+      .heatmap-legend-modal__label-input,
+      .heatmap-legend-modal__value-input,
+      .heatmap-legend-modal__weight-input,
+      .heatmap-legend-modal__include-toggle {
+        opacity: 0.55;
+        transition: opacity 0.15s ease;
+      }
+    }
+
+    // Hidden entirely (from both the legend and the summary) - a heavier dim
+    // than is-excluded's "summary-only" hide, same swatch exemption.
+    &.is-hidden {
+      .heatmap-legend-modal__handle,
+      .heatmap-legend-modal__color-text,
+      .heatmap-legend-modal__label-input,
+      .heatmap-legend-modal__value-input,
+      .heatmap-legend-modal__weight-input,
+      .heatmap-legend-modal__include-toggle {
+        opacity: 0.3;
+        transition: opacity 0.15s ease;
+      }
     }
   }
 
@@ -123,14 +160,31 @@
     border: 1px solid var(--background-modifier-border);
   }
 
-  &__color-input {
+  &__color-text {
     width: 100px;
+    flex-shrink: 0;
+    color: var(--text-muted);
+    font-size: 0.9em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
-    &:disabled {
-      color: var(--text-faint);
-      cursor: default;
-      opacity: 0.7;
-    }
+  &__gradient-strip {
+    display: flex;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  &__gradient-strip-swatch {
+    width: 14px;
+    height: 20px;
+    border-radius: 3px;
+    border: 1px solid var(--background-modifier-border);
+  }
+
+  &__gear-button {
+    flex-shrink: 0;
   }
 
   &__label-input {
@@ -142,7 +196,8 @@
     flex-shrink: 0;
   }
 
-  &__remove-button {
+  &__weight-input {
+    width: 56px;
     flex-shrink: 0;
   }
 
@@ -153,7 +208,13 @@
 
   &__button-row {
     display: flex;
+    align-items: center;
     gap: 0.5em;
     margin-bottom: 0.75em;
+    flex-wrap: wrap;
+  }
+
+  &__mode-select {
+    flex-shrink: 0;
   }
 }

@@ -83,6 +83,17 @@
     "export": "Export"
   },
   "tab": "Tab",
+  "datePicker": {
+    "clear": "Clear",
+    "today": "Today",
+    "openCalendar": "Open calendar",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "previousYear": "Previous year",
+    "nextYear": "Next year",
+    "previousDecade": "Previous decade",
+    "nextDecade": "Next decade"
+  },
   "report": {
     "defaultTitle": "Work Log Report",
     "startDate": "Start date",

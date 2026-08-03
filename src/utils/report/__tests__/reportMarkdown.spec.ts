@@ -1,5 +1,6 @@
 import { ReportModel } from "../reportModel";
 import { buildReportMarkdown } from "../reportMarkdown";
+import { EMPTY_CELL_COLOR } from "../heatmapHtml";
 
 const model: ReportModel = {
   startDate: "2026-07-13",
@@ -212,5 +213,76 @@ describe("buildReportMarkdown", () => {
     const metaIndex = lines.findIndex((line) => line.includes("Report generated"));
     expect(lines[metaIndex + 1]).toBe("");
     expect(lines[metaIndex + 2]).toBe("MARKER");
+  });
+
+  describe("legendMode: gradient", () => {
+    it("combines the non-blank entry into the gradient swatch strip with a shared count", () => {
+      const markdown = buildReportMarkdown(model, {
+        title: "Work Log Report",
+        generatedAt: "2026-07-17",
+        heatmapHtml: "",
+        legend: [{ color: "#7bc96f", label: "" }],
+        legendMode: "gradient",
+        gradientLabel: "Activity",
+        colorsList: ["#7bc96f"],
+      });
+
+      expect(markdown).toContain("background-color:#7bc96f");
+      const lines = markdown.split("\n");
+      expect(lines).toContain("Activity: 1 · Other: 1<br>Total value: 8");
+    });
+
+    it("still renders the blank entry as its own separate swatch and summary line", () => {
+      const markdown = buildReportMarkdown(model, {
+        title: "Work Log Report",
+        generatedAt: "2026-07-17",
+        heatmapHtml: "",
+        legend: [
+          { color: "#7bc96f", label: "" },
+          { color: EMPTY_CELL_COLOR, label: "Rest day" },
+        ],
+        legendMode: "gradient",
+        gradientLabel: "Activity",
+        colorsList: ["#7bc96f"],
+      });
+
+      expect(markdown).toContain(">Rest day<");
+      const lines = markdown.split("\n");
+      // Jul 14 has no color at all, so it's genuinely unmatched -> Other: 1,
+      // on top of the gradient's own combined count and blank's separate one.
+      expect(lines).toContain("Activity: 1 · Rest day: 0 · Other: 1<br>Total value: 8");
+    });
+
+    it("does not render individual per-color swatch rows for non-blank entries", () => {
+      const markdown = buildReportMarkdown(model, {
+        title: "Work Log Report",
+        generatedAt: "2026-07-17",
+        heatmapHtml: "",
+        legend: [{ color: "#7bc96f", label: "Workday" }],
+        legendMode: "gradient",
+        gradientLabel: "Activity",
+        colorsList: ["#7bc96f"],
+      });
+
+      expect(markdown).not.toContain(">Workday<");
+    });
+
+    it("still renders a matched color outside the palette as its own legend swatch, alongside the gradient strip", () => {
+      const markdown = buildReportMarkdown(model, {
+        title: "Work Log Report",
+        generatedAt: "2026-07-17",
+        heatmapHtml: "",
+        legend: [
+          { color: "#7bc96f", label: "" },
+          { color: "#f59e0b", label: "Rest day work" },
+        ],
+        legendMode: "gradient",
+        gradientLabel: "Activity",
+        colorsList: ["#7bc96f"],
+      });
+
+      expect(markdown).toContain(">Rest day work<");
+      expect(markdown).toContain("background-color:#f59e0b");
+    });
   });
 });
