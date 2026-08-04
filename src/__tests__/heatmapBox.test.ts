@@ -19,6 +19,9 @@ jest.mock("obsidian", () => ({
   App: jest.fn(),
   TFile: jest.fn(),
   Modal: jest.fn(),
+  // Obsidian re-exports the real moment; heatmapBox takes it from here rather
+  // than bundling its own copy.
+  moment: jest.requireActual("moment"),
   Setting: jest.fn().mockImplementation(() => ({
     setName: jest.fn().mockReturnThis(),
     setDesc: jest.fn().mockReturnThis(),

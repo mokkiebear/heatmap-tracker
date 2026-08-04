@@ -5,7 +5,7 @@ import {
   Plugin,
   stringifyYaml,
 } from "obsidian";
-import { getAPI } from "obsidian-dataview";
+import { getDataviewApi } from "src/utils/dataviewApi";
 import HeatmapTrackerSettingsTab from "./settings";
 import { TrackerData, TrackerParams, TrackerSettings } from "./types";
 import { buildEntriesFromDataview } from "./utils/dataviewEntries";
@@ -76,7 +76,7 @@ export default class HeatmapTrackerPlugin extends Plugin {
         }
         try {
           // Use DataView API to filter pages that contain specified frontmatter property
-          const dv = getAPI();
+          const dv = getDataviewApi();
           const entries = buildEntriesFromDataview(
             dv,
             {

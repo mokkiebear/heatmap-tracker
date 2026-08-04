@@ -7,7 +7,7 @@ import {
   getAllTags,
   setIcon,
 } from "obsidian";
-import { getAPI } from "obsidian-dataview";
+import { getDataviewApi } from "src/utils/dataviewApi";
 import { Entry, IHeatmapView, TrackerSettings } from "../types";
 import React from "react";
 import { Root } from "react-dom/client";
@@ -606,7 +606,7 @@ export class HeatmapModal extends Modal {
   // ---------------------------------------------------------------------
 
   private getVaultProperties(): string[] {
-    const dv = getAPI(this.app);
+    const dv = getDataviewApi(this.app);
     if (!dv) return [];
 
     const props = new Set<string>();
@@ -870,7 +870,7 @@ export class HeatmapModal extends Modal {
     const properties = this.formState.properties.filter(Boolean);
     if (properties.length === 0) return [];
 
-    const dv = getAPI(this.app);
+    const dv = getDataviewApi(this.app);
     if (!dv) return [];
 
     try {

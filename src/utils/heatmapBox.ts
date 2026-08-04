@@ -5,8 +5,19 @@ import {
   getAllDailyNotes,
   getDailyNoteSettings,
 } from "obsidian-daily-notes-interface";
-import moment from "moment";
-import { App, TFile } from "obsidian";
+import { App, TFile, moment as obsidianMoment } from "obsidian";
+// Type-only: erased at build time, so the `moment` package stays out of the
+// bundle. Obsidian's own `moment` export is typed as `typeof Moment` off an
+// `import * as Moment` (obsidian.d.ts), which has no call signature — hence
+// borrowing the callable type from the package itself.
+import type Moment from "moment";
+
+/**
+ * Obsidian ships moment and re-exports it. Importing it from "moment" instead
+ * pulled a second copy (~59 KB) into the bundle for no benefit — `obsidian` is
+ * already an external, so taking it from there costs nothing.
+ */
+const moment = obsidianMoment as unknown as typeof Moment;
 import { notify } from "src/utils/notify";
 import { ConfirmModal } from "src/modals/ConfirmModal";
 

@@ -97,8 +97,8 @@ function chainablePages(
 const getAPIMock = jest.fn((_app?: unknown) => ({
   pages: (source?: string) => chainablePages(dataviewPages, source),
 }));
-jest.mock("obsidian-dataview", () => ({
-  getAPI: (...args: any[]) => getAPIMock(...args),
+jest.mock("src/utils/dataviewApi", () => ({
+  getDataviewApi: (...args: any[]) => getAPIMock(...args),
 }));
 
 const getAllTagsMock = jest.fn((_cache?: unknown) => [] as string[]);

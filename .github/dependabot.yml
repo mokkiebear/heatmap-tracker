@@ -1,0 +1,27 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    # Patch and minor bumps of dev tooling arrive as one PR instead of a dozen;
+    # CI gates them, so they are cheap to review together.
+    groups:
+      dev-dependencies:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+      production-minor-patch:
+        dependency-type: production
+        update-types:
+          - minor
+          - patch
+    # Majors still get their own PR — those need a look.
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly

@@ -1,7 +1,40 @@
 import esbuild from "esbuild";
 import process from "process";
+import path from "path";
 import builtins from "builtin-modules";
 import { sassPlugin } from "esbuild-sass-plugin";
+
+/**
+ * zod's `locales/index.js` barrel re-exports error messages for ~20 languages
+ * and is consumed as a namespace object (`z.locales`), so esbuild cannot
+ * tree-shake it — it accounted for ~197 KB, over a quarter of the whole plugin.
+ *
+ * We only ever use zod's default (English) errors: nothing in `src` touches
+ * `z.locales`, `errorMap`, `setErrorMap` or `z.config`. Swapping the barrel for
+ * an `en`-only stub keeps validation messages identical.
+ *
+ * If a future change needs another zod locale, delete this plugin — the bundle
+ * grows back, but nothing silently misbehaves.
+ */
+const stripUnusedZodLocales = {
+  name: "strip-unused-zod-locales",
+  setup(build) {
+    build.onResolve({ filter: /locales[\\/]index\.js$/ }, (args) => {
+      if (!args.importer.includes(`${path.sep}zod${path.sep}`)) {
+        return null;
+      }
+      return { path: args.path, namespace: "zod-locales-stub" };
+    });
+
+    build.onLoad({ filter: /.*/, namespace: "zod-locales-stub" }, () => ({
+      contents: `export { default as en } from ${JSON.stringify(
+        path.resolve("node_modules/zod/v4/locales/en.js"),
+      )};`,
+      loader: "js",
+      resolveDir: process.cwd(),
+    }));
+  },
+};
 
 // Determine if we're in production mode
 const isProd = process.argv.includes("--production");
@@ -27,6 +60,7 @@ const externalDependencies = [
 const buildOptions = {
   entryPoints: ["./src/main.tsx", "./src/styles.scss"],
   plugins: [
+    stripUnusedZodLocales,
     sassPlugin({
       type: "css",
       precompile: (source) => {

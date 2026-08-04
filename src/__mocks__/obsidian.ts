@@ -76,3 +76,7 @@ export function createSpan(): HTMLSpanElement {
 }
 
 (global as any).createSpan = createSpan;
+
+// Obsidian re-exports the moment instance it ships with; `src/utils/heatmapBox`
+// takes it from here rather than bundling a second copy.
+export { default as moment } from "moment";

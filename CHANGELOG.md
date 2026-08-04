@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.7.4] - 2026-08-04
+### Changed
+- **Plugin bundle shrank from 724 KB to 355 KB (-51%)**, which is loaded in full every time Obsidian starts. Three separate causes, none of them affecting behaviour:
+  - zod's `locales` barrel re-exports error messages for ~20 languages and is consumed as a namespace object, so it could not be tree-shaken — 197 KB, over a quarter of the plugin, for strings that were never used (only the default English errors are). An esbuild plugin now stubs the barrel down to `en`; validation messages were verified byte-identical before and after.
+  - `moment` was imported from the package (59 KB) rather than from `obsidian`, which re-exports the copy Obsidian already ships. `obsidian-daily-notes-interface` was already using the global one.
+  - `obsidian-dataview` was bundled whole (112 KB) for `getAPI`, a four-line property lookup on an already-loaded plugin. Replaced by a local `getDataviewApi` with the same behaviour; the `DataviewApi` type is still imported from the package, but type-only imports are erased at build.
+- Six `Insight` metrics in `statistics.ts` (most active weekday, total/average value, most frequent intensity, highest-value day, intensity distribution) were fully written but referenced nowhere — superseded by the user-defined `insights` API that does the same thing. Moved to the example vault as ready-to-copy recipes and removed from the source. The highest-value-day version there also gains an empty-input guard the original was missing, where `reduce` would have thrown before its `|| "No data"` fallback could apply.
+- `react`/`react-dom` moved to devDependencies: the build aliases them to `preact/compat`, so neither ever shipped.
+
+### Added
+- Dependabot for npm and GitHub Actions, with dev and patch/minor updates grouped so majors still get their own reviewable PR.
+- Pull request template listing the checks CI runs.
+
 ## [2.7.3] - 2026-08-04
 ### Added
 - CI workflow running type-check, lint, format check, the test suite (in three timezones) and a build on every pull request and push to `main`. Previously nothing ran automatically until a release tag was pushed.
