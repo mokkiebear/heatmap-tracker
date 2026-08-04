@@ -5,7 +5,7 @@
 - [[1. How to start?/1. How to add a heatmap to your obsidian page?|How to add a heatmap?]]
 
 ## ⚙️ Configuration
-See the [README](https://github.com/mokkiebear/heatmap-tracker#tracker-settings-documentation) for the full parameter reference (type, default, description). The pages below are copy-pasteable examples for each parameter:
+See the [README](https://github.com/mokkiebear/heatmap-tracker#-configuration-reference) for the full parameter reference (type, default, description). The pages below are copy-pasteable examples for each parameter:
 - [[3. trackerData parameters/1. heatmapTitle|Heatmap Title]]
 - [[3. trackerData parameters/2. heatmapSubtitle (Description)|Subtitle]]
 - [[3. trackerData parameters/3. year|Year]]

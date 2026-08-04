@@ -1,0 +1,30 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Heatmap Tracker logo">
+  <title>Heatmap Tracker</title>
+
+  <!-- row 4 (lowest intensity) -->
+  <rect x="7"  y="91" width="22" height="22" rx="5" fill="#22c55e" fill-opacity="0.16"/>
+  <rect x="35" y="91" width="22" height="22" rx="5" fill="#9be9a8"/>
+  <rect x="63" y="91" width="22" height="22" rx="5" fill="#4ade80"/>
+  <rect x="91" y="91" width="22" height="22" rx="5" fill="#22c55e"/>
+
+  <!-- row 3 -->
+  <rect x="7"  y="63" width="22" height="22" rx="5" fill="#9be9a8"/>
+  <rect x="35" y="63" width="22" height="22" rx="5" fill="#4ade80"/>
+  <rect x="63" y="63" width="22" height="22" rx="5" fill="#22c55e"/>
+  <rect x="91" y="63" width="22" height="22" rx="5" fill="#16a34a"/>
+
+  <!-- row 2 -->
+  <rect x="7"  y="35" width="22" height="22" rx="5" fill="#4ade80"/>
+  <rect x="35" y="35" width="22" height="22" rx="5" fill="#22c55e"/>
+  <rect x="63" y="35" width="22" height="22" rx="5" fill="#16a34a"/>
+  <rect x="91" y="35" width="22" height="22" rx="5" fill="#16a34a"/>
+
+  <!-- row 1 (highest intensity) -->
+  <rect x="7"  y="7"  width="22" height="22" rx="5" fill="#22c55e"/>
+  <rect x="35" y="7"  width="22" height="22" rx="5" fill="#16a34a"/>
+  <rect x="63" y="7"  width="22" height="22" rx="5" fill="#16a34a"/>
+
+  <!-- "current day" cell, echoing the showCurrentDayBorder feature -->
+  <rect x="91" y="7"  width="22" height="22" rx="5" fill="#7c3aed"/>
+  <rect x="86.5" y="2.5" width="31" height="31" rx="8" stroke="#7c3aed" stroke-opacity="0.45" stroke-width="3"/>
+</svg>

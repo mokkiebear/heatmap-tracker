@@ -1,0 +1,33 @@
+<svg width="1200" height="240" viewBox="0 0 1200 240" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Heatmap Tracker — visualize your habits, goals and progress inside Obsidian">
+  <title>Heatmap Tracker</title>
+
+  <g transform="translate(110, 51)">
+    <rect x="0"  y="84" width="20" height="20" rx="5" fill="#22c55e" fill-opacity="0.18"/>
+    <rect x="32" y="84" width="20" height="20" rx="5" fill="#9be9a8"/>
+    <rect x="64" y="84" width="20" height="20" rx="5" fill="#4ade80"/>
+    <rect x="96" y="84" width="20" height="20" rx="5" fill="#22c55e"/>
+
+    <rect x="0"  y="56" width="20" height="20" rx="5" fill="#9be9a8"/>
+    <rect x="32" y="56" width="20" height="20" rx="5" fill="#4ade80"/>
+    <rect x="64" y="56" width="20" height="20" rx="5" fill="#22c55e"/>
+    <rect x="96" y="56" width="20" height="20" rx="5" fill="#16a34a"/>
+
+    <rect x="0"  y="28" width="20" height="20" rx="5" fill="#4ade80"/>
+    <rect x="32" y="28" width="20" height="20" rx="5" fill="#22c55e"/>
+    <rect x="64" y="28" width="20" height="20" rx="5" fill="#16a34a"/>
+    <rect x="96" y="28" width="20" height="20" rx="5" fill="#16a34a"/>
+
+    <rect x="0"  y="0"  width="20" height="20" rx="5" fill="#22c55e"/>
+    <rect x="32" y="0"  width="20" height="20" rx="5" fill="#16a34a"/>
+    <rect x="64" y="0"  width="20" height="20" rx="5" fill="#16a34a"/>
+
+    <rect x="96" y="0"  width="20" height="20" rx="5" fill="#8b5cf6"/>
+    <rect x="92" y="-4" width="28" height="28" rx="8" stroke="#8b5cf6" stroke-opacity="0.5" stroke-width="3"/>
+  </g>
+
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+    <text x="280" y="99" font-size="60" font-weight="700" letter-spacing="-1.4" fill="#e6edf3">Heatmap Tracker</text>
+    <text x="283" y="143" font-size="25" font-weight="400" fill="#9198a1">Visualize your habits, goals and progress — inside Obsidian.</text>
+    <text x="283" y="183" font-size="17" font-weight="500" letter-spacing="0.4" fill="#6e7681">HABITS · FITNESS · FINANCE · WORK LOGS · ANYTHING WITH A DATE</text>
+  </g>
+</svg>
