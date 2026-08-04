@@ -32,6 +32,14 @@
     "currentStreak": "Obecna seria",
     "longestStreak": "Najdłuższa seria"
   },
+  "supporter": {
+    "title": "Podoba Ci się Heatmap Tracker?",
+    "body": "Wtyczkę tworzy i utrzymuje jedna osoba, wieczorami i w weekendy. Jeśli jest dla Ciebie przydatna, wsparcie pomaga ją rozwijać.",
+    "buyMeACoffee": "Postaw mi kawę",
+    "koFi": "Ko-fi",
+    "dismiss": "Nie pokazuj ponownie",
+    "dismissAria": "Zamknij tę wiadomość i nie pokazuj jej ponownie"
+  },
   "monthsShort": {
     "January": "Sty",
     "February": "Lut",

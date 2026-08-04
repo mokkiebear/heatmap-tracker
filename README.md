@@ -731,7 +731,7 @@ Heatmap Tracker is free and open source, built and maintained in my own time. If
 
 <a href="https://www.buymeacoffee.com/mrubanau" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="42"></a>
 &nbsp;
-<a href="https://ko-fi.com/X8X11E578R" target="_blank"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Support me on Ko-fi" height="42"></a>
+<a href="https://ko-fi.com/mrubanau" target="_blank"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Support me on Ko-fi" height="42"></a>
 
 ---
 

@@ -1,0 +1,10 @@
+# Shows a "Sponsor" button on the repo page, sidebar, issues and PRs.
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+
+# Uncomment once GitHub Sponsors is enabled at https://github.com/sponsors
+# (leave it commented until then — an unenabled account renders a dead button).
+# GitHub Sponsors takes 0% fees and supports recurring monthly tiers.
+# github: mokkiebear
+
+buy_me_a_coffee: mrubanau
+ko_fi: mrubanau

@@ -32,6 +32,14 @@
     "currentStreak": "Sequência atual",
     "longestStreak": "Sequência mais longa"
   },
+  "supporter": {
+    "title": "Gostando do Heatmap Tracker?",
+    "body": "Ele é criado e mantido por uma única pessoa, à noite e nos fins de semana. Se o plugin é útil para você, o apoio ajuda a mantê-lo vivo.",
+    "buyMeACoffee": "Me pague um café",
+    "koFi": "Ko-fi",
+    "dismiss": "Não mostrar novamente",
+    "dismissAria": "Dispensar esta mensagem e não mostrá-la novamente"
+  },
   "monthsShort": {
     "January": "Jan",
     "February": "Fev",

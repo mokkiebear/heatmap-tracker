@@ -1,0 +1,61 @@
+/* Supporter card — one-time, dismissible ask at the bottom of Statistics. */
+.heatmap-supporter {
+  margin-top: 1.2em;
+  padding: 0.8em 1em;
+
+  font-size: 0.75em;
+
+  border: var(--border-width) solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  background-color: var(--background-secondary);
+}
+
+.heatmap-supporter__title {
+  font-weight: var(--font-semibold);
+  color: var(--text-normal);
+}
+
+.heatmap-supporter__body {
+  margin: 0.4em 0 0.8em;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.heatmap-supporter__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6em;
+}
+
+.heatmap-supporter__link {
+  padding: 0.3em 0.8em;
+
+  color: var(--text-on-accent);
+  text-decoration: none;
+
+  border-radius: var(--radius-s);
+  background-color: var(--interactive-accent);
+
+  &:hover {
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent-hover);
+  }
+}
+
+.heatmap-supporter__dismiss {
+  margin-left: auto;
+  padding: 0.3em 0.6em;
+
+  font-size: inherit;
+  color: var(--text-faint);
+
+  box-shadow: none;
+  background-color: transparent;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text-muted);
+    background-color: transparent;
+  }
+}

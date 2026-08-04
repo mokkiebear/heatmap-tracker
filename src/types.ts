@@ -95,6 +95,11 @@ export interface TrackerSettings {
   language: string;
   viewTabsVisibility: Partial<Record<IHeatmapView, boolean>>;
   exportDefaults?: ExportDefaults;
+  /**
+   * Set once the user dismisses the supporter card in the Statistics view.
+   * Never reset — dismissing it is permanent by design.
+   */
+  supporterCardDismissed?: boolean;
 }
 
 export interface Box {

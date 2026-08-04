@@ -32,6 +32,14 @@
     "currentStreak": "The current streak",
     "longestStreak": "The longest streak"
   },
+  "supporter": {
+    "title": "Enjoying Heatmap Tracker?",
+    "body": "It's built and maintained by one person, in evenings and weekends. If the plugin is useful to you, support helps keep it going.",
+    "buyMeACoffee": "Buy me a coffee",
+    "koFi": "Ko-fi",
+    "dismiss": "Don't show again",
+    "dismissAria": "Dismiss this message and don't show it again"
+  },
   "monthsShort": {
     "January": "Jan",
     "February": "Feb",

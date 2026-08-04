@@ -32,6 +32,14 @@
     "currentStreak": "当前连续记录",
     "longestStreak": "最长连续记录"
   },
+  "supporter": {
+    "title": "喜欢 Heatmap Tracker 吗？",
+    "body": "这个插件由一个人利用晚上和周末的时间开发和维护。如果它对你有帮助，你的支持能让它继续下去。",
+    "buyMeACoffee": "请我喝杯咖啡",
+    "koFi": "Ko-fi",
+    "dismiss": "不再显示",
+    "dismissAria": "关闭此消息并不再显示"
+  },
   "monthsShort": {
     "January": "1月",
     "February": "2月",

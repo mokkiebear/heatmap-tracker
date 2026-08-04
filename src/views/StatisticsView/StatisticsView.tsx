@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
 import { formatDateToISO8601 } from "src/utils/date";
 import { calculateStreaks, processCustomMetrics } from "src/utils/statistics";
+import SupporterCard from "./SupporterCard";
 
 interface StatisticsMetricProps {
   label: string;
@@ -86,6 +87,8 @@ function StatisticsView() {
           <StatisticsMetric key={key} label={key} value={value} />
         ))}
       </div>
+
+      <SupporterCard longestStreak={longestStreak} />
     </div>
   );
 }
