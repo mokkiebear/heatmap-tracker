@@ -65,6 +65,7 @@
   },
   "overrides": {
     "svelte": "3.59.2",
-    "braces": "3.0.3"
+    "braces": "3.0.3",
+    "@codemirror/language": "^6.12.3"
   }
 }
