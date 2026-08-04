@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.7.5] - 2026-08-04
+### Added
+- Add SupporterCard.
+
 ## [2.7.4] - 2026-08-04
 ### Changed
 - **Plugin bundle shrank from 724 KB to 355 KB (-51%)**, which is loaded in full every time Obsidian starts. Three separate causes, none of them affecting behaviour:
