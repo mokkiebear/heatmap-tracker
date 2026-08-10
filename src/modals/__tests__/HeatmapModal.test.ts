@@ -309,6 +309,10 @@ jest.mock("obsidian", () => {
     ButtonComponent: MockButtonComponent,
     setIcon: jest.fn(),
     getAllTags: getAllTagsMock,
+    // dataviewEntries.ts normalizes daily-note filenames via Obsidian's
+    // re-exported moment; use the real implementation here (see
+    // heatmapBox.test.ts for the same pattern).
+    moment: jest.requireActual("moment"),
   };
 });
 

@@ -1,6 +1,15 @@
 import { DataviewApi, Literal } from "obsidian-dataview";
+import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
+import { moment as obsidianMoment } from "obsidian";
+// Type-only: erased at build time, so the `moment` package stays out of the
+// bundle. Obsidian's own `moment` export is typed as `typeof Moment` off an
+// `import * as Moment` (obsidian.d.ts), which has no call signature — hence
+// borrowing the callable type from the package itself. Mirrors heatmapBox.ts.
+import type Moment from "moment";
 import { Entry, FilterCondition } from "../types";
 import { parseIntensity } from "./intensity";
+
+const moment = obsidianMoment as unknown as typeof Moment;
 
 export interface DataviewEntriesParams {
   /** Folder to search in. Falsy/undefined means the whole vault. */
@@ -11,6 +20,36 @@ export interface DataviewEntriesParams {
   tags?: string[];
   /** Additional frontmatter conditions a page must satisfy (all must match). */
   filters?: FilterCondition[];
+}
+
+/**
+ * Dataview's `page.file.name` is just the note's filename with the
+ * extension stripped — it is NOT necessarily `YYYY-MM-DD`. Daily notes can
+ * be named in whatever format the user configured in Obsidian's Daily
+ * Notes/Periodic Notes settings (e.g. `DD-MM-YYYY`), but everywhere else in
+ * this plugin (grid generation, streaks, year filtering, ...) assumes
+ * entry dates are ISO `YYYY-MM-DD`. Previously the raw filename was used
+ * as-is, so anything other than an ISO-formatted daily note silently
+ * matched nothing and every box showed "no data".
+ *
+ * This reads the vault's actual configured Daily Notes format and uses it
+ * to convert the filename to canonical `YYYY-MM-DD`. If the filename
+ * doesn't strictly match that format (e.g. it's not a daily note, or the
+ * Daily Notes plugin isn't configured), the original string is returned
+ * unchanged so already-ISO names keep working exactly as before.
+ */
+export function normalizeDailyNoteFileName(fileName: string): string {
+  try {
+    const format = getDailyNoteSettings()?.format || "YYYY-MM-DD";
+    const parsed = moment(fileName, format, true);
+    return parsed.isValid() ? parsed.format("YYYY-MM-DD") : fileName;
+  } catch {
+    // Daily Notes/Periodic Notes plugin unavailable or not configured, or
+    // `moment` itself unavailable in this environment — never let date
+    // normalization take down entry building; just use the raw filename,
+    // same as pre-fix behavior.
+    return fileName;
+  }
 }
 
 /** Obsidian/Dataview tags are always `#`-prefixed; be lenient about user input that omits it. */
@@ -102,7 +141,7 @@ export function buildEntriesFromDataview(
     );
 
     entries.push({
-      date: page.file.name,
+      date: normalizeDailyNoteFileName(page.file.name),
       filePath: page.file.path,
       intensity,
       content: createContent?.(page),

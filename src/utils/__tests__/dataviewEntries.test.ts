@@ -1,4 +1,15 @@
-import { buildEntriesFromDataview, normalizeTag } from "../dataviewEntries";
+import {
+  buildEntriesFromDataview,
+  normalizeDailyNoteFileName,
+  normalizeTag,
+} from "../dataviewEntries";
+import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
+
+// Auto-mocked: every export becomes a jest.fn(). Individual tests configure
+// `getDailyNoteSettings`'s return value where the daily-note format matters;
+// everywhere else it returns `undefined`, so the code under test falls back
+// to the `YYYY-MM-DD` default (matching pre-fix behavior for ISO filenames).
+jest.mock("obsidian-daily-notes-interface");
 
 function makePage(
   name: string,
@@ -29,6 +40,58 @@ function makeDv(pages: Record<string, unknown>[]) {
   };
 }
 
+describe("normalizeDailyNoteFileName", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("leaves an already-ISO filename unchanged when no daily note format is configured", () => {
+    expect(normalizeDailyNoteFileName("2026-08-10")).toBe("2026-08-10");
+  });
+
+  it("converts a DD-MM-YYYY daily note filename to ISO using the configured format", () => {
+    (getDailyNoteSettings as jest.Mock).mockReturnValue({
+      format: "DD-MM-YYYY",
+      folder: "",
+      template: "",
+    });
+
+    expect(normalizeDailyNoteFileName("10-08-2026")).toBe("2026-08-10");
+  });
+
+  it("converts a filename in any configured moment format to ISO", () => {
+    (getDailyNoteSettings as jest.Mock).mockReturnValue({
+      format: "YYYY/MM/DD",
+      folder: "",
+      template: "",
+    });
+
+    expect(normalizeDailyNoteFileName("2026/08/10")).toBe("2026-08-10");
+  });
+
+  it("returns the original string unchanged when it doesn't match the configured format", () => {
+    (getDailyNoteSettings as jest.Mock).mockReturnValue({
+      format: "DD-MM-YYYY",
+      folder: "",
+      template: "",
+    });
+
+    // Not a daily note (e.g. a project note living in a tracked folder) —
+    // must not be mangled into a bogus date.
+    expect(normalizeDailyNoteFileName("Project Overview")).toBe(
+      "Project Overview",
+    );
+  });
+
+  it("falls back to the ISO default when reading daily note settings throws", () => {
+    (getDailyNoteSettings as jest.Mock).mockImplementation(() => {
+      throw new Error("Daily Notes plugin not available");
+    });
+
+    expect(normalizeDailyNoteFileName("2026-08-10")).toBe("2026-08-10");
+  });
+});
+
 describe("buildEntriesFromDataview", () => {
   it("returns an empty array when no property is given", () => {
     const dv = makeDv([]);
@@ -49,6 +112,29 @@ describe("buildEntriesFromDataview", () => {
       property: "exercise",
     });
     expect(dv.pages).toHaveBeenCalledWith('"daily notes"');
+  });
+
+  it("normalizes DD-MM-YYYY daily note filenames to ISO so they show up on the heatmap", () => {
+    (getDailyNoteSettings as jest.Mock).mockReturnValue({
+      format: "DD-MM-YYYY",
+      folder: "",
+      template: "",
+    });
+
+    const dv = makeDv([makePage("10-08-2026", { exercise: 10 })]);
+
+    const entries = buildEntriesFromDataview(dv as any, {
+      property: "exercise",
+    });
+
+    expect(entries).toEqual([
+      {
+        date: "2026-08-10",
+        filePath: "folder/10-08-2026.md",
+        intensity: 10,
+        content: undefined,
+      },
+    ]);
   });
 
   it("builds one entry per matching page with a single property", () => {
