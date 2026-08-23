@@ -9,12 +9,13 @@ import { getEntryColor } from "src/utils/colors";
 import {
   formatDateToISO8601,
   getDayOfYear,
+  getFirstDayOfYear,
   getFullYear,
   getLastDayOfYear,
-  getNumberOfEmptyDaysBeforeYearStarts,
   getToday,
   isSameDate,
 } from "src/utils/date";
+import { placeDays } from "src/utils/grid";
 
 export function clamp(input: number, min: number, max: number): number {
   return input < min ? min : input > max ? max : input;
@@ -50,52 +51,48 @@ export function getBoxes(
   trackerData: TrackerData,
   settings: TrackerSettings,
 ): Box[] {
-  const numberOfEmptyDaysBeforeYearStarts =
-    getNumberOfEmptyDaysBeforeYearStarts(currentYear, settings.weekStartDay);
-
-  // A factory, not `Array(n).fill(obj)` — `fill` would put the same object in
-  // every slot.
-  const boxes: Box[] = Array.from(
-    { length: numberOfEmptyDaysBeforeYearStarts },
-    () => ({ backgroundColor: "transparent", isSpaceBetweenBox: true }),
+  const placements = placeDays(
+    getFirstDayOfYear(currentYear),
+    getLastDayOfYear(currentYear),
+    settings.weekStartDay,
+    trackerData.separateMonths,
   );
 
-  const lastDayOfYear = getLastDayOfYear(currentYear);
-  const numberOfDaysInYear = getDayOfYear(lastDayOfYear);
+  const firstPosition = placements.length ? placements[0].position : 0;
   const todayDate = getToday();
+  const boxes: Box[] = [];
 
-  for (let day = 1; day <= numberOfDaysInYear; day++) {
-    const box: Box = {};
-
-    const currentDate = new Date(Date.UTC(currentYear, 0, day));
-
-    // A blank week before each month, except the first one.
-    if (
-      trackerData.separateMonths &&
-      day > 1 &&
-      currentDate.getUTCDate() === 1
-    ) {
-      for (let i = 0; i < 7; i++) {
-        boxes.push({ isSpaceBetweenBox: true });
-      }
+  for (const { date, position } of placements) {
+    // `position` already accounts for the run-up to the first day and for the
+    // week `separateMonths` inserts before each month; fill whatever it skipped
+    // with blanks so the array index and the grid slot stay in step.
+    while (boxes.length < position) {
+      boxes.push(
+        boxes.length < firstPosition
+          ? { backgroundColor: "transparent", isSpaceBetweenBox: true }
+          : { isSpaceBetweenBox: true },
+      );
     }
 
-    const month = currentDate.toLocaleString("en-US", {
+    const month = date.toLocaleString("en-US", {
       month: "short",
       timeZone: "UTC",
     });
-    box.name = `month-${month.toLowerCase()}`;
-    box.date = formatDateToISO8601(currentDate) ?? undefined;
 
-    if (isSameDate(currentDate, todayDate)) {
+    const box: Box = {
+      name: `month-${month.toLowerCase()}`,
+      date: formatDateToISO8601(date) ?? undefined,
+    };
+
+    if (isSameDate(date, todayDate)) {
       box.isToday = true;
       box.showBorder = trackerData.showCurrentDayBorder;
     }
 
-    if (entriesWithIntensity[day]) {
-      box.hasData = true;
-      const entry = entriesWithIntensity[day];
+    const entry = entriesWithIntensity[getDayOfYear(date)];
 
+    if (entry) {
+      box.hasData = true;
       box.content = entry.content || undefined;
       box.value = entry.value;
       box.filePath = entry.filePath || undefined;

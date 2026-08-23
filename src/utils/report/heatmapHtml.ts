@@ -1,7 +1,7 @@
 import { ColorsList, Entry, LegendEntry } from "src/types";
 import { getEntryColor } from "src/utils/colors";
+import { countWeeks, placeDays } from "src/utils/grid";
 import {
-  addDays,
   formatDateToISO8601,
   getShiftedWeekdays,
   parseUTCDate,
@@ -148,57 +148,6 @@ const VERTICAL_LABEL_STYLE =
 const SPANNING_LABEL_STYLE =
   "font-size:10px;color:var(--text-muted,#6b7280);white-space:nowrap;display:flex;align-items:center;justify-content:center;margin-right:4px;";
 
-interface DaySlot {
-  date: Date;
-  /** Column index in columns mode, row index in rows mode. */
-  weekIndex: number;
-  /** Shifted 0–6 weekday offset. */
-  weekdayIndex: number;
-}
-
-/**
- * Places each real day of [start,end] into a (weekIndex, weekdayIndex) slot.
- * `weekdayIndex` is always the day's true (shifted) weekday. When
- * `splitByMonth` is on, a hard +7 position jump is inserted right before
- * each month's 1st day (after the very first day) — this is exactly the
- * native plugin's own `getBoxes()` day-by-day fill/gap algorithm (see
- * src/utils/core.ts), generalized from a fixed calendar year to an arbitrary
- * date range: the jump always advances the week-index by exactly one while
- * leaving the weekday row unchanged, splitting a straddling week across two
- * slots exactly where the live grid does.
- */
-function placeDays(
-  start: Date,
-  end: Date,
-  weekStartDay: number,
-  splitByMonth: boolean,
-): DaySlot[] {
-  const slots: DaySlot[] = [];
-  let position = (start.getUTCDay() - weekStartDay + 7) % 7;
-
-  for (
-    let date = start;
-    date.getTime() <= end.getTime();
-    date = addDays(date, 1)
-  ) {
-    if (
-      splitByMonth &&
-      date.getTime() !== start.getTime() &&
-      date.getUTCDate() === 1
-    ) {
-      position += 7;
-    }
-    slots.push({
-      date,
-      weekIndex: Math.floor(position / 7),
-      weekdayIndex: position % 7,
-    });
-    position += 1;
-  }
-
-  return slots;
-}
-
 /** How many week-slots (columns in columns mode, rows in rows mode) a range needs. */
 export function countWeeksInRange(
   startDate: string,
@@ -206,13 +155,14 @@ export function countWeeksInRange(
   weekStartDay: number,
   splitByMonth = false,
 ): number {
-  const slots = placeDays(
-    parseUTCDate(startDate),
-    parseUTCDate(endDate),
-    weekStartDay,
-    splitByMonth,
+  return countWeeks(
+    placeDays(
+      parseUTCDate(startDate),
+      parseUTCDate(endDate),
+      weekStartDay,
+      splitByMonth,
+    ),
   );
-  return slots.length === 0 ? 0 : slots[slots.length - 1].weekIndex + 1;
 }
 
 interface RunEntry {
