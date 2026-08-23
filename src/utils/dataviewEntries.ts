@@ -41,8 +41,38 @@ export interface DataviewEntriesParams {
 export function normalizeDailyNoteFileName(fileName: string): string {
   try {
     const format = getDailyNoteSettings()?.format || "YYYY-MM-DD";
+
     const parsed = moment(fileName, format, true);
-    return parsed.isValid() ? parsed.format("YYYY-MM-DD") : fileName;
+    if (parsed.isValid()) {
+      return parsed.format("YYYY-MM-DD");
+    }
+
+    // A daily-note format may describe a folder tree as well as a filename
+    // (`YYYY/MM/YYYY-MM-DD` is a common Periodic Notes setup). Dataview's
+    // `file.name` is only the last segment, so the full format can never match
+    // it — retry against the filename part of the format alone.
+    if (format.includes("/")) {
+      const fileNameFormat = format.slice(format.lastIndexOf("/") + 1);
+
+      // Only worth trying when the filename segment identifies a whole date on
+      // its own. For a format like `YYYY/MM/DD` the segment is just `DD`, which
+      // moment would happily parse into the *current* year and month — a
+      // confidently wrong date is worse than leaving the name alone.
+      const isSelfContained =
+        /[Yy]/.test(fileNameFormat) &&
+        /M/.test(fileNameFormat) &&
+        /D/.test(fileNameFormat);
+
+      if (isSelfContained) {
+        const parsedSegment = moment(fileName, fileNameFormat, true);
+
+        if (parsedSegment.isValid()) {
+          return parsedSegment.format("YYYY-MM-DD");
+        }
+      }
+    }
+
+    return fileName;
   } catch {
     // Daily Notes/Periodic Notes plugin unavailable or not configured, or
     // `moment` itself unavailable in this environment — never let date

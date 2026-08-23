@@ -1,6 +1,7 @@
 import { ColorsList, Entry, IntensityConfig } from "src/types";
 import {
   fillEntriesWithIntensity,
+  fillEntriesWithIntensityByDate,
   getEntriesIntensities,
   getIntensitiesInfo,
   getIntensitiesRanges,
@@ -363,5 +364,117 @@ describe("parseIntensity", () => {
   it("should handle null and undefined", () => {
     expect(parseIntensity(null)).toBe(0);
     expect(parseIntensity(undefined)).toBe(0);
+  });
+
+  it("never returns a non-finite number", () => {
+    // A NaN or Infinity reaching the scale makes Math.min/Math.max NaN, which
+    // leaves every box in the year uncoloured.
+    expect(parseIntensity(NaN)).toBe(0);
+    expect(parseIntensity(Infinity)).toBe(0);
+    expect(parseIntensity(-Infinity)).toBe(0);
+    expect(Number.isFinite(parseIntensity("1e999"))).toBe(true);
+  });
+});
+
+describe("invalid input handling", () => {
+  const colors: ColorsList = ["#1", "#2", "#3", "#4", "#5"];
+
+  it("skips entries whose date cannot be parsed", () => {
+    const result = fillEntriesWithIntensity(
+      [
+        { date: "garbage", intensity: 1 },
+        { date: "2024-02-30", intensity: 1 },
+        { date: "2024-01-01", intensity: 1 },
+      ],
+      createConfig(),
+      colors,
+    );
+
+    // A bad date used to land under a literal `NaN` key.
+    expect(Object.keys(result)).toEqual(["1"]);
+  });
+
+  it("tolerates a missing date", () => {
+    const result = fillEntriesWithIntensity(
+      [
+        { date: null as unknown as string, intensity: 1 },
+        { date: "2024-01-01", intensity: 1 },
+      ],
+      createConfig(),
+      colors,
+    );
+
+    expect(Object.keys(result)).toEqual(["1"]);
+  });
+
+  it("keeps a bad entry from skewing the color scale for the good ones", () => {
+    const result = fillEntriesWithIntensity(
+      [
+        { date: "not a date", intensity: 10000 },
+        { date: "2024-01-01", intensity: 1 },
+        { date: "2024-01-02", intensity: 5 },
+      ],
+      createConfig(),
+      colors,
+    );
+
+    // Scale runs 1..5, so the top entry gets the last color, not the first.
+    expect(result[1].intensity).toBe(1);
+    expect(result[2].intensity).toBe(5);
+  });
+
+  it("does not let a NaN intensity blank out the whole year", () => {
+    const result = fillEntriesWithIntensity(
+      [
+        { date: "2024-01-01", intensity: NaN },
+        { date: "2024-01-02", intensity: 5 },
+      ],
+      createConfig(),
+      colors,
+    );
+
+    expect(result[2].intensity).toBeDefined();
+  });
+
+  it("gives every day the same bucket when all intensities are equal", () => {
+    // The intensity range has zero width here, which used to divide by zero.
+    const result = fillEntriesWithIntensity(
+      [
+        { date: "2024-01-01", intensity: 3 },
+        { date: "2024-01-02", intensity: 3 },
+      ],
+      createConfig({ showOutOfRange: true }),
+      colors,
+    );
+
+    expect(result[1].intensity).toBe(1);
+    expect(result[2].intensity).toBe(1);
+  });
+
+  it("skips unparseable dates in the by-date variant too", () => {
+    const result = fillEntriesWithIntensityByDate(
+      [
+        { date: "2024-02-30", intensity: 1 },
+        { date: "2024-01-01", intensity: 1 },
+      ],
+      createConfig(),
+      colors,
+    );
+
+    expect(Object.keys(result)).toEqual(["2024-01-01"]);
+  });
+
+  it("aggregates same-day entries written with different separators", () => {
+    const result = fillEntriesWithIntensity(
+      [
+        { date: "2024-01-01", intensity: 2 },
+        { date: "2024/01/01", intensity: 3 },
+      ],
+      createConfig(),
+      colors,
+    );
+
+    expect(Object.keys(result)).toEqual(["1"]);
+    expect(result[1].value).toBe(5);
   });
 });

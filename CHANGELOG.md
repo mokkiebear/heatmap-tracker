@@ -5,6 +5,39 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Fixed
+Stabilization pass over `src/utils/`. Each item was reproduced with a failing test first; the suite grew from 328 to 548 tests and runs clean in UTC, `America/New_York` and `Asia/Tokyo`.
+
+- **Streaks broke on any day logged more than once.** `calculateStreaks` receives the raw, unaggregated entry list, so a day with two entries produced a zero-day gap that reset the run. Streaks are now computed over distinct days.
+- **Streaks broke twice a year on the DST boundary.** Entry dates were parsed with `new Date(...)`, which reads a date-only string as *local* midnight, so consecutive days were 23 or 25 hours apart across a clock change and the whole-day comparison failed. Parsing now goes through `parseUTCDate` like everything else.
+- **One unparseable date silently broke every streak after it.** The NaN comparison it produced reset the run; bad dates are now skipped, and a set of entries with no usable date at all reports no streak instead of a phantom streak of 1.
+- **Invalid dates corrupted the heatmap.** `fillEntriesWithIntensity` carried its own copy of the date-parsing rules, which had drifted from `parseUTCDate`. An unparseable date became an entry filed under a literal `NaN` key, and its intensity still fed the min/max that build the colour scale for every other day of the year. It now shares the one parser and skips what it can't read, matching `fillEntriesWithIntensityByDate`.
+- **Out-of-range dates landed on the wrong box.** `Date.UTC` rolls overflowing components forward, so a typo'd `2024-02-30` became March 1 and `isValidDate` called it valid. Components must now survive the round-trip.
+- **Non-ISO date-only strings were off by one day** east of Greenwich. Formats without a recognisable `YYYY-MM-DD` part (`12/31/2021`, `Jan 5, 2024`) were parsed as local midnight and then read back through the UTC getters, shifting them to the previous day. The written calendar date is now preserved.
+- **A single `NaN` or `Infinity` intensity blanked out the whole year.** It poisoned `Math.min`/`Math.max`, making every intensity range NaN so nothing matched a colour. `parseIntensity` no longer emits non-finite numbers and the scale filters them out regardless of origin.
+- **Deleting the `default` palette crashed the heatmap.** `getColors` returned `undefined`, which threw on the first `colorsList.length`. It now falls back to any surviving palette and finally to a built-in ramp, and skips palettes that exist but are empty.
+- **`mapRange` returned NaN for a zero-width input range** (every entry sharing one value) — `clamp` passed it straight through. It now returns the output range's start.
+- **Padding boxes were all the same object.** `Array(n).fill(obj)` put one shared reference in every slot; they are now built individually.
+- **Daily-note formats that describe folders never matched.** For a Periodic Notes setup like `YYYY/MM-MMMM/YYYY-MM-DD`, Dataview's `file.name` is only the last segment, so the full format could never match it and the fix shipped in 2.7.6 didn't reach these vaults. `normalizeDailyNoteFileName` now retries against the filename part of the format — but only when that part identifies a whole date on its own, so a format like `YYYY/MM/DD` is left alone rather than guessing the current year.
+- **A failed note creation left the click doing nothing.** `vault.create` rejects when the parent folder is missing or the path was taken; from a click handler that surfaced as an invisible rejected promise. `handleBoxClick` now reports failures via a notice, and rejects an unparseable box date instead of creating a file literally named `Invalid date.md`.
+- **One bad user insight took down the Statistics view.** `Insight.calculate` is user-written dataviewjs; an exception in one metric killed every other metric on the page. Each is now isolated.
+- Invalid `weekStartDay` values (`NaN`, non-integers) were silently accepted by `getShiftedWeekdays`, producing an unshifted header row while the grid below it used the real setting. Non-finite `daysToShow`/`monthsToShow` produced a range containing an `Invalid Date`, which read downstream as "no day is in range". Both are now rejected.
+
+### Added
+- Test coverage for `getBoxes` (grid size, leap years, month separation, colour mapping), which had none, and for the click-handling failure paths above.
+
+### Changed
+Simplification pass over the same folder, no behaviour change:
+
+- The two `fillEntriesWithIntensity*` functions were near-identical — same aggregation, same bucket mapping, differing only in how a day is keyed. They now share one implementation parameterised by the key function, which also removes a redundant second pass over the min/max intensities on every call.
+- The rule for a day's colour (`customColor`, else the palette entry for its intensity) was written out four times, in `getBoxes`, `buildReportModel`, `buildHeatmapGridHtml` and `MonthlyHeatmapView`. Extracted as `getEntryColor`.
+- `getColors` was four sequential fallback branches; it is now one ordered list of candidates with a single "first non-empty wins" rule.
+- Removed logic that could not run: the null check in `formatDateToISO8601` (the `instanceof Date` check below it already covered null and undefined), the `isValidDate` pre-filter in `getEntriesForYear` (an unparseable date yields NaN, which matches no year), and the argument validation in the private `getPrefilledBoxes`, whose only caller passes an already-validated value.
+- `parseUTCDate` now handles a missing date itself instead of relying on each caller to pre-check, which is what the removed `getEntriesForYear` guard had been doing for it.
+- The `weekStartDay` bounds check existed twice with two slightly different messages; it is now one helper. `getNumberOfEmptyDaysBeforeYearStarts` also bounds the year to 1-9999 — `Number.isFinite` let a year like `1e21` through, which produced an Invalid Date and NaN padding.
+- `isEmpty` moved from `core.ts` to `colors.ts`, its only consumer, which also avoids an import cycle between the two.
+- `parseIntensity` takes `unknown` rather than `any`; it narrows identically.
+- Trimmed comments that narrated what the code used to do (that history lives here in the changelog) down to what a reader needs to know about the code as it stands.
 
 ## [2.7.6] - 2026-08-23
 ### Fixed

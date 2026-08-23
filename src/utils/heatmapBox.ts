@@ -47,17 +47,24 @@ export async function createNewFile(
     `Do you want to create a new file '${fileName}' at '${path}'?`,
   ).openAndAwait();
 
-  if (shouldCreate) {
+  if (!shouldCreate) {
+    return false;
+  }
+
+  try {
     const createdFile = await app.vault.create(path, "");
 
     if (createdFile) {
       await openFileInLeaf(app, createdFile);
     }
-
-    return true;
+  } catch (error) {
+    // `vault.create` rejects when the parent folder doesn't exist or the path
+    // was taken in the meantime.
+    console.error(`Heatmap Tracker: could not create '${path}'.`, error);
+    notify(`* Heatmap Tracker *\nCould not create '${path}'.`, 5000);
   }
 
-  return false;
+  return true;
 }
 
 /**
@@ -178,7 +185,7 @@ async function tryOpenDailyNote(
 
     return true;
   } catch (err) {
-    console.log(err);
+    console.error("Heatmap Tracker: Daily Notes API failed.", err);
     return false; // Fallback if daily notes API fails
   }
 }
@@ -238,21 +245,43 @@ export async function handleBoxClick(
 
   const date = moment(box.date);
 
-  // 1) If box has an explicit filePath, try to open that exact file
-  if (await tryOpenExplicitFile(app, box, trackerData)) {
+  // Every strategy below formats this date into a filename; an invalid one
+  // would produce paths literally named "Invalid date.md".
+  if (!date.isValid()) {
+    console.error(
+      `Heatmap Tracker: box has an unparseable date '${box.date}'.`,
+    );
     return;
   }
 
-  // 2) If trackerData has a basePath, suggest creating there using the date-based filename
-  if (await tryOpenBasePathFile(app, date, trackerData)) {
-    return;
-  }
+  try {
+    // 1) If box has an explicit filePath, try to open that exact file
+    if (await tryOpenExplicitFile(app, box, trackerData)) {
+      return;
+    }
 
-  // 3) Fallback to Daily Notes API (uses its folder/format)
-  if (await tryOpenDailyNote(app, date, trackerData)) {
-    return;
-  }
+    // 2) If trackerData has a basePath, suggest creating there using the date-based filename
+    if (await tryOpenBasePathFile(app, date, trackerData)) {
+      return;
+    }
 
-  // 4) Final fallback
-  await tryOpenFallbackFile(app, date, trackerData);
+    // 3) Fallback to Daily Notes API (uses its folder/format)
+    if (await tryOpenDailyNote(app, date, trackerData)) {
+      return;
+    }
+
+    // 4) Final fallback
+    await tryOpenFallbackFile(app, date, trackerData);
+    // A rejected promise from a click handler is invisible: the box would just
+    // appear to do nothing.
+  } catch (error) {
+    console.error(
+      "Heatmap Tracker: could not open the note for this box.",
+      error,
+    );
+    notify(
+      "* Heatmap Tracker *\nCould not open the note for this day. See the developer console for details.",
+      5000,
+    );
+  }
 }

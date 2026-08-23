@@ -60,3 +60,29 @@ describe("getColors", () => {
     expect(colors).toEqual(settingsColors.default);
   });
 });
+
+describe("getColors palette fallbacks", () => {
+  it("falls back to another palette when both the named one and 'default' are gone", () => {
+    // Palettes are user-editable in settings; deleting `default` used to make
+    // this return `undefined` and crash the heatmap on `colorsList.length`.
+    const colors = getColors({ paletteName: "missing" }, { mine: ["#111"] });
+
+    expect(colors).toEqual(["#111"]);
+  });
+
+  it("falls back to a built-in ramp when no palette holds any colors", () => {
+    const colors = getColors({ paletteName: "missing" }, { default: [] });
+
+    expect(colors.length).toBeGreaterThan(0);
+    expect(colors.every((color) => typeof color === "string")).toBe(true);
+  });
+
+  it("ignores an empty named palette in favour of default", () => {
+    const colors = getColors(
+      { paletteName: "empty" },
+      { empty: [], default: ["#abc"] },
+    );
+
+    expect(colors).toEqual(["#abc"]);
+  });
+});

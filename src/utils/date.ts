@@ -1,7 +1,4 @@
 export function isValidDate(dateString: string): boolean {
-  if (!dateString) {
-    return false;
-  }
   return !isNaN(parseUTCDate(dateString).getTime());
 }
 
@@ -28,13 +25,17 @@ export function getISOWeekNumber(date: Date): number {
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 }
 
+function assertWeekStartDay(weekStartDay: number): void {
+  if (!Number.isInteger(weekStartDay) || weekStartDay < 0 || weekStartDay > 6) {
+    throw new Error("weekStartDay must be between 0 and 6");
+  }
+}
+
 export function getShiftedWeekdays(
   weekdays: string[],
   weekStartDay: number,
 ): string[] {
-  if (weekStartDay < 0 || weekStartDay > 6) {
-    throw new Error("weekStartDay must be between 0 and 6");
-  }
+  assertWeekStartDay(weekStartDay);
 
   return weekdays.slice(weekStartDay).concat(weekdays.slice(0, weekStartDay));
 }
@@ -47,12 +48,12 @@ export function getNumberOfEmptyDaysBeforeYearStarts(
   year: number,
   weekStartDay: number,
 ): number {
-  if (isNaN(weekStartDay) || weekStartDay < 0 || weekStartDay > 6) {
-    throw new Error("weekStartDay must be a number between 0 and 6");
-  }
+  assertWeekStartDay(weekStartDay);
 
-  if (isNaN(year)) {
-    throw new Error("year must be a number");
+  // Bounded to what `formatDateToISO8601` can represent; without an upper bound
+  // a year like 1e21 produces an Invalid Date and NaN padding downstream.
+  if (!Number.isInteger(year) || year < 1 || year > 9999) {
+    throw new Error("year must be a number between 1 and 9999");
   }
 
   const firstDayOfYear = getFirstDayOfYear(year);
@@ -70,15 +71,11 @@ export function getToday() {
 }
 
 export function formatDateToISO8601(date: Date | null): string | null {
-  if (date === null || date === undefined) {
-    return null;
-  }
-
   if (!(date instanceof Date) || isNaN(date.getTime())) {
     return null;
   }
 
-  const year = date.getUTCFullYear();
+  const year = String(date.getUTCFullYear()).padStart(4, "0");
   const month = String(date.getUTCMonth() + 1).padStart(2, "0");
   const day = String(date.getUTCDate()).padStart(2, "0");
 
@@ -102,16 +99,48 @@ export function isSameDate(d1: Date, d2: Date): boolean {
 }
 
 export function parseUTCDate(dateStr: string): Date {
+  // Entry dates reach this from unvalidated user data, so a missing one is a
+  // real input, not a type violation.
+  if (!dateStr) {
+    return new Date(NaN);
+  }
+
   const match = dateStr.match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
   if (match) {
-    const [, year, month, day] = match;
-    return new Date(
-      Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)),
-    );
+    const year = parseInt(match[1]);
+    const month = parseInt(match[2]);
+    const day = parseInt(match[3]);
+
+    const date = new Date(Date.UTC(year, month - 1, day));
+
+    // `Date.UTC` rolls overflowing components forward (Feb 30 becomes March 1),
+    // which would land a typo'd date on an unrelated box. Require a round-trip.
+    if (
+      date.getUTCFullYear() !== year ||
+      date.getUTCMonth() !== month - 1 ||
+      date.getUTCDate() !== day
+    ) {
+      return new Date(NaN);
+    }
+
+    return date;
   }
+
   const date = new Date(dateStr);
+  if (isNaN(date.getTime())) {
+    return new Date(NaN);
+  }
+
+  // A date-only string with no recognised `YYYY-MM-DD` part ("12/31/2021",
+  // "Jan 5, 2024") was parsed as *local* midnight, so its UTC calendar date is
+  // the previous day everywhere east of Greenwich. Read it back the same way it
+  // was parsed, and keep the calendar date the user actually wrote.
+  const isLocal = !dateStr.includes("T") && !dateStr.includes(":");
+
   return new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+    isLocal
+      ? Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+      : Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
   );
 }
 
@@ -146,7 +175,11 @@ export function resolveDateRange(
   daysToShow?: number,
   monthsToShow?: number,
 ): DateRange | null {
-  if (monthsToShow !== undefined && monthsToShow >= 0) {
+  if (
+    monthsToShow !== undefined &&
+    Number.isInteger(monthsToShow) &&
+    monthsToShow >= 0
+  ) {
     const today = getToday();
     const endOfMonth = new Date(
       Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, 0),
@@ -157,7 +190,11 @@ export function resolveDateRange(
     return { start: startOfRange, end: endOfMonth };
   }
 
-  if (daysToShow !== undefined && daysToShow > 0) {
+  if (
+    daysToShow !== undefined &&
+    Number.isInteger(daysToShow) &&
+    daysToShow > 0
+  ) {
     const today = getToday();
     return {
       start: addDays(today, -(daysToShow - 1)),

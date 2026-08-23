@@ -1,5 +1,5 @@
 import { Entry, Insight } from "src/types";
-import { getToday } from "src/utils/date";
+import { getToday, parseUTCDate } from "src/utils/date";
 
 export interface StreakResult {
   currentStreak: number;
@@ -10,8 +10,31 @@ export interface StreakResult {
   longestStreakEndDate: Date | null;
 }
 
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+/**
+ * Distinct, valid entry days in ascending order, as UTC midnights.
+ *
+ * The raw list is unordered, can hold several entries for one day, and can hold
+ * unparseable dates — a streak is only meaningful over distinct, real days.
+ */
+function getStreakDays(entries: Entry[]): number[] {
+  const uniqueDays = new Set<number>();
+
+  for (const entry of entries) {
+    const date = parseUTCDate(entry.date);
+    if (!isNaN(date.getTime())) {
+      uniqueDays.add(date.getTime());
+    }
+  }
+
+  return Array.from(uniqueDays).sort((a, b) => a - b);
+}
+
 export function calculateStreaks(entries: Entry[]): StreakResult {
-  if (entries.length === 0) {
+  const days = getStreakDays(entries);
+
+  if (days.length === 0) {
     return {
       currentStreak: 0,
       longestStreak: 0,
@@ -22,55 +45,43 @@ export function calculateStreaks(entries: Entry[]): StreakResult {
     };
   }
 
-  const sortedEntries = entries
-    .slice()
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
   let currentStreak = 1;
   let longestStreak = 1;
 
-  let currentStreakStartDate: Date | null = new Date(sortedEntries[0].date);
-  let currentStreakEndDate: Date | null = new Date(sortedEntries[0].date);
+  let tempStreakStart = days[0];
+  let longestStreakStart = days[0];
+  let longestStreakEnd = days[0];
 
-  let longestStreakStartDate = new Date(sortedEntries[0].date);
-  let longestStreakEndDate = new Date(sortedEntries[0].date);
-
-  let tempStreakStartDate = new Date(sortedEntries[0].date);
-
-  for (let i = 1; i < sortedEntries.length; i++) {
-    const prevDate = new Date(sortedEntries[i - 1].date);
-    const currDate = new Date(sortedEntries[i].date);
-
-    const diffDays =
-      (currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
+  for (let i = 1; i < days.length; i++) {
+    // Both sides are UTC midnights, so this is an exact whole-day difference
+    // even across a DST boundary.
+    const diffDays = (days[i] - days[i - 1]) / MS_PER_DAY;
 
     if (diffDays === 1) {
       currentStreak++;
     } else {
       currentStreak = 1;
-      tempStreakStartDate = currDate;
+      tempStreakStart = days[i];
     }
 
     if (currentStreak > longestStreak) {
       longestStreak = currentStreak;
-      longestStreakStartDate = tempStreakStartDate;
-      longestStreakEndDate = currDate;
+      longestStreakStart = tempStreakStart;
+      longestStreakEnd = days[i];
     }
-
-    currentStreakEndDate = currDate;
   }
 
-  // After the loop, the final values of currentStreak and tempStreakStartDate
-  // represent the streak ending at the last entry.
-  currentStreakStartDate = tempStreakStartDate;
+  // After the loop, currentStreak and tempStreakStart describe the streak
+  // ending at the last entry.
+  const lastDay = days[days.length - 1];
+  let currentStreakStartDate: Date | null = new Date(tempStreakStart);
+  let currentStreakEndDate: Date | null = new Date(lastDay);
 
-  const today = getToday();
-  const lastEntryDate = new Date(sortedEntries[sortedEntries.length - 1].date);
-  const diffWithToday = Math.abs(
-    (today.getTime() - lastEntryDate.getTime()) / (1000 * 60 * 60 * 24),
+  const daysSinceLastEntry = Math.abs(
+    (getToday().getTime() - lastDay) / MS_PER_DAY,
   );
 
-  if (diffWithToday > 1) {
+  if (daysSinceLastEntry > 1) {
     currentStreak = 0;
     currentStreakStartDate = null;
     currentStreakEndDate = null;
@@ -81,8 +92,8 @@ export function calculateStreaks(entries: Entry[]): StreakResult {
     longestStreak,
     currentStreakStartDate,
     currentStreakEndDate,
-    longestStreakStartDate,
-    longestStreakEndDate,
+    longestStreakStartDate: new Date(longestStreakStart),
+    longestStreakEndDate: new Date(longestStreakEnd),
   };
 }
 
@@ -93,10 +104,18 @@ export function processCustomMetrics(
   const results: Record<string, string> = {};
 
   insights.forEach((insight) => {
-    // Calculate the result for the current metric
-    const result = insight.calculate({ yearEntries });
-    // Store the result with the metric name as the key
-    results[insight.name] = result?.toString() || "";
+    // `calculate` is user-supplied JS from a dataviewjs block; one that throws
+    // must not take the rest of the Statistics view with it.
+    try {
+      const result = insight.calculate({ yearEntries });
+      results[insight.name] = result?.toString() ?? "";
+    } catch (error) {
+      console.error(
+        `Heatmap Tracker: insight "${insight.name}" threw while calculating.`,
+        error,
+      );
+      results[insight.name] = "";
+    }
   });
 
   return results;

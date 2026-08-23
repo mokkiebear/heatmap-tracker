@@ -1,6 +1,12 @@
 import { DEFAULT_TRACKER_DATA } from "src/constants/defaultTrackerData";
-import { clamp, getEntriesForYear, mapRange, mergeTrackerData } from "../core";
-import { Entry } from "src/types";
+import {
+  clamp,
+  getBoxes,
+  getEntriesForYear,
+  mapRange,
+  mergeTrackerData,
+} from "../core";
+import { Entry, TrackerData, TrackerSettings } from "src/types";
 
 describe("clamp", () => {
   test("Input Within Range", () => {
@@ -38,7 +44,11 @@ describe("mapRange", () => {
   });
 
   test("Zero Input Range (Division by Zero Handling)", () => {
-    expect(mapRange(5, 5, 5, 0, 100)).toBeNaN();
+    // Previously NaN, which `clamp` passed straight through to callers. Every
+    // input collapses onto one point when the input range has no width, so the
+    // output range's start is the only meaningful answer.
+    expect(mapRange(5, 5, 5, 0, 100)).toBe(0);
+    expect(mapRange(0, 5, 5, 1, 5)).toBe(1);
   });
 
   test("Reverse Input Range (inMin Greater Than inMax)", () => {
@@ -332,5 +342,99 @@ describe("getEntriesForYear", () => {
       { date: "2025-12-31T23:59:59Z" },
     ];
     expect(getEntriesForYear(entries, NaN)).toEqual([]);
+  });
+});
+
+describe("getBoxes", () => {
+  const colors = ["c1", "c2", "c3", "c4", "c5"];
+
+  const trackerData = (overrides: Partial<TrackerData> = {}) =>
+    ({
+      separateMonths: false,
+      showCurrentDayBorder: true,
+      ...overrides,
+    }) as unknown as TrackerData;
+
+  const settings = (weekStartDay = 1) =>
+    ({ weekStartDay }) as unknown as TrackerSettings;
+
+  it("emits one box per day of the year plus the leading padding", () => {
+    // 2021 starts on a Friday; with Monday as the week start that is 4 pads.
+    const boxes = getBoxes(2021, {}, colors, trackerData(), settings(1));
+
+    expect(boxes).toHaveLength(4 + 365);
+    expect(boxes.slice(0, 4).every((box) => box.isSpaceBetweenBox)).toBe(true);
+    expect(boxes[4].date).toBe("2021-01-01");
+    expect(boxes[boxes.length - 1].date).toBe("2021-12-31");
+  });
+
+  it("accounts for a leap year", () => {
+    const boxes = getBoxes(2024, {}, colors, trackerData(), settings(1));
+
+    expect(boxes.filter((box) => !box.isSpaceBetweenBox)).toHaveLength(366);
+    expect(boxes[boxes.length - 1].date).toBe("2024-12-31");
+  });
+
+  it("gives every padding box its own object", () => {
+    // These used to be one object repeated by `Array#fill`, so anything that
+    // mutated a padding box (or keyed off box identity) hit all of them.
+    const boxes = getBoxes(2021, {}, colors, trackerData(), settings(1));
+
+    expect(boxes[0]).not.toBe(boxes[1]);
+    expect(boxes[0]).toEqual(boxes[1]);
+  });
+
+  it("inserts a week of spacing before each month when separateMonths is on", () => {
+    const boxes = getBoxes(
+      2021,
+      {},
+      colors,
+      trackerData({ separateMonths: true }),
+      settings(1),
+    );
+
+    // 4 leading pads + 365 days + 7 pads before each month except January.
+    expect(boxes).toHaveLength(4 + 365 + 7 * 11);
+  });
+
+  it("maps an entry's intensity onto the matching color", () => {
+    const boxes = getBoxes(
+      2021,
+      { 1: { date: "2021-01-01", intensity: 3, value: 30, content: "hi" } },
+      colors,
+      trackerData(),
+      settings(1),
+    );
+
+    const firstDay = boxes[4];
+    expect(firstDay.hasData).toBe(true);
+    expect(firstDay.backgroundColor).toBe("c3");
+    expect(firstDay.value).toBe(30);
+    expect(firstDay.content).toBe("hi");
+  });
+
+  it("lets customColor win over the mapped intensity color", () => {
+    const boxes = getBoxes(
+      2021,
+      { 1: { date: "2021-01-01", intensity: 3, customColor: "rebeccapurple" } },
+      colors,
+      trackerData(),
+      settings(1),
+    );
+
+    expect(boxes[4].backgroundColor).toBe("rebeccapurple");
+  });
+
+  it("leaves days without an entry uncolored", () => {
+    const boxes = getBoxes(2021, {}, colors, trackerData(), settings(1));
+
+    expect(boxes[4].hasData).toBe(false);
+    expect(boxes[4].backgroundColor).toBeUndefined();
+  });
+
+  it("rejects an invalid weekStartDay rather than laying out a wrong grid", () => {
+    expect(() =>
+      getBoxes(2021, {}, colors, trackerData(), settings(NaN)),
+    ).toThrow("weekStartDay must be between 0 and 6");
   });
 });

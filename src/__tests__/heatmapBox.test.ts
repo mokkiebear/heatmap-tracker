@@ -392,5 +392,63 @@ describe("heatmapBox utils", () => {
         expect(mockVault.create).toHaveBeenCalled();
       });
     });
+
+    describe("failure handling", () => {
+      let consoleError: jest.SpyInstance;
+
+      beforeEach(() => {
+        consoleError = jest
+          .spyOn(console, "error")
+          .mockImplementation(() => undefined);
+      });
+
+      afterEach(() => {
+        consoleError.mockRestore();
+      });
+
+      it("should do nothing when the box date cannot be parsed", async () => {
+        // Otherwise every strategy formats it into a path named "Invalid date.md".
+        await handleBoxClick({ date: "garbage" } as any, app, {} as any);
+
+        expect(mockVault.create).not.toHaveBeenCalled();
+        expect(mockWorkspace.getLeaf).not.toHaveBeenCalled();
+        expect(consoleError).toHaveBeenCalled();
+      });
+
+      it("should report a rejected file creation instead of rejecting the click", async () => {
+        // `vault.create` rejects when the parent folder is missing; unhandled,
+        // that surfaced as an invisible rejected promise from a click handler.
+        ConfirmModal.prototype.openAndAwait = jest.fn().mockResolvedValue(true);
+        mockVault.getAbstractFileByPath.mockReturnValue(null);
+        mockVault.create.mockRejectedValue(new Error("Folder does not exist"));
+
+        await expect(
+          handleBoxClick(mockBox, app, { basePath: "missing" } as any),
+        ).resolves.toBeUndefined();
+
+        expect(notify).toHaveBeenCalledWith(
+          expect.stringContaining("missing/2023-01-01.md"),
+          expect.any(Number),
+        );
+      });
+
+      it("should report an unexpected failure instead of rejecting the click", async () => {
+        mockVault.getAbstractFileByPath.mockReturnValue(new TFile());
+        mockWorkspace.getLeaf.mockImplementation(() => {
+          throw new Error("no leaf");
+        });
+
+        await expect(
+          handleBoxClick(
+            { ...mockBox, filePath: "notes/day.md" },
+            app,
+            {} as any,
+          ),
+        ).resolves.toBeUndefined();
+
+        expect(notify).toHaveBeenCalled();
+        expect(consoleError).toHaveBeenCalled();
+      });
+    });
   });
 });

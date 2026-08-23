@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
 import { HeatmapBox } from "src/components/HeatmapBox/HeatmapBox";
 import { Box } from "src/types";
+import { getEntryColor } from "src/utils/colors";
 import {
   getDaysInMonth,
   formatDateToISO8601,
@@ -95,11 +96,7 @@ function MonthlyHeatmapView() {
           box.value = entry.value;
           box.filePath = entry.filePath || undefined;
           box.customHref = entry.customHref || undefined;
-          box.backgroundColor =
-            entry.customColor ??
-            (entry.intensity !== undefined
-              ? colorsList[entry.intensity - 1]
-              : undefined);
+          box.backgroundColor = getEntryColor(entry, colorsList);
         } else {
           box.hasData = false;
         }

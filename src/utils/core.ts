@@ -5,6 +5,7 @@ import {
   TrackerData,
   TrackerSettings,
 } from "src/types";
+import { getEntryColor } from "src/utils/colors";
 import {
   formatDateToISO8601,
   getDayOfYear,
@@ -13,7 +14,6 @@ import {
   getNumberOfEmptyDaysBeforeYearStarts,
   getToday,
   isSameDate,
-  isValidDate,
 } from "src/utils/date";
 
 export function clamp(input: number, min: number, max: number): number {
@@ -27,30 +27,20 @@ export function mapRange(
   outMin: number,
   outMax: number,
 ): number {
+  // Zero-width input range: every input maps to the same point, and the
+  // division would be NaN or Infinity.
+  if (inMin === inMax) {
+    return outMin;
+  }
+
   const mapped: number =
     ((current - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
   return clamp(mapped, outMin, outMax);
 }
 
 export function getEntriesForYear(entries: Entry[], year: number): Entry[] {
-  return entries.filter((e) => {
-    if (!isValidDate(e.date)) {
-      return false;
-    }
-
-    return getFullYear(e.date) === year;
-  });
-}
-
-function getPrefilledBoxes(numberOfEmptyDaysBeforeYearBegins: number): Box[] {
-  if (isNaN(numberOfEmptyDaysBeforeYearBegins)) {
-    throw new Error("numberOfEmptyDaysBeforeYearBegins must be a number");
-  }
-
-  return Array(numberOfEmptyDaysBeforeYearBegins).fill({
-    backgroundColor: "transparent",
-    isSpaceBetweenBox: true,
-  });
+  // An unparseable date yields NaN, which matches no year.
+  return entries.filter((e) => getFullYear(e.date) === year);
 }
 
 export function getBoxes(
@@ -63,7 +53,12 @@ export function getBoxes(
   const numberOfEmptyDaysBeforeYearStarts =
     getNumberOfEmptyDaysBeforeYearStarts(currentYear, settings.weekStartDay);
 
-  const boxes = getPrefilledBoxes(numberOfEmptyDaysBeforeYearStarts);
+  // A factory, not `Array(n).fill(obj)` — `fill` would put the same object in
+  // every slot.
+  const boxes: Box[] = Array.from(
+    { length: numberOfEmptyDaysBeforeYearStarts },
+    () => ({ backgroundColor: "transparent", isSpaceBetweenBox: true }),
+  );
 
   const lastDayOfYear = getLastDayOfYear(currentYear);
   const numberOfDaysInYear = getDayOfYear(lastDayOfYear);
@@ -74,16 +69,14 @@ export function getBoxes(
 
     const currentDate = new Date(Date.UTC(currentYear, 0, day));
 
-    // We don't need to add padding before January.
-    if (trackerData.separateMonths && day > 31) {
-      const dayInMonth = currentDate.getUTCDate();
-      if (dayInMonth === 1) {
-        for (let i = 0; i < 7; i++) {
-          const emptyBox = {
-            isSpaceBetweenBox: true,
-          };
-          boxes.push(emptyBox);
-        }
+    // A blank week before each month, except the first one.
+    if (
+      trackerData.separateMonths &&
+      day > 1 &&
+      currentDate.getUTCDate() === 1
+    ) {
+      for (let i = 0; i < 7; i++) {
+        boxes.push({ isSpaceBetweenBox: true });
       }
     }
 
@@ -107,11 +100,7 @@ export function getBoxes(
       box.value = entry.value;
       box.filePath = entry.filePath || undefined;
       box.customHref = entry.customHref || undefined;
-      box.backgroundColor =
-        entry.customColor ??
-        (entry.intensity !== undefined
-          ? colorsList[entry.intensity - 1]
-          : undefined);
+      box.backgroundColor = getEntryColor(entry, colorsList);
     } else {
       box.hasData = false;
     }
@@ -170,8 +159,4 @@ export function mergeTrackerData(
         defaultTrackerData.intensityConfig.defaultIntensity,
     },
   };
-}
-
-export function isEmpty<T>(array?: T[]): boolean {
-  return !array || array.length === 0;
 }

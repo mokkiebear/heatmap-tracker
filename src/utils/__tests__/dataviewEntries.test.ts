@@ -49,6 +49,41 @@ describe("normalizeDailyNoteFileName", () => {
     expect(normalizeDailyNoteFileName("2026-08-10")).toBe("2026-08-10");
   });
 
+  it("handles a daily note format that also describes folders", () => {
+    // Periodic Notes setups commonly nest by year/month. Dataview's
+    // `file.name` is only the last segment, so the full format never matched
+    // and the entry kept its raw filename.
+    (getDailyNoteSettings as jest.Mock).mockReturnValue({
+      format: "YYYY/MM-MMMM/YYYY-MM-DD",
+      folder: "",
+      template: "",
+    });
+
+    expect(normalizeDailyNoteFileName("2026-08-10")).toBe("2026-08-10");
+  });
+
+  it("handles a nested non-ISO daily note format", () => {
+    (getDailyNoteSettings as jest.Mock).mockReturnValue({
+      format: "YYYY/MM/DD-MM-YYYY",
+      folder: "",
+      template: "",
+    });
+
+    expect(normalizeDailyNoteFileName("10-08-2026")).toBe("2026-08-10");
+  });
+
+  it("leaves the name alone when the filename segment is not a whole date", () => {
+    // The segment is just `DD`, which moment would parse into the current year
+    // and month — a confidently wrong date is worse than no conversion.
+    (getDailyNoteSettings as jest.Mock).mockReturnValue({
+      format: "YYYY/MM/DD",
+      folder: "",
+      template: "",
+    });
+
+    expect(normalizeDailyNoteFileName("05")).toBe("05");
+  });
+
   it("converts a DD-MM-YYYY daily note filename to ISO using the configured format", () => {
     (getDailyNoteSettings as jest.Mock).mockReturnValue({
       format: "DD-MM-YYYY",

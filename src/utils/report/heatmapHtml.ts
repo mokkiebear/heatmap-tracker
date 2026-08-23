@@ -1,4 +1,5 @@
 import { ColorsList, Entry, LegendEntry } from "src/types";
+import { getEntryColor } from "src/utils/colors";
 import {
   addDays,
   formatDateToISO8601,
@@ -512,12 +513,7 @@ export function buildHeatmapGridHtml({
 
     const dateKey = formatDateToISO8601(date) as string;
     const entry = entriesByDate[dateKey];
-    const color = entry
-      ? (entry.customColor ??
-        (entry.intensity !== undefined
-          ? colorsList[entry.intensity - 1]
-          : undefined))
-      : undefined;
+    const color = entry ? getEntryColor(entry, colorsList) : undefined;
     const displayValue = entry
       ? resolveDisplayValue(entry.value, color, legend)
       : undefined;

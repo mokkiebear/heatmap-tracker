@@ -1,5 +1,6 @@
 import { ColorsList, Entry, LegendEntry } from "src/types";
 import { addDays, formatDateToISO8601, parseUTCDate } from "src/utils/date";
+import { getEntryColor } from "src/utils/colors";
 import { resolveDisplayValue } from "src/utils/report/legendMatch";
 
 export interface ReportDay {
@@ -91,11 +92,7 @@ export function buildReportModel({
     const entry = entriesByDate[dateKey];
     if (!entry) continue;
 
-    const color =
-      entry.customColor ??
-      (entry.intensity !== undefined
-        ? colorsList[entry.intensity - 1]
-        : undefined);
+    const color = getEntryColor(entry, colorsList);
     const value = resolveDisplayValue(entry.value, color, legend);
     const body = entry.filePath
       ? bodiesByPath[entry.filePath]

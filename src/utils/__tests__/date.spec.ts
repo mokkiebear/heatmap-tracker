@@ -10,6 +10,7 @@ import {
   resolveDateRange,
   getToday,
   getCurrentFullYear,
+  parseUTCDate,
 } from "../date";
 
 describe("getShiftedWeekdays", () => {
@@ -100,6 +101,17 @@ describe("getShiftedWeekdays", () => {
     expect(getShiftedWeekdays(["Monday"], 0)).toEqual(["Monday"]);
     expect(getShiftedWeekdays(["Monday"], 1)).toEqual(["Monday"]);
   });
+
+  it("should throw for a non-integer weekStartDay", () => {
+    // `NaN` passed both range checks and silently produced `slice(NaN)`, i.e.
+    // an unshifted week, while the box grid was laid out for the real setting.
+    expect(() => getShiftedWeekdays(weekdays, NaN)).toThrow(
+      "weekStartDay must be between 0 and 6",
+    );
+    expect(() => getShiftedWeekdays(weekdays, 1.5)).toThrow(
+      "weekStartDay must be between 0 and 6",
+    );
+  });
 });
 
 describe("isValidDate", () => {
@@ -125,6 +137,67 @@ describe("isValidDate", () => {
 
   test("Null Date", () => {
     expect(isValidDate(null as unknown as string)).toBe(false);
+  });
+
+  test("Out-of-range components are not silently rolled over", () => {
+    // `Date.UTC(2024, 12, 45)` used to roll forward to 2025-02-14 and report
+    // itself valid, so a typo'd frontmatter date landed on an unrelated box.
+    expect(isValidDate("2024-13-01")).toBe(false);
+    expect(isValidDate("2024-02-30")).toBe(false);
+    expect(isValidDate("2024-00-10")).toBe(false);
+    expect(isValidDate("2024-01-00")).toBe(false);
+    expect(isValidDate("2024-01-32")).toBe(false);
+  });
+
+  test("Leap day is valid in a leap year and invalid otherwise", () => {
+    expect(isValidDate("2024-02-29")).toBe(true);
+    expect(isValidDate("2023-02-29")).toBe(false);
+  });
+});
+
+describe("parseUTCDate", () => {
+  test("parses ISO dates as UTC midnight", () => {
+    expect(parseUTCDate("2024-03-10").toISOString()).toBe(
+      "2024-03-10T00:00:00.000Z",
+    );
+  });
+
+  test("accepts slash separators and single-digit components", () => {
+    expect(parseUTCDate("2024/3/9").toISOString()).toBe(
+      "2024-03-09T00:00:00.000Z",
+    );
+  });
+
+  test("returns an Invalid Date for out-of-range components", () => {
+    expect(parseUTCDate("2024-02-30").getTime()).toBeNaN();
+  });
+
+  test("returns an Invalid Date for unparseable input", () => {
+    expect(parseUTCDate("not a date").getTime()).toBeNaN();
+  });
+
+  test("returns an Invalid Date for a missing date rather than throwing", () => {
+    // Entry dates come from unvalidated user data, so `null`/`undefined` reach
+    // this despite the `string` type.
+    expect(parseUTCDate(null as unknown as string).getTime()).toBeNaN();
+    expect(parseUTCDate(undefined as unknown as string).getTime()).toBeNaN();
+    expect(parseUTCDate("").getTime()).toBeNaN();
+  });
+
+  test("keeps the written calendar day for date-only strings in other formats", () => {
+    // "12/31/2021" has no `YYYY-MM-DD` part, so it goes through `new Date`,
+    // which reads it as local midnight. Reading that back with the UTC getters
+    // shifted it to Dec 30 in every timezone ahead of UTC.
+    expect(formatDateToISO8601(parseUTCDate("12/31/2021"))).toBe("2021-12-31");
+    expect(formatDateToISO8601(parseUTCDate("Jan 5, 2024"))).toBe("2024-01-05");
+  });
+
+  test("takes the written calendar date from a full timestamp", () => {
+    // The `YYYY-MM-DD` part wins over the offset: an entry dated 2025-04-15
+    // belongs on the 15th's box regardless of what UTC would call that instant.
+    expect(formatDateToISO8601(parseUTCDate("2025-04-15T23:59:59-05:00"))).toBe(
+      "2025-04-15",
+    );
   });
 });
 
@@ -417,5 +490,24 @@ describe("resolveDateRange", () => {
     const range = resolveDateRange(undefined, undefined, undefined, 0);
     expect(formatDateToISO8601(range!.start)).toBe("2025-06-01");
     expect(formatDateToISO8601(range!.end)).toBe("2025-06-30");
+  });
+
+  it("ignores non-integer or non-finite counts instead of building an Invalid Date range", () => {
+    // `monthsToShow: Infinity` used to return `{ start: Invalid Date, end }`,
+    // which every downstream comparison then read as "no day is in range".
+    expect(
+      resolveDateRange(undefined, undefined, undefined, Infinity),
+    ).toBeNull();
+    expect(resolveDateRange(undefined, undefined, undefined, 1.5)).toBeNull();
+    expect(
+      resolveDateRange(undefined, undefined, Infinity, undefined),
+    ).toBeNull();
+    expect(resolveDateRange(undefined, undefined, 2.5, undefined)).toBeNull();
+  });
+
+  it("falls back to an explicit range when the counts are unusable", () => {
+    const range = resolveDateRange("2025-01-01", "2025-01-31", NaN, NaN);
+    expect(formatDateToISO8601(range!.start)).toBe("2025-01-01");
+    expect(formatDateToISO8601(range!.end)).toBe("2025-01-31");
   });
 });
