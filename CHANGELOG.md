@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.7.6] - 2026-08-23
+### Fixed
+- Daily notes named in a non-ISO format (e.g. `DD-MM-YYYY`) showed no data on the heatmap. Frontmatter-based entries used Dataview's `page.file.name` verbatim as the entry date, assuming it was already `YYYY-MM-DD`. `normalizeDailyNoteFileName()` now reads the vault's configured Daily Notes / Periodic Notes date format and converts the filename to canonical `YYYY-MM-DD` first. Filenames that don't match the configured format are left untouched, and any failure falls back to the original filename. Covers the `heatmap-tracker` codeblock path; the Advanced Usage dataviewjs example in the README builds entries by hand and still needs the same normalization applied manually.
+
 ## [2.7.5] - 2026-08-04
 ### Added
 - Add SupporterCard.
