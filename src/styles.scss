@@ -17,6 +17,9 @@
 @use "./styles/date-picker.scss";
 @use "./styles/heatmap-skeleton.scss";
 
+/// Every view that can host a heatmap grid. `__container` is the inner element
+/// App.tsx renders; `-container` is the outer wrapper from render.tsx and the
+/// modal. Similar names, genuinely different elements.
 .heatmap-tracker__container,
 .heatmap-tracker-legend,
 .heatmap-tracker-statistics {
@@ -28,6 +31,8 @@
   padding: 0.5em;
   overflow: hidden;
 
+  // Debug build only: outlines every wrapper and names it on hover, so the
+  // nesting is visible while working on layout.
   @if $isDev {
     div:not(.heatmap-tracker-box) {
       outline: 1px dashed red !important; /* Use outline instead of border */
@@ -111,21 +116,3 @@
 .heatmap-tracker-year-display {
   margin: 0 12px;
 }
-
-// .heatmap-tracker-boxes .month-feb.isEmpty,
-// .heatmap-tracker-boxes .month-apr.isEmpty,
-// .heatmap-tracker-boxes .month-jun.isEmpty,
-// .heatmap-tracker-boxes .month-aug.isEmpty,
-// .heatmap-tracker-boxes .month-oct.isEmpty,
-// .heatmap-tracker-boxes .month-dec.isEmpty {
-//     background: #e2e2e2 !important;
-// }
-
-// .theme-dark .heatmap-tracker-boxes .month-feb.isEmpty,
-// .theme-dark .heatmap-tracker-boxes .month-apr.isEmpty,
-// .theme-dark .heatmap-tracker-boxes .month-jun.isEmpty,
-// .theme-dark .heatmap-tracker-boxes .month-aug.isEmpty,
-// .theme-dark .heatmap-tracker-boxes .month-oct.isEmpty,
-// .theme-dark .heatmap-tracker-boxes .month-dec.isEmpty {
-//     background: #424242 !important;
-// }

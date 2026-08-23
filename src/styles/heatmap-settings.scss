@@ -1,19 +1,10 @@
 /* Settings */
 
-/* Palettes */
-.heatmap-tracker-settings-palettes__container {
-}
+/// The settings tab collapses its side-by-side controls on narrow screens.
+$narrow-screen: "screen and (max-width: 750px)";
 
-.heatmap-tracker-settings-palettes__palette-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: var(--border-width) solid var(--background-modifier-border);
-  margin-bottom: 12px;
-}
-
-.heatmap-tracker-settings-palettes__palette-container,
-.heatmap-tracker-settings-palettes__new-palette-container {
+/// The rounded panel shared by each palette block and the support section.
+@mixin settings-card {
   background-color: var(--background-primary-alt);
   border: var(--border-width) solid var(--background-modifier-border);
   border-radius: 16px;
@@ -21,32 +12,11 @@
   margin: 12px 0;
 }
 
-.heatmap-tracker-settings-palettes__new-palette-container {
-  margin-top: 24px;
-}
-.heatmap-tracker-settings-palettes__new-palette-input {
-}
-.heatmap-tracker-settings-palettes__new-palette-button {
-  margin-inline-start: 16px;
-}
-
-.heatmap-tracker-settings-palettes__palette-colors {
-  display: flex;
-  flex-direction: column;
-}
-
-.heatmap-tracker-settings-palettes__palette-color {
-  display: flex;
-  align-items: center;
-  justify-items: flex-start;
-  margin: 4px 0;
-}
-
-.heatmap-tracker-settings-palettes__color-box {
-  width: 16px;
-  min-width: 16px;
-  height: 16px;
-  margin: 0 5px;
+/// A color chip that magnifies on hover so the exact shade is readable at a
+/// size that would otherwise be too small to judge.
+@mixin color-chip($size) {
+  width: $size;
+  height: $size;
   border-radius: 4px;
   border: 1px solid #000;
   transition: transform 0.2s;
@@ -54,13 +24,66 @@
   &:hover {
     transform: scale(4);
   }
-
-  &:first-child {
-    margin-inline-start: 0;
-  }
 }
 
+/* Palettes */
 .heatmap-tracker-settings-palettes {
+  &__palette-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: var(--border-width) solid var(--background-modifier-border);
+    margin-bottom: 12px;
+  }
+
+  &__palette-container,
+  &__new-palette-container {
+    @include settings-card;
+  }
+
+  &__new-palette-container {
+    margin-top: 24px;
+  }
+
+  &__new-palette-content {
+    @media #{$narrow-screen} {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr 1fr;
+      row-gap: 8px;
+    }
+  }
+
+  &__new-palette-button {
+    margin-inline-start: 16px;
+
+    @media #{$narrow-screen} {
+      margin-left: unset;
+    }
+  }
+
+  &__palette-colors {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__palette-color {
+    display: flex;
+    align-items: center;
+    justify-items: flex-start;
+    margin: 4px 0;
+  }
+
+  &__color-box {
+    min-width: 16px;
+    margin: 0 5px;
+    @include color-chip(16px);
+
+    &:first-child {
+      margin-inline-start: 0;
+    }
+  }
+
   &__delete-color,
   &__save-color {
     cursor: pointer;
@@ -70,78 +93,51 @@
       opacity: 0.3;
     }
   }
-}
 
-.heatmap-tracker-settings-palettes__add-color-header {
-  margin: 8px 0;
-}
-
-.heatmap-tracker-settings-palettes__add-color-container {
-  display: flex;
-  flex-direction: column;
-}
-
-.heatmap-tracker-settings-palettes__add-color-input-container {
-  display: flex;
-  align-items: center;
-}
-
-.heatmap-tracker-settings-palettes__add-color-button {
-  cursor: pointer;
-  margin-inline-start: 16px;
-}
-
-.heatmap-tracker-settings-palettes__add-color-preview {
-  width: 20px;
-  height: 20px;
-  margin-inline-start: 8px;
-  border-radius: 4px;
-  border: 1px solid #000;
-  transition: transform 0.2s;
-
-  &:hover {
-    transform: scale(4);
-  }
-}
-
-@media screen and (max-width: 750px) {
-  .heatmap-tracker-settings-palettes__add-color-input-container {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    grid-template-rows: 1fr 1fr;
+  &__delete-palette {
+    cursor: pointer;
   }
 
-  .heatmap-tracker-settings-palettes__add-color-button {
-    grid-row: 2;
-    grid-column: 1/-1;
+  &__add-color-header {
     margin: 8px 0;
   }
 
-  .heatmap-tracker-settings-palettes__new-palette-content {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr 1fr;
-    row-gap: 8px;
+  &__add-color-container {
+    display: flex;
+    flex-direction: column;
   }
 
-  .heatmap-tracker-settings-palettes__new-palette-button {
-    margin-left: unset;
+  &__add-color-input-container {
+    display: flex;
+    align-items: center;
+
+    @media #{$narrow-screen} {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-rows: 1fr 1fr;
+    }
   }
-}
 
-.heatmap-tracker-settings-palettes__delete-palette {
-  cursor: pointer;
-}
+  &__add-color-button {
+    cursor: pointer;
+    margin-inline-start: 16px;
 
-.heatmap-tracker-settings-palettes__add-color-input {
+    @media #{$narrow-screen} {
+      grid-row: 2;
+      grid-column: 1/-1;
+      margin: 8px 0;
+    }
+  }
+
+  &__add-color-preview {
+    margin-inline-start: 8px;
+    @include color-chip(20px);
+  }
 }
 
 .heatmap-tracker-settings-support-section {
-  background-color: var(--background-primary-alt);
-  border: var(--border-width) solid var(--background-modifier-border);
-  border-radius: 16px;
-  padding: 0 12px 12px 12px;
-  margin: 12px 0;
+  @include settings-card;
+
   text-align: center;
 
   &__header {
@@ -156,7 +152,7 @@
     align-items: center;
     justify-content: center;
 
-    & > * {
+    > * {
       margin: 0 8px;
     }
   }

@@ -1,28 +1,129 @@
+/// The modal drops from two columns to one when it no longer fits.
+$narrow-modal: "screen and (max-width: 700px)";
+
 .heatmap-create-modal {
   width: 960px;
   max-width: 95vw;
+
+  .is-hidden {
+    display: none;
+  }
+
+  &__section-heading {
+    margin-top: 1.5em;
+    margin-bottom: 0.25em;
+    padding-bottom: 0.25em;
+    border-bottom: 1px solid var(--background-modifier-border);
+  }
+
+  &__add-property-row {
+    border: none;
+    padding-top: 0;
+  }
+
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0.25em 0 0.5em;
+  }
+
+  &__chips-empty {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+  }
+
+  &__chip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 4px 2px 10px;
+    border-radius: var(--radius-s);
+    background-color: var(--background-modifier-hover);
+    font-size: var(--font-ui-smaller);
+  }
+
+  &__chip-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    cursor: pointer;
+    color: var(--text-muted);
+
+    &:hover {
+      color: var(--text-normal);
+    }
+  }
+
+  &__color-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 0.5em;
+  }
+
+  &__color-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &__color-swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: var(--radius-s);
+    border: 1px solid var(--background-modifier-border);
+    flex-shrink: 0;
+  }
+
+  &__color-input {
+    flex: 1;
+  }
+
+  &__errors {
+    margin: 0.75em 0;
+    padding: 0.5em 0.75em;
+    border-radius: var(--radius-s);
+    border-left: 3px solid var(--text-error);
+    background-color: rgba(var(--background-modifier-error-rgb), 0.15);
+    color: var(--text-error);
+
+    // The container is always rendered; without this it would show as an
+    // empty red-bordered strip whenever there is nothing to report.
+    &:empty {
+      display: none;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 1.25em;
+    }
+  }
+
+  &__filters {
+    margin-bottom: 0.5em;
+  }
+
+  &__filter-row {
+    gap: 6px;
+
+    .setting-item-control {
+      flex-wrap: nowrap;
+      gap: 6px;
+    }
+  }
 }
 
 .heatmap-create-modal-body {
   display: flex;
   align-items: flex-start;
   gap: 2em;
-}
 
-.heatmap-create-modal-body__fields {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.heatmap-create-modal-body__preview-col {
-  flex: 0 0 380px;
-  min-width: 0;
-  position: sticky;
-  top: 0;
-}
-
-@media screen and (max-width: 700px) {
-  .heatmap-create-modal-body {
+  @media #{$narrow-modal} {
     flex-direction: column;
     // Reset the desktop row layout's cross-axis alignment: with the axes
     // swapped to column, "flex-start" would shrink each column to its
@@ -30,121 +131,25 @@
     align-items: stretch;
   }
 
-  .heatmap-create-modal-body__fields,
-  .heatmap-create-modal-body__preview-col {
-    position: static;
+  &__fields {
     flex: 1 1 auto;
-    width: 100%;
-  }
-}
-
-.heatmap-create-modal__section-heading {
-  margin-top: 1.5em;
-  margin-bottom: 0.25em;
-  padding-bottom: 0.25em;
-  border-bottom: 1px solid var(--background-modifier-border);
-}
-
-.heatmap-create-modal__add-property-row {
-  border: none;
-  padding-top: 0;
-}
-
-.heatmap-create-modal__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 0.25em 0 0.5em;
-}
-
-.heatmap-create-modal__chips-empty {
-  color: var(--text-muted);
-  font-size: var(--font-ui-smaller);
-}
-
-.heatmap-create-modal__chip {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 4px 2px 10px;
-  border-radius: var(--radius-s);
-  background-color: var(--background-modifier-hover);
-  font-size: var(--font-ui-smaller);
-}
-
-.heatmap-create-modal__chip-remove {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2px;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  cursor: pointer;
-  color: var(--text-muted);
-
-  &:hover {
-    color: var(--text-normal);
-  }
-}
-
-.heatmap-create-modal .is-hidden {
-  display: none;
-}
-
-.heatmap-create-modal__color-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 0.5em;
-}
-
-.heatmap-create-modal__color-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.heatmap-create-modal__color-swatch {
-  width: 20px;
-  height: 20px;
-  border-radius: var(--radius-s);
-  border: 1px solid var(--background-modifier-border);
-  flex-shrink: 0;
-}
-
-.heatmap-create-modal__color-input {
-  flex: 1;
-}
-
-.heatmap-create-modal__errors {
-  &:empty {
-    display: none;
+    min-width: 0;
   }
 
-  margin: 0.75em 0;
-  padding: 0.5em 0.75em;
-  border-radius: var(--radius-s);
-  border-left: 3px solid var(--text-error);
-  background-color: rgba(var(--background-modifier-error-rgb), 0.15);
-  color: var(--text-error);
-
-  ul {
-    margin: 0;
-    padding-left: 1.25em;
+  &__preview-col {
+    flex: 0 0 380px;
+    min-width: 0;
+    position: sticky;
+    top: 0;
   }
-}
 
-.heatmap-create-modal__filters {
-  margin-bottom: 0.5em;
-}
-
-.heatmap-create-modal__filter-row {
-  gap: 6px;
-
-  .setting-item-control {
-    flex-wrap: nowrap;
-    gap: 6px;
+  &__fields,
+  &__preview-col {
+    @media #{$narrow-modal} {
+      position: static;
+      flex: 1 1 auto;
+      width: 100%;
+    }
   }
 }
 

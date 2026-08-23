@@ -1,8 +1,13 @@
+@use "./shared";
+
 /* Boxes */
 .heatmap-tracker-boxes {
   display: grid;
   grid-auto-flow: column;
-  grid-template-columns: repeat(53, var(--heatmap-tracker-box-size));
+  grid-template-columns: repeat(
+    shared.$week-columns,
+    var(--heatmap-tracker-box-size)
+  );
   grid-template-rows: repeat(7, var(--heatmap-tracker-box-size));
   grid-column: 1;
   // !important guards against community CSS snippets that reset spacing
@@ -11,44 +16,44 @@
   // box split into two colors.
   row-gap: var(--heatmap-tracker-box-gap) !important;
   column-gap: var(--heatmap-tracker-box-gap) !important;
-}
 
-/* Separate Months */
+  &.separate-months {
+    grid-auto-flow: column;
+    grid-template-columns: repeat(
+      shared.$week-columns-separated,
+      var(--heatmap-tracker-box-size)
+    );
+  }
 
-.heatmap-tracker-boxes.separate-months {
-  grid-auto-flow: column;
-  grid-template-columns: repeat(64, var(--heatmap-tracker-box-size));
-}
+  .space-between-box {
+    background-color: transparent;
 
-.heatmap-tracker-boxes .space-between-box {
-  background-color: transparent;
+    &:hover {
+      transform: unset;
+      border: unset;
+      cursor: default;
+    }
+  }
 
-  &:hover {
-    transform: unset;
-    border: unset;
-    cursor: default;
+  .internal-link {
+    text-decoration: none;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+  }
+
+  .with-border {
+    border: solid var(--border-width) rgb(61, 61, 61);
   }
 }
 
-.heatmap-tracker-boxes .internal-link {
-  text-decoration: none;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  text-align: center;
-}
+.theme-dark .heatmap-tracker-boxes {
+  .with-border {
+    border: solid var(--border-width) white;
+  }
 
-.heatmap-tracker-boxes .today {
-}
-
-.heatmap-tracker-boxes .with-border {
-  border: solid var(--border-width) rgb(61, 61, 61);
-}
-
-.theme-dark .heatmap-tracker-boxes .with-border {
-  border: solid var(--border-width) white;
-}
-
-.theme-dark .heatmap-tracker-boxes .isEmpty {
-  background: #333;
+  .isEmpty {
+    background: #333;
+  }
 }

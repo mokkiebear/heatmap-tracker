@@ -1,28 +1,33 @@
+@use "./shared";
+
 /* Week Numbers */
 .heatmap-tracker-week-nums {
   display: grid;
   grid-auto-flow: column;
-  grid-template-columns: repeat(53, var(--heatmap-tracker-box-size));
-  /* grid-column: 1; removed to allow natural positioning in flex/grid containers */
+  grid-template-columns: repeat(
+    shared.$week-columns,
+    var(--heatmap-tracker-box-size)
+  );
   margin: 4px 0 2px;
-  grid-gap: 0;
+  /* Columns match the boxes grid; rows never gap, there is only one. */
+  gap: 0 var(--heatmap-tracker-box-gap);
   justify-items: center;
   font-size: 0.8em;
   color: var(--text-muted);
 
-  /* Match the gap from boxes */
-  column-gap: var(--heatmap-tracker-box-gap);
-}
+  &.separate-months {
+    grid-template-columns: repeat(
+      shared.$week-columns-separated,
+      var(--heatmap-tracker-box-size)
+    );
+  }
 
-.heatmap-tracker-week-nums.separate-months {
-  grid-template-columns: repeat(64, var(--heatmap-tracker-box-size));
-}
-
-.heatmap-tracker-week-nums div {
-  width: var(--heatmap-tracker-box-size);
-  text-align: center;
-  /* Ensure number is centered if box size is small */
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  div {
+    width: var(--heatmap-tracker-box-size);
+    /* Centred both ways so the number stays put at small box sizes. */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
 }

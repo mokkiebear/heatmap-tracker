@@ -3,10 +3,11 @@
   font-size: 0.75em;
   border-radius: 2px;
   background-color: #ebedf0;
+  aspect-ratio: 1;
   transition:
     transform 0.2s,
     border 0.2s;
-  aspect-ratio: 1;
+
   // Other community plugins (e.g. Meta Data Menu) decorate internal links
   // with their own icons/buttons. Without containment, an oversized
   // injected element blows out the box and breaks the whole grid layout.
@@ -31,14 +32,12 @@
     // The magnified box would otherwise be clipped by its neighbours.
     z-index: 1;
   }
-}
 
-.heatmap-tracker-box:not(.task-list-item)::before {
-  content: unset;
-}
+  &:not(.task-list-item)::before {
+    content: unset;
+  }
 
-@media (prefers-reduced-motion: reduce) {
-  .heatmap-tracker-box {
+  @media (prefers-reduced-motion: reduce) {
     transition: none;
 
     &:hover,

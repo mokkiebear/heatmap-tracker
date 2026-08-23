@@ -5,13 +5,18 @@
   display: flex;
   align-items: stretch;
   padding: 12px;
-}
 
-.heatmap-tracker-skeleton__block {
-  flex: 1;
-  border-radius: var(--radius-s);
-  background-color: var(--background-modifier-hover);
-  animation: heatmap-tracker-skeleton-pulse 1.4s ease-in-out infinite;
+  &__block {
+    flex: 1;
+    border-radius: var(--radius-s);
+    background-color: var(--background-modifier-hover);
+    animation: heatmap-tracker-skeleton-pulse 1.4s ease-in-out infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+      opacity: 0.6;
+    }
+  }
 }
 
 @keyframes heatmap-tracker-skeleton-pulse {
@@ -21,12 +26,5 @@
   }
   50% {
     opacity: 0.9;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .heatmap-tracker-skeleton__block {
-    animation: none;
-    opacity: 0.6;
   }
 }

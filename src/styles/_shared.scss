@@ -1,0 +1,9 @@
+/// Week columns in the standard year grid.
+///
+/// The day-boxes grid and the week-number row above it are separate grids that
+/// have to agree on their column count, or the numbers stop lining up with the
+/// weeks they label. Both read these, so the two can't drift apart.
+$week-columns: 53;
+
+/// Same, plus the blank columns `separate-months` inserts between months.
+$week-columns-separated: 64;

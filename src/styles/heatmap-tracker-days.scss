@@ -16,27 +16,23 @@
     margin: 2px 0 4px;
   }
 
-  &--even {
-    div:nth-child(odd) {
-      visibility: hidden;
-    }
+  // Label density. The column is too tight to show all seven names at small
+  // box sizes, so the user picks how many to show. These hide with
+  // `visibility`, not `display`, so every label keeps its row and the names
+  // stay aligned with the box grid beside them.
+  &--even div:nth-child(odd) {
+    visibility: hidden;
   }
 
-  &--odd {
-    div:nth-child(even) {
-      visibility: hidden;
-    }
+  &--odd div:nth-child(even) {
+    visibility: hidden;
   }
 
-  &--all {
-    div {
-      visibility: visible;
-    }
+  &--all div {
+    visibility: visible;
   }
 
-  &--none {
-    div {
-      visibility: hidden;
-    }
+  &--none div {
+    visibility: hidden;
   }
 }

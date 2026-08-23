@@ -1,80 +1,80 @@
+/// The header collapses to a stacked layout on narrow screens.
+$narrow-screen: "screen and (max-width: 750px)";
+
 .heatmap-tracker-header {
   display: grid;
   grid-template-columns: 1fr;
   grid-auto-rows: 1fr;
   align-items: center;
-}
 
-.heatmap-tracker-header__main-row {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  font-size: 0.65em;
-}
+  &__main-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    font-size: 0.65em;
 
-.heatmap-tracker-header__sub-row {
-  display: grid;
-  grid-template-columns: 1fr 5fr 1fr;
-  align-items: center;
-}
-
-.heatmap-tracker-header__subtitle {
-  grid-column: 2/3;
-  font-size: 0.7em;
-  text-align: center;
-}
-
-.heatmap-tracker-header__navigation {
-  display: flex;
-  align-items: center;
-  direction: ltr; /* Force LTR to keep [Decrease] [Year] [Increase] order regardless of system direction */
-  justify-self: start; /* Ensure it stays on the left in LTR and correctly flips to the right in RTL (logical start) */
-  width: max-content;
-}
-
-.heatmap-tracker-header__title {
-  font-size: 1.2em;
-  text-align: center;
-}
-
-@media screen and (max-width: 750px) {
-  .heatmap-tracker-header__main-row {
-    grid-template-rows: 1fr 1fr 1fr;
-    grid-template-columns: 1fr 1fr 1fr;
-    justify-items: center;
+    @media #{$narrow-screen} {
+      grid-template-rows: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
+      justify-items: center;
+    }
   }
 
-  .heatmap-tracker-header__navigation {
-    grid-row: 3;
-    grid-column: 2;
+  &__sub-row {
+    display: grid;
+    grid-template-columns: 1fr 5fr 1fr;
+    align-items: center;
   }
 
-  .heatmap-tracker-header__title {
-    grid-column: 1/-1;
-    grid-row: 2;
-  }
-
-  .heatmap-tracker-header__tabs {
-    grid-row: 1;
-    grid-column: 2;
-  }
-
-  .heatmap-tracker-header__subtitle {
-    grid-column: 1/-1;
+  &__subtitle {
+    grid-column: 2/3;
     font-size: 0.7em;
     text-align: center;
+
+    @media #{$narrow-screen} {
+      grid-column: 1/-1;
+    }
   }
-}
 
-/* Tabs */
-.heatmap-tracker-header__tabs {
-  display: flex;
-  justify-self: flex-end;
-  position: relative;
-}
+  &__navigation {
+    display: flex;
+    align-items: center;
+    /* Force LTR to keep [Decrease] [Year] [Increase] order regardless of system direction */
+    direction: ltr;
+    /* Ensure it stays on the left in LTR and correctly flips to the right in RTL (logical start) */
+    justify-self: start;
+    width: max-content;
 
-.heatmap-tracker-header__tabs > *:not(:last-child) {
-  margin-inline-end: 0.2em;
+    @media #{$narrow-screen} {
+      grid-row: 3;
+      grid-column: 2;
+    }
+  }
+
+  &__title {
+    font-size: 1.2em;
+    text-align: center;
+
+    @media #{$narrow-screen} {
+      grid-column: 1/-1;
+      grid-row: 2;
+    }
+  }
+
+  &__tabs {
+    display: flex;
+    justify-self: flex-end;
+    position: relative;
+
+    > *:not(:last-child) {
+      margin-inline-end: 0.2em;
+    }
+
+    @media #{$narrow-screen} {
+      grid-row: 1;
+      grid-column: 2;
+    }
+  }
 }
 
 .heatmap-tracker-tab {

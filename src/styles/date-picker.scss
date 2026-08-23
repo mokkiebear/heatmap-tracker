@@ -1,3 +1,15 @@
+/// Strips Obsidian's default button chrome.
+///
+/// The panel's controls are `<button>`s for accessibility and click handling,
+/// not for their appearance — they should read as parts of the calendar, not as
+/// buttons. `!important` is load-bearing: a plain reset loses to the theme's own
+/// button styling.
+@mixin unstyled-button {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
 .date-picker {
   position: relative;
   display: inline-block;
@@ -24,21 +36,13 @@
     width: 96px;
   }
 
-  // The calendar icon should read as part of the input box it sits in, not
-  // as its own button — Obsidian's default button chrome (background,
-  // shadow, padding box) needs `!important` to actually go away here, since
-  // a plain reset without it gets overridden by the theme's own button
-  // styling. Same reasoning applies to every other "flat" control below
-  // (nav/label/action buttons, day/month/year cells): a `<button>` is used
-  // for accessibility and click handling, not for its default appearance.
   &__calendar-btn {
+    @include unstyled-button;
+
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
     padding: 0 !important;
     color: var(--text-muted);
     cursor: pointer;
@@ -76,12 +80,11 @@
   }
 
   &__nav-btn {
+    @include unstyled-button;
+
     display: flex;
     align-items: center;
     justify-content: center;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
     border-radius: var(--radius-s) !important;
     padding: 0.3em !important;
     color: var(--text-muted);
@@ -94,10 +97,9 @@
   }
 
   &__label-btn {
+    @include unstyled-button;
+
     flex: 1;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
     padding: 0.2em !important;
     border-radius: var(--radius-s) !important;
     font-weight: 600;
@@ -139,9 +141,8 @@
 
   &__day,
   &__cell {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
+    @include unstyled-button;
+
     padding: 0.4em 0 !important;
     border-radius: var(--radius-s) !important;
     font-size: 0.8em;
@@ -156,11 +157,9 @@
       color: var(--text-faint);
     }
 
-    &.is-today {
-      color: var(--text-accent);
-      font-weight: 600;
-    }
-
+    // `is-today` marks the real current day in the day grid; `is-current`
+    // marks the month/year the panel is showing. Same emphasis, both.
+    &.is-today,
     &.is-current {
       color: var(--text-accent);
       font-weight: 600;
@@ -185,9 +184,8 @@
   }
 
   &__action {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
+    @include unstyled-button;
+
     padding: 0.2em 0.4em !important;
     border-radius: var(--radius-s) !important;
     font-size: 0.8em;

@@ -4,7 +4,7 @@
   grid-template-columns: repeat(12, 1fr);
   grid-column: 1;
   margin: 2px 0 4px;
-  grid-gap: 0.3em;
+  gap: 0.3em;
   justify-items: center;
   line-height: var(--heatmap-tracker-months-height);
 }

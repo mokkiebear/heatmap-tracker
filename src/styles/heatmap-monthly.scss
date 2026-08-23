@@ -7,6 +7,7 @@
 
 .monthly-heatmap-grid {
   display: grid;
+  // A label column, then one column per day of the longest month.
   grid-template-columns: auto repeat(31, minmax(0, 1fr));
   gap: 1px;
   align-items: center;
@@ -35,9 +36,11 @@
 }
 
 .monthly-heatmap .heatmap-tracker-box {
+  // Cells here are fluid rather than a fixed box size, so they fill the column.
   aspect-ratio: 1;
   width: 100%;
 
+  // Magnifying would overflow the tightly packed month row; dim instead.
   &:hover {
     transform: none;
     opacity: 0.75;

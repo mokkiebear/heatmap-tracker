@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.7.8] - 2026-08-23
+### Changed
+Cleanup pass over `src/styles/`. No functional change — verified by compiling the stylesheet before and after and comparing the normalised rule sets: 221 rules, same selectors, same declarations on both sides. The only two differences are the `grid-gap` modernisations noted below.
+
+- Deleted code that produced no CSS at all: five empty rulesets (`.heatmap-statistics`, `.heatmap-tracker-boxes .today`, and three in the palette settings) and 17 lines of commented-out rules at the bottom of `styles.scss`.
+- The `53`/`64` week-column counts were hardcoded in both `heatmap-tracker-boxes.scss` and `heatmap-tracker-week-nums.scss`. These two grids sit on top of each other and have to agree or the week numbers stop lining up with the weeks they label; they now share `$week-columns` / `$week-columns-separated` from a new `_shared.scss`.
+- `date-picker.scss` repeated the same three-property `!important` button reset in five places. Extracted as an `unstyled-button` mixin, with the explanation of why `!important` is needed attached to the mixin rather than to one arbitrary use of it. Its `.is-today` and `.is-current` rules were identical and are now one selector.
+- `heatmap-export.scss` repeated a six-selector list verbatim for `.is-excluded` and `.is-hidden`, which differ only in opacity. Extracted as a `dim-row-controls($opacity)` mixin.
+- `heatmap-settings.scss` had the same five-declaration card panel written out for the palette containers and the support section, and the same magnify-on-hover color chip written out at two sizes. Both are now mixins.
+- `grid-gap` (a deprecated alias for `gap`) replaced with `gap` in the months grid. In the week-numbers grid, `grid-gap: 0` immediately followed by a `column-gap` override collapsed into a single `gap: 0 var(--heatmap-tracker-box-gap)`.
+- Dropped a comment describing a declaration that had already been removed, and reworded a few others to say why rather than what.
+- Every file now uses `&__element` nesting rather than repeating the block name on each rule, and the responsive rules live inside the block they modify instead of in a separate `@media` slab at the bottom of the file. `heatmap-tracker-header.scss` and `heatmap-settings.scss` gain the most: their breakpoint overrides used to sit dozens of lines away from the rules they override. The breakpoints themselves are named (`$narrow-screen`, `$narrow-modal`) instead of being repeated as literals.
+- The narrow-screen override for `.heatmap-tracker-header__subtitle` re-declared `font-size: 0.7em` and `text-align: center`, both identical to the base rule. Removed; only `grid-column` actually changes at that breakpoint.
+
 ## [2.7.7] - 2026-08-23
 ### Fixed
 Stabilization pass over `src/utils/`. Each item was reproduced with a failing test first; the suite grew from 328 to 548 tests and runs clean in UTC, `America/New_York` and `Asia/Tokyo`.

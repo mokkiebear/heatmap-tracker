@@ -1,11 +1,11 @@
 .heatmap-tracker-footer {
   padding: 0.2em 0;
-}
 
-.heatmap-tracker-footer__important {
-  font-size: 0.7em;
-  display: flex;
-  align-items: center;
-  column-gap: 4px;
-  justify-content: center;
+  &__important {
+    font-size: 0.7em;
+    display: flex;
+    align-items: center;
+    column-gap: 4px;
+    justify-content: center;
+  }
 }

@@ -60,6 +60,22 @@
   }
 }
 
+/// Dims a legend row's controls by $opacity.
+///
+/// The color swatch is deliberately left out: it has to stay at full color so
+/// the user can still tell what the row represents while it's dimmed.
+@mixin dim-row-controls($opacity) {
+  .heatmap-legend-modal__handle,
+  .heatmap-legend-modal__color-text,
+  .heatmap-legend-modal__label-input,
+  .heatmap-legend-modal__value-input,
+  .heatmap-legend-modal__weight-input,
+  .heatmap-legend-modal__include-toggle {
+    opacity: $opacity;
+    transition: opacity 0.15s ease;
+  }
+}
+
 .heatmap-legend-modal {
   &__hint {
     color: var(--text-muted);
@@ -108,33 +124,14 @@
       border-top-color: var(--interactive-accent);
     }
 
-    // Dim everything except the color swatch when excluded from the
-    // summary — the swatch needs to stay at full color so the user can
-    // still tell what it represents even while it's hidden elsewhere.
+    // Excluded from the summary only.
     &.is-excluded {
-      .heatmap-legend-modal__handle,
-      .heatmap-legend-modal__color-text,
-      .heatmap-legend-modal__label-input,
-      .heatmap-legend-modal__value-input,
-      .heatmap-legend-modal__weight-input,
-      .heatmap-legend-modal__include-toggle {
-        opacity: 0.55;
-        transition: opacity 0.15s ease;
-      }
+      @include dim-row-controls(0.55);
     }
 
-    // Hidden entirely (from both the legend and the summary) - a heavier dim
-    // than is-excluded's "summary-only" hide, same swatch exemption.
+    // Out of both the legend and the summary — dims harder to say so.
     &.is-hidden {
-      .heatmap-legend-modal__handle,
-      .heatmap-legend-modal__color-text,
-      .heatmap-legend-modal__label-input,
-      .heatmap-legend-modal__value-input,
-      .heatmap-legend-modal__weight-input,
-      .heatmap-legend-modal__include-toggle {
-        opacity: 0.3;
-        transition: opacity 0.15s ease;
-      }
+      @include dim-row-controls(0.3);
     }
   }
 
