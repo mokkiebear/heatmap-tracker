@@ -1,3 +1,19 @@
+/// Keeps a fluid-width cell visible where `aspect-ratio` is unsupported
+/// (iOS Safari before 15; this plugin is not desktop-only).
+///
+/// These cells take their width from the grid column and their height from
+/// `aspect-ratio` alone, so without it they collapse to nothing and the whole
+/// month renders as a row of thin lines. The floor is not square, but it is
+/// legible, and browsers that do support `aspect-ratio` never see it.
+///
+/// The year grid does not need this: its rows are a fixed
+/// `--heatmap-tracker-box-size`, so those boxes are sized by the grid itself.
+@mixin square-fallback {
+  @supports not (aspect-ratio: 1) {
+    min-height: var(--heatmap-tracker-box-size);
+  }
+}
+
 .heatmap-tracker.monthly-heatmap {
   display: block;
   width: 100%;
@@ -17,7 +33,7 @@
   text-align: right;
   padding-right: 0.4em;
   font-size: clamp(0.55em, 1.5vw, 0.75em);
-  font-weight: 600;
+  font-weight: var(--font-semibold);
   white-space: nowrap;
 }
 
@@ -33,12 +49,16 @@
 .monthly-heatmap-empty {
   aspect-ratio: 1;
   width: 100%;
+
+  @include square-fallback;
 }
 
 .monthly-heatmap .heatmap-tracker-box {
   // Cells here are fluid rather than a fixed box size, so they fill the column.
   aspect-ratio: 1;
   width: 100%;
+
+  @include square-fallback;
 
   // Magnifying would overflow the tightly packed month row; dim instead.
   &:hover {

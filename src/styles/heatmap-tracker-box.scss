@@ -1,8 +1,26 @@
+/// The magnified state shared by hover and focus.
+@mixin magnified {
+  transform: scale(1.4);
+  // Themed so the outline stays visible on dark themes too.
+  border: solid var(--border-width) var(--background-modifier-border-hover);
+  cursor: pointer;
+}
+
+/// The keyboard focus ring.
+@mixin focus-ring {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: 1px;
+  // The magnified box would otherwise be clipped by its neighbours.
+  z-index: 1;
+}
+
 .heatmap-tracker-box {
   position: relative;
   font-size: 0.75em;
   border-radius: 2px;
-  background-color: #ebedf0;
+  // Theme-aware: light in a light theme, dark in a dark one, so the empty
+  // grid reads as part of Obsidian rather than a GitHub screenshot pasted in.
+  background-color: var(--color-base-30);
   aspect-ratio: 1;
   transition:
     transform 0.2s,
@@ -14,23 +32,29 @@
   overflow: hidden;
   contain: layout paint;
 
+  // `:focus-visible` is kept in its own rule rather than merged into the lists
+  // below. A selector list is all-or-nothing: on a WebView that doesn't know
+  // `:focus-visible` (iOS Safari before 15.4, and this plugin is not
+  // desktop-only) one unknown selector invalidates the whole rule, so a merged
+  // list would silently take the hover and focus-within styles down with it.
+
   // Keyboard users get the same magnified state as the mouse, otherwise the
   // hover affordance is unreachable without a pointer.
   &:hover,
-  &:focus-visible,
   &:focus-within {
-    transform: scale(1.4);
-    // Themed so the outline stays visible on dark themes too.
-    border: solid var(--border-width) var(--background-modifier-border-hover);
-    cursor: pointer;
+    @include magnified;
   }
 
-  &:focus-visible,
+  &:focus-visible {
+    @include magnified;
+  }
+
   &:focus-within {
-    outline: 2px solid var(--interactive-accent);
-    outline-offset: 1px;
-    // The magnified box would otherwise be clipped by its neighbours.
-    z-index: 1;
+    @include focus-ring;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
   }
 
   &:not(.task-list-item)::before {
@@ -41,8 +65,11 @@
     transition: none;
 
     &:hover,
-    &:focus-visible,
     &:focus-within {
+      transform: none;
+    }
+
+    &:focus-visible {
       transform: none;
     }
   }

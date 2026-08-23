@@ -18,7 +18,7 @@
     display: flex;
     align-items: center;
     gap: 0.25em;
-    border: 1px solid var(--background-modifier-border);
+    border: var(--border-width) solid var(--background-modifier-border);
     border-radius: var(--radius-s);
     background: var(--background-primary);
     padding: 0 0.4em;
@@ -62,7 +62,7 @@
     gap: 0.5em;
     width: 248px;
     padding: 0.75em;
-    border: 1px solid var(--background-modifier-border);
+    border: var(--border-width) solid var(--background-modifier-border);
     border-radius: var(--radius-m);
     background: var(--background-primary);
     box-shadow: var(--shadow-s);
@@ -102,7 +102,7 @@
     flex: 1;
     padding: 0.2em !important;
     border-radius: var(--radius-s) !important;
-    font-weight: 600;
+    font-weight: var(--font-semibold);
     font-size: 0.95em;
     text-align: center;
     cursor: pointer;
@@ -126,7 +126,7 @@
 
   &__grid {
     display: grid;
-    gap: 2px;
+    gap: var(--size-2-1);
 
     &--days {
       grid-template-columns: repeat(7, 1fr);
@@ -135,7 +135,7 @@
     &--months,
     &--years {
       grid-template-columns: repeat(3, 1fr);
-      gap: 4px;
+      gap: var(--size-4-1);
     }
   }
 
@@ -162,13 +162,13 @@
     &.is-today,
     &.is-current {
       color: var(--text-accent);
-      font-weight: 600;
+      font-weight: var(--font-semibold);
     }
 
     &.is-selected {
       background: var(--interactive-accent) !important;
       color: var(--text-on-accent);
-      font-weight: 600;
+      font-weight: var(--font-semibold);
     }
   }
 
@@ -179,7 +179,7 @@
   &__footer {
     display: flex;
     justify-content: space-between;
-    border-top: 1px solid var(--background-modifier-border);
+    border-top: var(--border-width) solid var(--background-modifier-border);
     padding-top: 0.5em;
   }
 

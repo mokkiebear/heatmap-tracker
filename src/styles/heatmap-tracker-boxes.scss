@@ -44,16 +44,8 @@
   }
 
   .with-border {
-    border: solid var(--border-width) rgb(61, 61, 61);
-  }
-}
-
-.theme-dark .heatmap-tracker-boxes {
-  .with-border {
-    border: solid var(--border-width) white;
-  }
-
-  .isEmpty {
-    background: #333;
+    // `--text-normal` inverts with the theme, so the current-day ring stays
+    // legible on both without a separate dark-theme rule.
+    border: solid var(--border-width) var(--text-normal);
   }
 }

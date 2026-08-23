@@ -54,7 +54,7 @@
   &__preview {
     width: 100%;
     min-height: 420px;
-    border: 1px solid var(--background-modifier-border);
+    border: var(--border-width) solid var(--background-modifier-border);
     border-radius: var(--radius-s);
     background: var(--background-primary);
   }
@@ -79,7 +79,7 @@
 .heatmap-legend-modal {
   &__hint {
     color: var(--text-muted);
-    font-size: 0.9em;
+    font-size: var(--font-ui-small);
     margin-bottom: 0.75em;
 
     &--italic {
@@ -89,7 +89,7 @@
 
   &__footnote {
     color: var(--text-muted);
-    font-size: 0.8em;
+    font-size: var(--font-ui-smaller);
     font-style: italic;
     margin: 0.5em 0 0.75em;
   }
@@ -154,16 +154,16 @@
   &__swatch {
     width: 20px;
     height: 20px;
-    border-radius: 4px;
+    border-radius: var(--radius-s);
     flex-shrink: 0;
-    border: 1px solid var(--background-modifier-border);
+    border: var(--border-width) solid var(--background-modifier-border);
   }
 
   &__color-text {
     width: 100px;
     flex-shrink: 0;
     color: var(--text-muted);
-    font-size: 0.9em;
+    font-size: var(--font-ui-small);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -178,8 +178,8 @@
   &__gradient-strip-swatch {
     width: 14px;
     height: 20px;
-    border-radius: 3px;
-    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    border: var(--border-width) solid var(--background-modifier-border);
   }
 
   &__gear-button {
@@ -202,7 +202,7 @@
 
   &__empty {
     color: var(--text-muted);
-    font-size: 0.9em;
+    font-size: var(--font-ui-small);
   }
 
   &__button-row {

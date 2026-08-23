@@ -2,16 +2,16 @@
   &__maintenance-border {
     background: repeating-linear-gradient(
       45deg,
-      rgb(151, 190, 90),
-      rgb(151, 190, 90) 35px,
-      rgb(255, 232, 197) 35px,
-      rgb(255, 232, 197) 70px
+      var(--color-green),
+      var(--color-green) 35px,
+      var(--color-yellow) 35px,
+      var(--color-yellow) 70px
     );
-    padding: 8px;
+    padding: var(--size-4-2);
   }
 
   &__container {
     background-color: var(--background-primary-alt);
-    padding: 8px;
+    padding: var(--size-4-2);
   }
 }

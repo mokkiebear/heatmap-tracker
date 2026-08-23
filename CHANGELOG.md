@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.7.9] - 2026-08-23
+### Fixed
+- **On iOS Safari before 15.4, day boxes had no hover or focus styling at all.** The three rules that style the boxes each listed `:hover`, `:focus-visible` and `:focus-within` together, and a CSS selector list is all-or-nothing — one selector the browser doesn't recognise invalidates the entire rule. `:focus-visible` arrived in Safari 15.4, so on anything older the hover magnification, the focus ring and the reduced-motion opt-out were all silently dropped along with it. `:focus-visible` now sits in its own rule, so it can fail on its own without taking the others with it. Desktop and modern mobile render exactly as before.
+- **The monthly layout collapsed to a row of thin lines where `aspect-ratio` is unsupported** (iOS Safari before 15). Those cells take their width from the grid column and their height from `aspect-ratio` alone, so without it they had no height. They now fall back to a `min-height` of one box size behind `@supports not (aspect-ratio: 1)` — not square, but legible. The year grid never had this problem: its rows are a fixed height, so the grid sizes those boxes itself.
+
+### Changed
+- **The plugin now styles itself from Obsidian's own design tokens** instead of hardcoded values, so it follows the user's theme — including custom themes — rather than approximating the default one. Distinct Obsidian variables in use went from 22 to 34.
+  - The empty-day colour was a hardcoded `#ebedf0` with a `.theme-dark` rule swapping it to `#333`. It is now `--color-base-30`, which is `#e4e4e4` in the default light theme and `#333333` in dark — the dark value is identical to what was there before, and light shifts imperceptibly while losing its fixed blue tint. The current-day ring was `rgb(61, 61, 61)` with a `.theme-dark` override to `white`; it is now `--text-normal`, which inverts on its own. **Both `.theme-dark` override rules are deleted** — the theme no longer needs special-casing.
+  - Palette swatches were outlined in pure `#000`, a colour no Obsidian theme uses; they now use `--background-modifier-border`.
+  - The breaking-changes hazard stripe used two fixed RGB values; it now uses `--color-green` and `--color-yellow`.
+  - Radii, spacing, border widths and font weights map onto `--radius-*`, `--size-*`, `--border-width` and `--font-semibold`. Sixty of these are exact same-pixel swaps with no visual change; the only measurable shifts are one swatch radius (3px to 4px, matching the swatch beside it) and four legend-modal text sizes moving from `em` values onto `--font-ui-small`/`--font-ui-smaller`, which is what the surrounding Obsidian UI uses.
+  - Two things were deliberately left alone: the 2px radius on day boxes (`--radius-s` is 4px, too round for a 12px cell — a design decision, not an oversight), and the heatmap's `em`-based type scale, which is proportional on purpose so the whole grid scales together.
+
+Both were found while checking whether `lightningcss` would help this project. It would not — it saves 249 bytes (1.2%, 49 gzipped) over the existing esbuild minifier and adds no vendor prefixes at all for this stylesheet, even targeting iOS Safari 14. These two issues are feature-support gaps, which no prefixer or transpiler can fix.
+
 ## [2.7.8] - 2026-08-23
 ### Changed
 Cleanup pass over `src/styles/`. No functional change — verified by compiling the stylesheet before and after and comparing the normalised rule sets: 221 rules, same selectors, same declarations on both sides. The only two differences are the `grid-gap` modernisations noted below.
