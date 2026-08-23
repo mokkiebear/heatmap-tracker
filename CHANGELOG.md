@@ -5,6 +5,8 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+## [2.7.7] - 2026-08-23
 ### Fixed
 Stabilization pass over `src/utils/`. Each item was reproduced with a failing test first; the suite grew from 328 to 548 tests and runs clean in UTC, `America/New_York` and `Asia/Tokyo`.
 
