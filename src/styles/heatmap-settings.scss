@@ -156,4 +156,14 @@ $narrow-screen: "screen and (max-width: 750px)";
       margin: 0 var(--size-4-2);
     }
   }
+
+  &__buymeacoffee-image {
+    width: 150px;
+    height: 42px;
+  }
+
+  &__kofi-image {
+    height: 36px;
+    border: 0;
+  }
 }

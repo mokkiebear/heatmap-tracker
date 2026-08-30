@@ -164,14 +164,37 @@ export default class HeatmapTrackerSettingsTab extends PluginSettingTab {
       cls: "heatmap-tracker-settings-support-section__options",
     });
 
-    const buyMeACoffee =
-      '<a href="https://www.buymeacoffee.com/mrubanau" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 42px !important;width: 150px !important;" ></a>';
     const buyMeACoffeeContainer = supportSectionOptions.createEl("div");
-    buyMeACoffeeContainer.innerHTML = buyMeACoffee;
+    const buyMeACoffeeLink = buyMeACoffeeContainer.createEl("a", {
+      attr: {
+        href: "https://www.buymeacoffee.com/mrubanau",
+        target: "_blank",
+        rel: "noopener noreferrer",
+      },
+    });
+    buyMeACoffeeLink.createEl("img", {
+      cls: "heatmap-tracker-settings-support-section__buymeacoffee-image",
+      attr: {
+        src: "https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png",
+        alt: "Buy Me A Coffee",
+      },
+    });
 
-    const kofi = `<a href='https://ko-fi.com/X8X11E578R' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>`;
     const kofiContainer = supportSectionOptions.createEl("div");
-    kofiContainer.innerHTML = kofi;
+    const kofiLink = kofiContainer.createEl("a", {
+      attr: {
+        href: "https://ko-fi.com/X8X11E578R",
+        target: "_blank",
+        rel: "noopener noreferrer",
+      },
+    });
+    kofiLink.createEl("img", {
+      cls: "heatmap-tracker-settings-support-section__kofi-image",
+      attr: {
+        src: "https://storage.ko-fi.com/cdn/kofi6.png?v=6",
+        alt: "Buy Me a Coffee at ko-fi.com",
+      },
+    });
   }
 
   display() {

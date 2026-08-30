@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.7.11] - 2026-08-30
+### Changed
+- **The two support buttons in settings are built from DOM calls instead of an HTML string.** The Buy Me a Coffee and Ko-fi links were assigned to `innerHTML` as raw markup, which a static scanner flags as an unsafe sink even though both strings are literals with nothing interpolated into them. They are now created with `createEl("a")` / `createEl("img")` and their attributes passed through `attr`, so no HTML is parsed at runtime. The rendered markup is unchanged apart from two additions: the inline `style` attributes moved into `.heatmap-tracker-settings-support-section__buymeacoffee-image` and `__kofi-image` in the settings stylesheet (dropping the `!important` the inline sizing needed), and both external links gained `rel="noopener noreferrer"`.
+
 ## [2.7.10] - 2026-08-23
 ### Changed
 - **The heatmap grid is now laid out by one algorithm instead of two.** `getBoxes` (the live year grid) and `placeDays` (the exported HTML) each carried their own copy of the same day-placement rule — same start offset, same whole-week jump before each month — and the code said so in a comment rather than sharing the code. A month-boundary fix in one would have left the export silently disagreeing with what the user sees on screen. Both now call `placeDays` from a new `src/utils/grid.ts`; `getBoxes` just materialises the slots it returns into boxes, and `countWeeksInRange` is a thin wrapper over `countWeeks`. Net 53 lines lighter, with a test asserting that every dated box in the live grid sits at exactly the slot the exporter would place it in, across five year / week-start / separate-months combinations. Verified by mutation: breaking the gap fill or the month-split width fails that test.
