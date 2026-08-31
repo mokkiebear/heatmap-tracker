@@ -256,7 +256,7 @@ describe("PaletteSettings", () => {
     expect(settings.display).toHaveBeenCalledTimes(2);
   });
 
-  it("should add new colors via the add-color section", () => {
+  it("should add new colors via the add-color section", async () => {
     const { container, plugin, settings } = renderPaletteSettings();
     const customPalette = getPaletteContainer(container, "custom");
 
@@ -276,6 +276,7 @@ describe("PaletteSettings", () => {
     expect(preview.style.backgroundColor).toBe(newColor);
 
     addButton.click();
+    await flushPromises();
 
     expect(plugin.settings.palettes.custom).toEqual([
       "rgb(20, 20, 20)",

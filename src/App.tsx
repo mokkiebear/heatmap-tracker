@@ -29,7 +29,11 @@ function ReactApp() {
   const { currentYear, settings, view, trackerData } = useHeatmapContext();
 
   useEffect(() => {
-    i18n.changeLanguage(settings.language);
+    // Resources are bundled, so this only rejects if i18next itself is broken;
+    // surface that instead of losing it to an unhandled rejection.
+    i18n.changeLanguage(settings.language).catch((error) => {
+      console.error("Heatmap Tracker: could not switch language.", error);
+    });
   }, [settings]);
 
   let content;

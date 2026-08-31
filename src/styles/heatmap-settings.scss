@@ -141,6 +141,7 @@ $narrow-screen: "screen and (max-width: 750px)";
   text-align: center;
 
   &__header {
+    border-top: none;
     border-bottom: var(--border-width) solid var(--background-modifier-border);
     margin-bottom: 12px;
     padding-bottom: var(--size-4-3);

@@ -63,17 +63,36 @@ jest.mock("obsidian", () => {
 
     name?: string;
     desc?: string;
+    isHeading = false;
+    settingEl: HTMLElement;
+    nameEl: HTMLElement;
     dropdowns: MockDropdown[] = [];
     toggles: MockToggle[] = [];
 
     constructor(public containerEl: HTMLElement) {
       this.dropdowns = [];
       this.toggles = [];
+      // Mirrors the real Setting: the element is appended on construction, so
+      // headings keep their position relative to sibling markup.
+      this.settingEl = containerEl.createDiv({ cls: "setting-item" });
+      this.nameEl = this.settingEl.createDiv({ cls: "setting-item-name" });
       MockSetting.instances.push(this);
     }
 
     setName(name: string) {
       this.name = name;
+      this.nameEl.textContent = name;
+      return this;
+    }
+
+    setHeading() {
+      this.isHeading = true;
+      this.settingEl.classList.add("setting-item-heading");
+      return this;
+    }
+
+    setClass(cls: string) {
+      this.settingEl.classList.add(cls);
       return this;
     }
 
@@ -118,7 +137,7 @@ jest.mock("src/localization/i18n", () => ({
   __esModule: true,
   default: {
     t: jest.fn((key: string) => key),
-    changeLanguage: jest.fn(),
+    changeLanguage: jest.fn().mockResolvedValue(undefined),
   },
 }));
 
@@ -135,6 +154,7 @@ type ToggleStub = {
 
 type SettingInstance = {
   name?: string;
+  isHeading: boolean;
   dropdowns: DropdownStub[];
   toggles: ToggleStub[];
 };
@@ -243,6 +263,9 @@ describe("HeatmapTrackerSettingsTab", () => {
       ".heatmap-tracker-settings-support-section__header",
     );
     expect(supportHeader?.textContent).toBe("support.header");
+    expect(supportHeader?.classList.contains("setting-item-heading")).toBe(
+      true,
+    );
 
     const supportParagraphs = tab.containerEl.querySelectorAll(
       ".heatmap-tracker-settings-support-section__text, .heatmap-tracker-settings-support-section__text--highlight",
@@ -254,10 +277,10 @@ describe("HeatmapTrackerSettingsTab", () => {
     );
     expect(options).toHaveLength(2);
 
-    const viewHeader = Array.from(tab.containerEl.querySelectorAll("h3")).find(
-      (el) => el.textContent === "settings.tabsVisibility",
+    const viewHeader = SettingMock.instances.find(
+      (instance) => instance.name === "settings.tabsVisibility",
     );
-    expect(viewHeader).toBeTruthy();
+    expect(viewHeader?.isHeading).toBe(true);
 
     const viewSettings = SettingMock.instances.filter((instance) =>
       instance.name?.startsWith("tab: "),

@@ -58,6 +58,9 @@ i18n
         translation: zh,
       },
     },
+  })
+  .catch((error) => {
+    console.error("Heatmap Tracker: i18n initialisation failed.", error);
   });
 
 export default i18n;

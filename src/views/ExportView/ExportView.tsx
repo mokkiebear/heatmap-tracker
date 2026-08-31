@@ -336,12 +336,23 @@ function ExportView() {
         .map(([, entry]) => entry.filePath)
         .filter((path): path is string => Boolean(path));
 
-      readNoteBodies(app, inRangePaths).then((bodies) => {
-        if (!ignore) {
-          setBodiesByPath(bodies);
-          setIsLoading(false);
-        }
-      });
+      readNoteBodies(app, inRangePaths)
+        .then((bodies) => {
+          if (!ignore) {
+            setBodiesByPath(bodies);
+            setIsLoading(false);
+          }
+        })
+        .catch((error) => {
+          console.error(
+            "Heatmap Tracker: could not read notes for the export preview.",
+            error,
+          );
+          // Without this the preview would stay stuck on its loading state.
+          if (!ignore) {
+            setIsLoading(false);
+          }
+        });
     }, PREVIEW_DEBOUNCE_MS);
 
     return () => {

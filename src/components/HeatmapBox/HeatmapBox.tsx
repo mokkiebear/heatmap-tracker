@@ -75,7 +75,9 @@ export function HeatmapBox({ box }: HeatmapBoxProps) {
       return;
     }
 
-    handleBoxClick(box, app, trackerData);
+    // handleBoxClick catches its own failures and notifies the user, so there
+    // is nothing left to handle here.
+    void handleBoxClick(box, app, trackerData);
   }
 
   function onBoxKeyDown(event: KeyboardEvent<HTMLDivElement>) {

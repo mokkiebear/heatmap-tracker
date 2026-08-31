@@ -76,13 +76,13 @@ export class PaletteSettings {
       colorPreview.style.backgroundColor = addColorInput.value;
     });
 
-    addColorButton.addEventListener("click", () => {
+    addColorButton.addEventListener("click", async () => {
       this.plugin.settings.palettes[paletteName] = [
         ...paletteColors,
         colorPreview.style.backgroundColor,
       ];
 
-      this.plugin.saveSettings();
+      await this.plugin.saveSettings();
 
       this.settings.display();
     });
@@ -159,23 +159,23 @@ export class PaletteSettings {
       cls: "heatmap-tracker-settings-palettes__palette-content",
     });
 
-    const colorsContainer = paletteContent.createEl("div", {
+    const colorsContainer = paletteContent.createDiv({
       cls: "heatmap-tracker-settings-palettes__palette-colors",
     });
 
     for (const colorIndex in paletteColors) {
       const color = paletteColors[colorIndex];
 
-      const paletteColor = colorsContainer.createEl("div", {
+      const paletteColor = colorsContainer.createDiv({
         cls: "heatmap-tracker-settings-palettes__palette-color",
       });
 
-      paletteColor.createEl("div", {
+      paletteColor.createDiv({
         cls: "heatmap-tracker-settings-palettes__index",
         text: `${Number(colorIndex) + 1}.`,
       });
 
-      const colorPreview = paletteColor.createEl("div", {
+      const colorPreview = paletteColor.createDiv({
         cls: "heatmap-tracker-settings-palettes__color-box",
         attr: {
           style: `background-color: ${color}`,

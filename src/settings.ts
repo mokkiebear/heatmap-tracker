@@ -69,7 +69,7 @@ export default class HeatmapTrackerSettingsTab extends PluginSettingTab {
           .addOptions(languages)
           .setValue(this.plugin.settings.language)
           .onChange(async (value) => {
-            i18n.changeLanguage(value);
+            await i18n.changeLanguage(value);
             this.plugin.settings.language = value;
             await this.plugin.saveSettings();
             this.display(); // Refresh the settings page
@@ -110,9 +110,9 @@ export default class HeatmapTrackerSettingsTab extends PluginSettingTab {
   private displayViewTabsSettings() {
     const { containerEl } = this;
 
-    containerEl.createEl("h3", {
-      text: i18n.t("settings.tabsVisibility"),
-    });
+    new Setting(containerEl)
+      .setName(i18n.t("settings.tabsVisibility"))
+      .setHeading();
 
     for (const view of Object.values(IHeatmapView)) {
       new Setting(containerEl)
@@ -136,14 +136,14 @@ export default class HeatmapTrackerSettingsTab extends PluginSettingTab {
   private displaySupportSection() {
     const { containerEl } = this;
 
-    const supportSection = containerEl.createEl("div", {
+    const supportSection = containerEl.createDiv({
       cls: "heatmap-tracker-settings-support-section",
     });
 
-    supportSection.createEl("h5", {
-      cls: "heatmap-tracker-settings-support-section__header",
-      text: i18n.t("support.header"),
-    });
+    new Setting(supportSection)
+      .setName(i18n.t("support.header"))
+      .setHeading()
+      .setClass("heatmap-tracker-settings-support-section__header");
 
     supportSection.createEl("p", {
       cls: "heatmap-tracker-settings-support-section__text",
@@ -164,7 +164,7 @@ export default class HeatmapTrackerSettingsTab extends PluginSettingTab {
       cls: "heatmap-tracker-settings-support-section__options",
     });
 
-    const buyMeACoffeeContainer = supportSectionOptions.createEl("div");
+    const buyMeACoffeeContainer = supportSectionOptions.createDiv();
     const buyMeACoffeeLink = buyMeACoffeeContainer.createEl("a", {
       attr: {
         href: "https://www.buymeacoffee.com/mrubanau",
@@ -180,7 +180,7 @@ export default class HeatmapTrackerSettingsTab extends PluginSettingTab {
       },
     });
 
-    const kofiContainer = supportSectionOptions.createEl("div");
+    const kofiContainer = supportSectionOptions.createDiv();
     const kofiLink = kofiContainer.createEl("a", {
       attr: {
         href: "https://ko-fi.com/X8X11E578R",
