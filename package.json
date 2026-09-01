@@ -55,7 +55,7 @@
     "ts-jest": "^29.4.12",
     "tslib": "2.8.1",
     "typedoc": "^0.28.20",
-    "typescript": "5.8.3"
+    "typescript": "7.0.2"
   },
   "dependencies": {
     "i18next": "^26.3.6",
