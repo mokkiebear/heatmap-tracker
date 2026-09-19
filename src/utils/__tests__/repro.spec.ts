@@ -1,20 +1,13 @@
-import { getToday, isSameDate, getDayOfYear } from "../date";
+import { getDayOfYear } from "../date";
 import { fillEntriesWithIntensity } from "../intensity";
 import { Entry, IntensityConfig, ColorsList } from "../../types";
 
 describe("Issue Reproductions", () => {
+  // The "today" half of #7/#25/#35/#81 is covered by `timezone.spec.ts`, which
+  // pins the clock to an instant where the local and UTC dates differ. The two
+  // assertions that used to live here ("getToday returns a Date", "two equal
+  // UTC dates are equal") passed just as happily with the bug present.
   describe("Date Offset Issues (#7, #25, #35)", () => {
-    it("should identify today correctly regardless of local time (simulated)", () => {
-      // This is hard to test without heavy mocking, but we can check if getToday returns a Date object
-      // and if isSameDate works as expected for UTC dates.
-      const today = getToday();
-      expect(today).toBeInstanceOf(Date);
-
-      const d1 = new Date(Date.UTC(2024, 0, 1));
-      const d2 = new Date(Date.UTC(2024, 0, 1));
-      expect(isSameDate(d1, d2)).toBe(true);
-    });
-
     it("should parse ISO date strings consistently as UTC", () => {
       // In many environments, new Date('2024-01-01') is treated as UTC
       // but new Date('2024/01/01') or other formats might be local.
