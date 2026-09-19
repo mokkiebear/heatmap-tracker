@@ -8,6 +8,8 @@ import {
   setIcon,
 } from "obsidian";
 import { getDataviewApi } from "src/utils/dataviewApi";
+import { isUnderPath } from "src/utils/entriesQuery";
+import { buildEntriesFromVault } from "src/utils/vaultEntries";
 import { Entry, IHeatmapView, TrackerSettings } from "../types";
 import React from "react";
 import { Root } from "react-dom/client";
@@ -606,20 +608,38 @@ export class HeatmapModal extends Modal {
   // ---------------------------------------------------------------------
 
   private getVaultProperties(): string[] {
-    const dv = getDataviewApi(this.app);
-    if (!dv) return [];
-
     const props = new Set<string>();
-    const pages = dv.pages(
-      this.formState.path ? `"${this.formState.path}"` : undefined,
-    );
-    for (const page of pages) {
-      if (page.file?.frontmatter) {
-        for (const key of Object.keys(page.file.frontmatter)) {
-          props.add(key);
+    const dv = getDataviewApi(this.app);
+
+    if (dv) {
+      const pages = dv.pages(
+        this.formState.path ? `"${this.formState.path}"` : undefined,
+      );
+      for (const page of pages) {
+        if (page.file?.frontmatter) {
+          for (const key of Object.keys(page.file.frontmatter)) {
+            props.add(key);
+          }
         }
       }
+
+      return [...props].sort();
     }
+
+    // Without Dataview the suggestions come from Obsidian's own cache. It
+    // knows frontmatter only, so inline fields are missing from the list —
+    // better than the empty dropdown this used to return.
+    for (const file of this.app.vault.getMarkdownFiles()) {
+      if (!isUnderPath(file.path, this.formState.path)) continue;
+
+      const frontmatter =
+        this.app.metadataCache.getFileCache(file)?.frontmatter;
+
+      for (const key of Object.keys(frontmatter ?? {})) {
+        props.add(key);
+      }
+    }
+
     return [...props].sort();
   }
 
@@ -871,15 +891,18 @@ export class HeatmapModal extends Modal {
     if (properties.length === 0) return [];
 
     const dv = getDataviewApi(this.app);
-    if (!dv) return [];
+
+    const query = {
+      path: this.formState.path,
+      property: properties.length === 1 ? properties[0] : properties,
+      tags: buildTags(this.formState),
+      filters: buildFilters(this.formState),
+    };
 
     try {
-      return buildEntriesFromDataview(dv, {
-        path: this.formState.path,
-        property: properties.length === 1 ? properties[0] : properties,
-        tags: buildTags(this.formState),
-        filters: buildFilters(this.formState),
-      });
+      return dv
+        ? buildEntriesFromDataview(dv, query)
+        : buildEntriesFromVault(this.app, query);
     } catch (e) {
       console.warn("Heatmap Tracker: failed to build preview entries", e);
       return [];

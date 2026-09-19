@@ -146,11 +146,6 @@
     "noData": "no data"
   },
   "errors": {
-    "dataviewMissing": {
-      "title": "Dataview is required",
-      "body": "Heatmap Tracker reads your notes through the Dataview plugin. Install and enable Dataview, then reopen this note.",
-      "action": "Open Dataview in Obsidian"
-    },
     "missingProperty": {
       "title": "No property set",
       "body": "Tell the heatmap which frontmatter property to read, for example:"
@@ -166,7 +161,9 @@
     "noMatches": {
       "title": "No notes matched yet",
       "body": "Nothing under \"{{path}}\" has a \"{{property}}\" property. Add it to a dated note and the squares will fill in.",
-      "bodyNoPath": "No note has a \"{{property}}\" property yet. Add it to a dated note and the squares will fill in."
+      "bodyNoPath": "No note has a \"{{property}}\" property yet. Add it to a dated note and the squares will fill in.",
+      "inlineFields": "Frontmatter is read without any extra plugin. Values written as inline fields (steps:: 8420) are indexed by the Dataview plugin only.",
+      "installDataview": "Open Dataview in Obsidian"
     }
   }
 }

@@ -15,7 +15,6 @@ function text(el: HTMLElement, selector: string) {
 describe("codeblock messages", () => {
   it("gives every failure a title and an explanation", () => {
     const kinds = [
-      { kind: "dataview-missing" },
       { kind: "missing-property" },
       { kind: "invalid-yaml" },
       { kind: "unexpected" },
@@ -32,15 +31,11 @@ describe("codeblock messages", () => {
     }
   });
 
-  it("points a vault without Dataview at the plugin page", () => {
+  it("marks failures as alerts", () => {
     const el = container();
 
-    renderCodeblockIssue(el, { kind: "dataview-missing" });
+    renderCodeblockIssue(el, { kind: "missing-property" });
 
-    const action = el.querySelector("a.heatmap-tracker-message__action");
-    expect(action?.getAttribute("href")).toBe(
-      "obsidian://show-plugin?id=dataview",
-    );
     expect(el.querySelector(".heatmap-tracker-message")).toHaveProperty(
       "role",
       "alert",
@@ -90,6 +85,27 @@ describe("codeblock messages", () => {
       "role",
       "status",
     );
+  });
+
+  it("mentions inline fields only when Dataview is absent", () => {
+    const withDataview = container();
+    const withoutDataview = container();
+
+    renderNoMatchesHint(withDataview, { property: "steps" });
+    renderNoMatchesHint(withoutDataview, {
+      property: "steps",
+      dataviewAvailable: false,
+    });
+
+    expect(
+      withDataview.querySelector("a.heatmap-tracker-message__action"),
+    ).toBeNull();
+    expect(
+      withoutDataview
+        .querySelector("a.heatmap-tracker-message__action")
+        ?.getAttribute("href"),
+    ).toBe("obsidian://show-plugin?id=dataview");
+    expect(withoutDataview.textContent).toContain("steps:: 8420");
   });
 
   it("drops the path from the hint when the codeblock had none", () => {

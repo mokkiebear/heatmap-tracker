@@ -9,6 +9,7 @@ import { getDataviewApi } from "src/utils/dataviewApi";
 import HeatmapTrackerSettingsTab from "./settings";
 import { TrackerData, TrackerParams, TrackerSettings } from "./types";
 import { buildEntriesFromDataview } from "./utils/dataviewEntries";
+import { buildEntriesFromVault } from "./utils/vaultEntries";
 
 import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
 
@@ -98,25 +99,27 @@ export default class HeatmapTrackerPlugin extends Plugin {
           }
         }
 
-        // Use DataView API to filter pages that contain specified frontmatter property
+        // Dataview is preferred when the user has it: it indexes inline fields
+        // (`steps:: 8420`) that Obsidian's own metadata cache does not expose.
+        // Without it, frontmatter is read straight from the vault rather than
+        // the codeblock rendering nothing.
         const dv = getDataviewApi(this.app) ?? getDataviewApi();
 
-        if (!dv) {
-          renderCodeblockIssue(el, { kind: "dataview-missing" });
-          return;
-        }
+        const query = {
+          path: params.path,
+          property: params.property,
+          tags: params.tags,
+          filters: params.filters,
+        };
 
         try {
-          const entries = buildEntriesFromDataview(
-            dv,
-            {
-              path: params.path,
-              property: params.property,
-              tags: params.tags,
-              filters: params.filters,
-            },
-            (page) => el.createSpan(`[](${page.file.name})`),
-          );
+          const entries = dv
+            ? buildEntriesFromDataview(dv, query, (page) =>
+                el.createSpan(`[](${page.file.name})`),
+              )
+            : buildEntriesFromVault(this.app, query, (page) =>
+                el.createSpan(`[](${page.file.basename})`),
+              );
 
           // Append codeblock parameters to TrackerData object
           const trackerData: TrackerData = {
@@ -135,6 +138,10 @@ export default class HeatmapTrackerPlugin extends Plugin {
             renderNoMatchesHint(el, {
               property: String(params.property),
               path: params.path ? String(params.path) : undefined,
+              // Without Dataview, a value written as an inline field is
+              // invisible to us — worth saying before the user concludes the
+              // plugin is broken.
+              dataviewAvailable: Boolean(dv),
             });
           }
         } catch (e) {

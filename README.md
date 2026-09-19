@@ -36,7 +36,7 @@ You already write things down in Obsidian. Heatmap Tracker reads those notes and
 
 Add `steps: 8420` to a daily note and you get a heatmap. Add `mood: 4` and you get another. Every filled square is clickable and opens the note behind it; every empty square offers to create it.
 
-- **Zero-config for frontmatter.** A three-line codeblock is enough — no JavaScript required.
+- **Zero-config for frontmatter.** A three-line codeblock is enough — no JavaScript, and no other plugin, required.
 - **Fully scriptable when you need it.** A `dataviewjs` escape hatch gives you complete control over the dataset.
 - **Everything stays local.** Your notes are the database.
 
@@ -71,9 +71,9 @@ Add `steps: 8420` to a daily note and you get a heatmap. Add `mood: 4` and you g
 
 Or open this link from inside Obsidian: [**Install Heatmap Tracker**](https://obsidian.md/plugins?id=heatmap-tracker).
 
-### Install Dataview (required)
+### Dataview (optional)
 
-Heatmap Tracker uses [**Dataview**](https://blacksmithgu.github.io/obsidian-dataview/) to read data out of your notes. Install and enable it the same way. For the `dataviewjs` examples below, also enable **Dataview → Settings → Enable JavaScript Queries**.
+Heatmap Tracker reads frontmatter straight from your vault, so it works on its own. [**Dataview**](https://blacksmithgu.github.io/obsidian-dataview/) is only needed if you track values written as *inline fields* (`steps:: 8420` in the body of a note) rather than in frontmatter — the plugin uses it automatically when it is installed. For the `dataviewjs` examples below, also enable **Dataview → Settings → Enable JavaScript Queries**.
 
 ### Manual install
 
@@ -85,7 +85,7 @@ Heatmap Tracker uses [**Dataview**](https://blacksmithgu.github.io/obsidian-data
 
 Install [BRAT](https://github.com/TfTHacker/obsidian42-brat), then run **BRAT: Add a beta plugin for testing** and enter `mokkiebear/heatmap-tracker`.
 
-**Requirements:** Obsidian 0.1.0+, desktop and mobile, Dataview plugin.
+**Requirements:** Obsidian 0.1.0+, desktop and mobile. No other plugin required; Dataview only for inline fields and `dataviewjs`.
 
 ---
 
@@ -564,11 +564,11 @@ Set the font in plugin settings, and use <code>HTML</code> in titles and subtitl
 
 Work through these in order:
 
-1. **Is Dataview installed and enabled?** Heatmap Tracker reads your notes through Dataview. Without it, there's no data to draw.
+1. **Read the message in the note.** A codeblock that cannot render says why — no `property`, invalid YAML, or nothing matched — right where the heatmap would be.
 2. **Does the property actually exist in your notes?** Property names are case-sensitive. `photo-taking` and `Photo-Taking` are different keys.
 3. **Are your notes in the searched folder?** Without `path`, the plugin falls back to your Daily Notes folder. If your notes live elsewhere, set `path` explicitly.
 4. **Is the year right?** The heatmap defaults to the current year. If your data is from last year, use the arrows or set `year`.
-5. **Check the console.** `Ctrl+Shift+I` (Windows/Linux) or `Cmd+Option+I` (Mac) opens devtools — a missing `property` parameter logs a warning there.
+5. **Is the value an inline field?** `steps:: 8420` in the body of a note is indexed by Dataview only. Either move it to frontmatter or install Dataview.
 </details>
 
 <details>
@@ -642,7 +642,7 @@ No. Everything is computed locally from your notes. There's no account, no sync,
 <summary><b>Can I use it without Dataview?</b></summary>
 <br>
 
-The `heatmap-tracker` codeblock needs Dataview. But `renderHeatmapTracker(container, trackerData)` accepts any `entries` array, so any JavaScript that can build that array works — Dataview is simply the most convenient source.
+Yes. The `heatmap-tracker` codeblock reads frontmatter through Obsidian's own metadata cache, so a fresh install needs nothing else. Dataview adds inline fields (`steps:: 8420`) and, through `dataviewjs`, full control of the dataset — when it is installed the plugin uses it automatically. `renderHeatmapTracker(container, trackerData)` also accepts any `entries` array you build yourself.
 </details>
 
 Still stuck? [Open an issue](https://github.com/mokkiebear/heatmap-tracker/issues/new/choose) — include your codeblock, a sample note's frontmatter, and your Obsidian and plugin versions.
@@ -656,6 +656,7 @@ Heatmap Tracker began as a rewrite of the excellent [heatmap-calendar-obsidian](
 | | Heatmap Tracker | heatmap-calendar-obsidian |
 |---|---|---|
 | Codeblock without JavaScript | ✅ `heatmap-tracker` block | ❌ `dataviewjs` required |
+| Works without other plugins | ✅ Frontmatter read directly | ❌ Dataview required |
 | Interactive insert command | ✅ Modal builder | ❌ |
 | Statistics & custom insights | ✅ | ❌ |
 | Monthly (calendar) layout | ✅ | ❌ |

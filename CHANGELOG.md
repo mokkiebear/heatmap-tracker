@@ -6,7 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 ### Added
-- A `heatmap-tracker` codeblock that cannot render now explains why in the note itself — Dataview not installed, no `property` set, invalid YAML, or an unexpected failure — instead of writing to the developer console and leaving an empty space.
+- The `heatmap-tracker` codeblock now reads frontmatter directly from Obsidian's metadata cache, so the plugin works without Dataview installed. Dataview is still used automatically when present — it also indexes inline fields (`steps:: 8420`), which the metadata cache does not see.
+- A `heatmap-tracker` codeblock that cannot render now explains why in the note itself — no `property` set, invalid YAML, or an unexpected failure — instead of writing to the developer console and leaving an empty space.
 - A hint under heatmaps whose query matched no notes, naming the property and path it looked for.
 
 ### Fixed

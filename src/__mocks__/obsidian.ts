@@ -65,6 +65,35 @@ export function setIcon(element: HTMLElement, iconId: string): void {
   element.setAttribute("data-icon", iconId);
 }
 
+interface CachedMetadataLike {
+  tags?: { tag: string }[];
+  frontmatter?: { tags?: string | string[]; tag?: string | string[] };
+}
+
+/**
+ * Mirrors Obsidian's `getAllTags`: inline `#tags` plus frontmatter `tags:`,
+ * every one of them `#`-prefixed, or null when there is no cache.
+ */
+export function getAllTags(cache: CachedMetadataLike | null): string[] | null {
+  if (!cache) {
+    return null;
+  }
+
+  const tags = (cache.tags ?? []).map((entry) => entry.tag);
+  const fromFrontmatter = [
+    cache.frontmatter?.tags,
+    cache.frontmatter?.tag,
+  ].flatMap((value) => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === "string") return value.split(/[\s,]+/);
+    return [];
+  });
+
+  return [...tags, ...fromFrontmatter]
+    .filter(Boolean)
+    .map((tag) => (String(tag).startsWith("#") ? String(tag) : `#${tag}`));
+}
+
 export function normalizePath(input: string): string {
   return input.replace(/\\/g, "/").replace(/\/+/g, "/").replace(/\/$/, "");
 }

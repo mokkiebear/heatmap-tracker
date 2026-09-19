@@ -25,8 +25,12 @@ Three ways a heatmap gets rendered, all converging on `renderApp`
 
 1. **`heatmap-tracker` codeblock** — `src/main.tsx` registers a markdown
    codeblock processor. It reads `property`/`path` from the codeblock YAML,
-   queries Dataview for matching pages, builds `entries` from the results,
-   then calls `window.renderHeatmapTracker`.
+   collects matching pages, builds `entries` from the results, then calls
+   `window.renderHeatmapTracker`. Two readers implement the same query
+   (`src/utils/entriesQuery.ts` holds what they share): `dataviewEntries.ts`
+   when the Dataview plugin is installed — it also indexes inline fields — and
+   `vaultEntries.ts`, which reads frontmatter from `app.metadataCache` and needs
+   no third-party plugin.
 2. **`dataviewjs` script calling `renderHeatmapTracker(...)`** — same global
    function, called directly by the user's own script with a hand-built
    `trackerData` object. This is the "advanced usage" path in the README.
