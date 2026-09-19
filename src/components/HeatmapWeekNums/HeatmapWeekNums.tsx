@@ -1,5 +1,5 @@
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
-import { getISOWeekNumber } from "src/utils/date";
+import { getISOWeekNumber, parseUTCDate } from "src/utils/date";
 
 export function HeatmapWeekNums() {
   const { trackerData, boxes, settings } = useHeatmapContext();
@@ -17,7 +17,10 @@ export function HeatmapWeekNums() {
     const firstBoxWithDate = chunk.find((b) => b.date);
 
     if (firstBoxWithDate && firstBoxWithDate.date) {
-      const weekNum = getISOWeekNumber(new Date(firstBoxWithDate.date));
+      // `parseUTCDate`, not `new Date`: box dates are already ISO here, but
+      // going through the shared parser keeps week numbers on the same
+      // engine-independent path as everything else (#29).
+      const weekNum = getISOWeekNumber(parseUTCDate(firstBoxWithDate.date));
       columns.push(weekNum);
     } else {
       columns.push(null);

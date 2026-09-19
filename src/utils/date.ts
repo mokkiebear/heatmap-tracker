@@ -98,50 +98,133 @@ export function isSameDate(d1: Date, d2: Date): boolean {
   );
 }
 
+const MONTH_NAMES: Readonly<Record<string, number>> = {
+  jan: 0,
+  feb: 1,
+  mar: 2,
+  apr: 3,
+  may: 4,
+  jun: 5,
+  jul: 6,
+  aug: 7,
+  sep: 8,
+  oct: 9,
+  nov: 10,
+  dec: 11,
+};
+
+/**
+ * Builds a UTC date from calendar components, rejecting components that don't
+ * survive a round-trip. `Date.UTC` rolls overflow forward (Feb 30 becomes
+ * March 1), which would land a typo'd date on an unrelated box.
+ */
+function makeUTCDate(year: number, month: number, day: number): Date {
+  const date = new Date(Date.UTC(year, month, day));
+
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month ||
+    date.getUTCDate() !== day
+  ) {
+    return new Date(NaN);
+  }
+
+  return date;
+}
+
+/**
+ * Parses a user-written entry date into UTC midnight of the calendar day the
+ * user actually wrote.
+ *
+ * Every accepted format is matched explicitly here rather than being handed to
+ * `new Date(string)`. Outside of the ISO format the spec mandates, `new Date`
+ * is engine-defined: V8 (desktop Obsidian / Electron) accepts `"01-31-2025"`
+ * and `"Jan 5, 2024"`, while JavaScriptCore (Obsidian on iOS) returns Invalid
+ * Date for some of them. The same note then rendered a populated heatmap on
+ * desktop and an empty one on mobile (#29). Parsing in-house makes the result
+ * identical on both platforms.
+ *
+ * Accepted:
+ * - `YYYY-MM-DD` / `YYYY/M/D`, optionally followed by a time — the calendar
+ *   date wins over any time or offset.
+ * - `MM-DD-YYYY` / `MM/DD/YYYY` / `MM.DD.YYYY` — month first, matching what
+ *   desktop used to do. If the first component can't be a month but the second
+ *   can (`31-01-2025`), it's read as day-first instead.
+ * - `Jan 5, 2024`, `5 Jan 2024`, `January 5 2024` — English month names.
+ *
+ * Anything else returns an Invalid Date, on every platform.
+ */
 export function parseUTCDate(dateStr: string): Date {
   // Entry dates reach this from unvalidated user data, so a missing one is a
   // real input, not a type violation.
-  if (!dateStr) {
+  if (!dateStr || typeof dateStr !== "string") {
     return new Date(NaN);
   }
 
-  const match = dateStr.match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
-  if (match) {
-    const year = parseInt(match[1]);
-    const month = parseInt(match[2]);
-    const day = parseInt(match[3]);
+  const input = dateStr.trim();
 
-    const date = new Date(Date.UTC(year, month - 1, day));
+  // `YYYY-MM-DD`, anywhere in the string, so a full timestamp
+  // ("2025-04-15T23:59:59-05:00") is read as the day the user wrote.
+  const isoMatch = input.match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
+  if (isoMatch) {
+    return makeUTCDate(
+      parseInt(isoMatch[1], 10),
+      parseInt(isoMatch[2], 10) - 1,
+      parseInt(isoMatch[3], 10),
+    );
+  }
 
-    // `Date.UTC` rolls overflowing components forward (Feb 30 becomes March 1),
-    // which would land a typo'd date on an unrelated box. Require a round-trip.
-    if (
-      date.getUTCFullYear() !== year ||
-      date.getUTCMonth() !== month - 1 ||
-      date.getUTCDate() !== day
-    ) {
+  // Year-last numeric: `MM-DD-YYYY` and friends.
+  const yearLastMatch = input.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/);
+  if (yearLastMatch) {
+    const first = parseInt(yearLastMatch[1], 10);
+    const second = parseInt(yearLastMatch[2], 10);
+    const year = parseInt(yearLastMatch[3], 10);
+
+    // Month-first by default (what V8 did, so existing desktop notes keep
+    // rendering the same way), but `31-01-2025` can only be day-first.
+    const dayFirst = first > 12 && second <= 12;
+
+    return dayFirst
+      ? makeUTCDate(year, second - 1, first)
+      : makeUTCDate(year, first - 1, second);
+  }
+
+  // `Jan 5, 2024` / `January 5 2024`
+  const monthFirstMatch = input.match(
+    /^([a-z]{3,9})\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})$/i,
+  );
+  if (monthFirstMatch) {
+    const month = MONTH_NAMES[monthFirstMatch[1].slice(0, 3).toLowerCase()];
+    if (month === undefined) {
       return new Date(NaN);
     }
 
-    return date;
+    return makeUTCDate(
+      parseInt(monthFirstMatch[3], 10),
+      month,
+      parseInt(monthFirstMatch[2], 10),
+    );
   }
 
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) {
-    return new Date(NaN);
-  }
-
-  // A date-only string with no recognised `YYYY-MM-DD` part ("12/31/2021",
-  // "Jan 5, 2024") was parsed as *local* midnight, so its UTC calendar date is
-  // the previous day everywhere east of Greenwich. Read it back the same way it
-  // was parsed, and keep the calendar date the user actually wrote.
-  const isLocal = !dateStr.includes("T") && !dateStr.includes(":");
-
-  return new Date(
-    isLocal
-      ? Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-      : Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+  // `5 Jan 2024` / `5th January, 2024`
+  const dayFirstMatch = input.match(
+    /^(\d{1,2})(?:st|nd|rd|th)?\.?\s+([a-z]{3,9})\.?,?\s+(\d{4})$/i,
   );
+  if (dayFirstMatch) {
+    const month = MONTH_NAMES[dayFirstMatch[2].slice(0, 3).toLowerCase()];
+    if (month === undefined) {
+      return new Date(NaN);
+    }
+
+    return makeUTCDate(
+      parseInt(dayFirstMatch[3], 10),
+      month,
+      parseInt(dayFirstMatch[1], 10),
+    );
+  }
+
+  return new Date(NaN);
 }
 
 export function addDays(date: Date, days: number): Date {

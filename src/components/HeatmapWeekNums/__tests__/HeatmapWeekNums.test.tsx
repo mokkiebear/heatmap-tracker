@@ -4,10 +4,9 @@ import { HeatmapWeekNums } from "../HeatmapWeekNums";
 import { HeatmapContext } from "src/context/heatmap/heatmap.context";
 import { TrackerData, TrackerSettings, Box } from "src/types";
 
-// Mock dependencies
-jest.mock("src/utils/date", () => ({
-  getISOWeekNumber: jest.fn(() => 1),
-}));
+// The real date utils are used: the fixtures below are plain ISO dates, and
+// stubbing `getISOWeekNumber` only made the module mock go stale whenever the
+// component started using another date helper.
 
 const mockSettings: TrackerSettings = {
   separateMonths: true,

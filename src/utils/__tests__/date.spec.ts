@@ -199,6 +199,66 @@ describe("parseUTCDate", () => {
       "2025-04-15",
     );
   });
+
+  // Regression: #29. These formats were handed to `new Date(string)`, whose
+  // behaviour outside ISO is engine-defined — V8 (desktop) accepted them and
+  // JavaScriptCore (Obsidian on iOS) returned Invalid Date, so the same note
+  // rendered a full heatmap on desktop and an empty one on mobile. Parsing is
+  // now done in-house, so every platform agrees.
+  describe("engine-independent parsing (#29)", () => {
+    test.each([
+      ["01-31-2025", "2025-01-31"],
+      ["12/31/2021", "2021-12-31"],
+      ["1/5/2024", "2024-01-05"],
+      ["03.09.2024", "2024-03-09"],
+    ])("reads year-last %s as month-first", (input, expected) => {
+      expect(formatDateToISO8601(parseUTCDate(input))).toBe(expected);
+    });
+
+    test("falls back to day-first when the first component can't be a month", () => {
+      expect(formatDateToISO8601(parseUTCDate("31-01-2025"))).toBe(
+        "2025-01-31",
+      );
+      expect(formatDateToISO8601(parseUTCDate("25/12/2024"))).toBe(
+        "2024-12-25",
+      );
+    });
+
+    test.each([
+      ["Jan 5, 2024", "2024-01-05"],
+      ["January 5 2024", "2024-01-05"],
+      ["5 Jan 2024", "2024-01-05"],
+      ["5th January, 2024", "2024-01-05"],
+      ["DEC 25 2023", "2023-12-25"],
+    ])("parses the month name in %s", (input, expected) => {
+      expect(formatDateToISO8601(parseUTCDate(input))).toBe(expected);
+    });
+
+    test("rejects an unknown month name instead of guessing", () => {
+      expect(parseUTCDate("Foo 5, 2024").getTime()).toBeNaN();
+    });
+
+    test("rejects out-of-range components in every format", () => {
+      // Neither component can be a month, so there's no reading to fall back to.
+      expect(parseUTCDate("13-32-2024").getTime()).toBeNaN();
+      expect(parseUTCDate("02-30-2024").getTime()).toBeNaN();
+      expect(parseUTCDate("Feb 30, 2024").getTime()).toBeNaN();
+    });
+
+    test("rejects formats that only some engines accepted", () => {
+      // V8 parses both of these; JavaScriptCore does not. Neither is a date
+      // format this plugin documents, so both are now rejected everywhere
+      // rather than working on one platform only.
+      expect(parseUTCDate("March 2024").getTime()).toBeNaN();
+      expect(parseUTCDate("2024").getTime()).toBeNaN();
+    });
+
+    test("tolerates surrounding whitespace", () => {
+      expect(formatDateToISO8601(parseUTCDate("  2024-03-10  "))).toBe(
+        "2024-03-10",
+      );
+    });
+  });
 });
 
 describe("getDayOfYear", () => {
