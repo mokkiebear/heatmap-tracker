@@ -1,0 +1,36 @@
+# Heatmap Tracker
+
+> A free, open-source Obsidian plugin that turns any dated note into an interactive,
+> GitHub-style heatmap. Track habits, workouts, mood, sleep, finances, reading and work
+> logs from frontmatter already in your vault. All computation is local — no account,
+> no sync, no telemetry. Apache-2.0.
+
+Install: https://obsidian.md/plugins?id=heatmap-tracker
+Source: https://github.com/mokkiebear/heatmap-tracker
+
+## How it works
+
+- Add a frontmatter value to a dated note, e.g. `steps: 8420`. Booleans count as 1.
+- Add a `heatmap-tracker` codeblock with `property: steps`. Optional keys: `path`, `tags`,
+  `filters` (`equals`, `contains`, `notEmpty`).
+- Or call `renderHeatmapTracker(container, trackerData)` from a `dataviewjs` block for
+  full control over the dataset.
+- The `heatmap-tracker` codeblock requires the Dataview plugin; the JavaScript API does not.
+
+## Capabilities
+
+- Yearly contribution grid or a monthly calendar layout (`layout: "monthly"`).
+- Flexible ranges: `monthsToShow`, `daysToShow`, or `startDate` + `endDate`.
+- Color palettes in settings, `colorScheme.customColors` per heatmap, `customColor` per entry.
+- Intensity scaling via `intensityConfig.scaleStart` / `scaleEnd`.
+- Statistics tab with totals, streaks and user-defined `insights`.
+- Export tab: a report as Markdown or self-contained HTML, with the grid, a labelled
+  legend, a summary line and each day's note content grouped by week.
+- Click a square to open the note behind it, or create it (`disableFileCreation: false`).
+- 9 UI languages; desktop and mobile.
+
+## Docs
+
+- README and full configuration reference: https://github.com/mokkiebear/heatmap-tracker#readme
+- Example vault with a worked example per parameter: https://github.com/mokkiebear/heatmap-tracker/tree/main/EXAMPLE_VAULT
+- Changelog: https://github.com/mokkiebear/heatmap-tracker/blob/main/CHANGELOG.md

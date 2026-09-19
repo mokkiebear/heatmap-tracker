@@ -1,0 +1,982 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      Heatmap Tracker for Obsidian — track habits, goals and progress
+    </title>
+    <meta
+      name="description"
+      content="Free Obsidian plugin that turns any dated note into a GitHub-style heatmap. Track habits, workouts, mood, sleep, finances and work logs, then export a report. No account, no cloud — your notes stay in your vault."
+    />
+    <link
+      rel="canonical"
+      href="https://mokkiebear.github.io/heatmap-tracker/"
+    />
+    <meta name="theme-color" content="#07070b" />
+    <meta name="author" content="Maksim Rubanau" />
+    <meta
+      name="keywords"
+      content="obsidian heatmap, obsidian habit tracker, obsidian tracking plugin, obsidian contribution graph, obsidian calendar heatmap, obsidian dataview heatmap, habit tracking in obsidian"
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Heatmap Tracker" />
+    <meta
+      property="og:title"
+      content="Heatmap Tracker for Obsidian — track habits, goals and progress"
+    />
+    <meta
+      property="og:description"
+      content="Turn any dated note into a beautiful, interactive heatmap. Habits, workouts, mood, finances, work logs — anything you already write down."
+    />
+    <meta
+      property="og:url"
+      content="https://mokkiebear.github.io/heatmap-tracker/"
+    />
+    <meta
+      property="og:image"
+      content="https://mokkiebear.github.io/heatmap-tracker/assets/img/mac-mockup-dark.png"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Heatmap Tracker for Obsidian — track habits, goals and progress"
+    />
+    <meta
+      name="twitter:description"
+      content="Turn any dated note into a beautiful, interactive heatmap. Your notes are the database."
+    />
+    <meta
+      name="twitter:image"
+      content="https://mokkiebear.github.io/heatmap-tracker/assets/img/mac-mockup-dark.png"
+    />
+
+    <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="assets/img/logo.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Heatmap Tracker",
+        "alternateName": "Obsidian Heatmap Tracker",
+        "applicationCategory": "ProductivityApplication",
+        "applicationSubCategory": "Obsidian plugin",
+        "operatingSystem": "Windows, macOS, Linux, iOS, Android",
+        "softwareVersion": "2.7.12",
+        "description": "An Obsidian plugin that turns dated notes into an interactive, GitHub-style heatmap for tracking habits, goals, workouts, mood, sleep, finances and work logs. Data stays local in the vault.",
+        "url": "https://mokkiebear.github.io/heatmap-tracker/",
+        "downloadUrl": "https://obsidian.md/plugins?id=heatmap-tracker",
+        "installUrl": "https://obsidian.md/plugins?id=heatmap-tracker",
+        "softwareHelp": "https://github.com/mokkiebear/heatmap-tracker#readme",
+        "license": "https://www.apache.org/licenses/LICENSE-2.0",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "author": {
+          "@type": "Person",
+          "name": "Maksim Rubanau",
+          "url": "https://github.com/mokkiebear"
+        },
+        "featureList": [
+          "GitHub-style yearly heatmap of any frontmatter property",
+          "No-code codeblock, plus a dataviewjs escape hatch",
+          "Statistics and user-defined insights",
+          "Monthly calendar layout and flexible date ranges",
+          "Export a report to Markdown or self-contained HTML",
+          "Custom color palettes and intensity scales",
+          "Available in 9 languages",
+          "Works on desktop and mobile"
+        ]
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Does my data leave my vault?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Everything is computed locally from your notes. There is no account, no sync and no telemetry."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Do I need the Dataview plugin?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The heatmap-tracker codeblock reads notes through Dataview, so yes for the no-code path. The renderHeatmapTracker(container, trackerData) API accepts any entries array, so any JavaScript that can build that array works too."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does Heatmap Tracker work on Obsidian mobile?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. The plugin is not desktop-only and runs on Obsidian for iOS and Android as well as desktop."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "My heatmap is empty — what do I check first?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Check that Dataview is enabled, that the property name matches exactly (it is case-sensitive), that your notes are inside the searched folder (set path explicitly if they are not) and that the displayed year matches your data."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can one heatmap show several properties?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Pass an array such as property: [running, cycling, swimming] and the values are aggregated into one heatmap."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How much does Heatmap Tracker cost?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Nothing. It is free and open source under the Apache-2.0 license, available from the Obsidian community plugin browser."
+            }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="aurora" aria-hidden="true"></div>
+
+    <header class="nav" id="nav">
+      <div class="shell nav__inner">
+        <a class="brand" href="#top" aria-label="Heatmap Tracker home">
+          <img src="assets/img/logo.svg" alt="" width="28" height="28" />
+          <span>Heatmap&nbsp;Tracker</span>
+        </a>
+        <nav class="nav__links" aria-label="Primary">
+          <a href="#how">How it works</a>
+          <a href="#features">Features</a>
+          <a href="#usecases">Use cases</a>
+          <a href="#export">Export</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+        <div class="nav__actions">
+          <button
+            class="icon-btn"
+            id="theme-toggle"
+            type="button"
+            aria-label="Switch color theme"
+          >
+            <span class="icon-btn__sun" aria-hidden="true">☀</span>
+            <span class="icon-btn__moon" aria-hidden="true">☾</span>
+          </button>
+          <a
+            class="btn btn--ghost nav__github"
+            href="https://github.com/mokkiebear/heatmap-tracker"
+            rel="noopener"
+            >GitHub</a
+          >
+          <a
+            class="btn btn--primary"
+            href="https://obsidian.md/plugins?id=heatmap-tracker"
+            >Install free</a
+          >
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top">
+        <div class="shell hero__inner">
+          <p class="eyebrow reveal">
+            <span class="dot"></span> Obsidian community plugin · v2.7.12 ·
+            Apache-2.0
+          </p>
+          <h1 class="reveal">
+            Your notes, <span class="grad">one year at a glance</span>
+          </h1>
+          <p class="lede reveal">
+            Heatmap Tracker turns any dated note in your Obsidian vault into a
+            GitHub-style heatmap. Habits, workouts, mood, sleep, finances, work
+            logs — anything you already write down. No account, no cloud, no
+            export step.
+          </p>
+          <div class="hero__cta reveal">
+            <a
+              class="btn btn--primary btn--lg"
+              href="https://obsidian.md/plugins?id=heatmap-tracker"
+              >Install in Obsidian</a
+            >
+            <a
+              class="btn btn--ghost btn--lg"
+              href="https://github.com/mokkiebear/heatmap-tracker"
+              rel="noopener"
+              >Star on GitHub</a
+            >
+          </div>
+          <p class="hero__meta reveal">
+            Free &amp; open source · Desktop and mobile · 9 languages · Your
+            vault stays local
+          </p>
+
+          <div class="demo reveal" id="demo">
+            <div class="demo__chrome">
+              <span class="demo__dots" aria-hidden="true"
+                ><i></i><i></i><i></i
+              ></span>
+              <span class="demo__file">daily-notes/2026.md</span>
+            </div>
+            <div class="demo__body">
+              <div
+                class="demo__tabs"
+                role="tablist"
+                aria-label="Example trackers"
+              >
+                <button
+                  class="chip is-active"
+                  role="tab"
+                  aria-selected="true"
+                  data-demo="fitness"
+                >
+                  🏃 Fitness
+                </button>
+                <button
+                  class="chip"
+                  role="tab"
+                  aria-selected="false"
+                  data-demo="mood"
+                >
+                  🙂 Mood
+                </button>
+                <button
+                  class="chip"
+                  role="tab"
+                  aria-selected="false"
+                  data-demo="sleep"
+                >
+                  😴 Sleep
+                </button>
+                <button
+                  class="chip"
+                  role="tab"
+                  aria-selected="false"
+                  data-demo="finance"
+                >
+                  💰 Finance
+                </button>
+                <button
+                  class="chip"
+                  role="tab"
+                  aria-selected="false"
+                  data-demo="writing"
+                >
+                  ✍️ Writing
+                </button>
+              </div>
+              <div class="demo__head">
+                <div>
+                  <h2 class="demo__title" id="demo-title">Exercise minutes</h2>
+                  <p class="demo__subtitle" id="demo-subtitle">
+                    Read from <code>exercise:</code> in your daily notes
+                  </p>
+                </div>
+                <div class="demo__year" aria-hidden="true">
+                  <span>‹</span><b>2026</b><span>›</span>
+                </div>
+              </div>
+              <div
+                class="heatmap"
+                id="heatmap"
+                role="img"
+                aria-label="Example heatmap of a year of tracked activity"
+              ></div>
+              <div class="demo__foot">
+                <ul class="demo__stats" id="demo-stats"></ul>
+                <div class="legend" aria-hidden="true">
+                  <span>Less</span>
+                  <i data-level="0"></i><i data-level="1"></i
+                  ><i data-level="2"></i><i data-level="3"></i
+                  ><i data-level="4"></i>
+                  <span>More</span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="tooltip"
+              id="tooltip"
+              role="status"
+              aria-live="polite"
+            ></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="strip">
+        <div class="shell strip__inner">
+          <span>Works with <b>Dataview</b></span>
+          <span><b>Zero</b> config for frontmatter</span>
+          <span><b>9</b> languages</span>
+          <span>Desktop <b>+</b> mobile</span>
+          <span><b>No</b> telemetry</span>
+          <span>Export to <b>MD / HTML</b></span>
+        </div>
+      </section>
+
+      <section class="section" id="how">
+        <div class="shell">
+          <p class="eyebrow reveal">How it works</p>
+          <h2 class="section__title reveal">
+            Three lines. That's the whole setup.
+          </h2>
+          <p class="section__lede reveal">
+            You already write things down. Heatmap Tracker reads those notes and
+            draws the grid — no database, no sync, no separate app to open.
+          </p>
+
+          <ol class="steps">
+            <li class="step reveal">
+              <span class="step__num">1</span>
+              <h3>Put a value in a note</h3>
+              <p>
+                Any frontmatter key works. Numbers are used as-is;
+                <code>true</code> counts as <code>1</code>.
+              </p>
+              <div class="code">
+                <div class="code__bar">
+                  <span>2026-08-04.md</span>
+                  <button
+                    class="copy"
+                    type="button"
+                    data-copy="---&#10;steps: 8420&#10;mood: 4&#10;meditated: true&#10;---"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <pre><code>---
+<span class="k">steps</span>: <span class="n">8420</span>
+<span class="k">mood</span>: <span class="n">4</span>
+<span class="k">meditated</span>: <span class="n">true</span>
+---</code></pre>
+              </div>
+            </li>
+            <li class="step reveal">
+              <span class="step__num">2</span>
+              <h3>Drop in a codeblock</h3>
+              <p>
+                Or run the <b>Insert Heatmap Tracker</b> command and let the
+                modal write it for you.
+              </p>
+              <div class="code">
+                <div class="code__bar">
+                  <span>any note</span>
+                  <button
+                    class="copy"
+                    type="button"
+                    data-copy="```heatmap-tracker&#10;property: steps&#10;```"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <pre><code><span class="c">```heatmap-tracker</span>
+<span class="k">property</span>: <span class="s">steps</span>
+<span class="c">```</span></code></pre>
+              </div>
+            </li>
+            <li class="step reveal">
+              <span class="step__num">3</span>
+              <h3>Read your year</h3>
+              <p>
+                Hover a square for the details, click it to open that note — or
+                to create it if it isn't there yet.
+              </p>
+              <div class="code">
+                <div class="code__bar">
+                  <span>narrow it down (optional)</span>
+                  <button
+                    class="copy"
+                    type="button"
+                    data-copy='```heatmap-tracker&#10;property: [running, cycling, swimming]&#10;path: "daily notes"&#10;tags: [journal]&#10;```'
+                  >
+                    Copy
+                  </button>
+                </div>
+                <pre><code><span class="c">```heatmap-tracker</span>
+<span class="k">property</span>: <span class="s">[running, cycling, swimming]</span>
+<span class="k">path</span>: <span class="s">"daily notes"</span>
+<span class="k">tags</span>: <span class="s">[journal]</span>
+<span class="c">```</span></code></pre>
+              </div>
+            </li>
+          </ol>
+
+          <div class="note reveal">
+            <b>Need full control?</b> A <code>dataviewjs</code> escape hatch
+            lets you build the dataset yourself — computed values, external
+            sources, a custom color per entry — and hand it to
+            <code>renderHeatmapTracker(container, trackerData)</code>.
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker#%EF%B8%8F-advanced-usage-dataviewjs"
+              rel="noopener"
+              >See the advanced guide →</a
+            >
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--tint" id="features">
+        <div class="shell">
+          <p class="eyebrow reveal">Features</p>
+          <h2 class="section__title reveal">
+            A tracker, not just a pretty grid
+          </h2>
+          <p class="section__lede reveal">
+            Everything below ships in the free plugin. No tiers, no upsell, no
+            login wall.
+          </p>
+
+          <div class="grid grid--features">
+            <article class="card reveal">
+              <span class="card__icon">🎨</span>
+              <h3>Colors that mean something</h3>
+              <p>
+                Palettes in settings, <code>customColors</code> per heatmap, or
+                a <code>customColor</code> on a single entry. Set
+                <code>scaleStart</code>/<code>scaleEnd</code> so your values
+                actually spread across the scale.
+              </p>
+            </article>
+            <article class="card reveal">
+              <span class="card__icon">📈</span>
+              <h3>Statistics &amp; custom insights</h3>
+              <p>
+                A dedicated tab with totals and streaks, plus insights you
+                define yourself: most productive day, longest streak, most
+                active month, average intensity.
+              </p>
+            </article>
+            <article class="card reveal">
+              <span class="card__icon">🗓️</span>
+              <h3>Monthly calendar layout</h3>
+              <p>
+                Switch <code>layout: "monthly"</code> for one row per month with
+                days 1–31 as columns — or keep the classic contribution grid
+                with months visually split.
+              </p>
+            </article>
+            <article class="card reveal">
+              <span class="card__icon">⏱️</span>
+              <h3>Any date range</h3>
+              <p>
+                A full year, the last <code>N</code> months, the last
+                <code>N</code> days, or an explicit <code>startDate</code>–<code
+                  >endDate</code
+                >
+                window.
+              </p>
+            </article>
+            <article class="card reveal">
+              <span class="card__icon">📤</span>
+              <h3>Export a real report</h3>
+              <p>
+                Markdown or self-contained HTML, with the grid, a legend you
+                label yourself, a summary line and each day's note content
+                grouped by week.
+              </p>
+            </article>
+            <article class="card reveal">
+              <span class="card__icon">🖱️</span>
+              <h3>Click-through to the note</h3>
+              <p>
+                Every filled square opens the note behind it. Every empty square
+                offers to create it — or stays quiet with
+                <code>disableFileCreation</code>.
+              </p>
+            </article>
+            <article class="card reveal">
+              <span class="card__icon">🌍</span>
+              <h3>Nine languages</h3>
+              <p>
+                English, German, Russian, Chinese, Hindi, Spanish, French,
+                Portuguese and Polish — with a documented path for adding yours.
+              </p>
+            </article>
+            <article class="card reveal">
+              <span class="card__icon">🔒</span>
+              <h3>Local by design</h3>
+              <p>
+                Your notes are the database. Nothing is uploaded, nothing is
+                synced, nothing is measured. Open source under Apache-2.0.
+              </p>
+            </article>
+          </div>
+
+          <figure class="shot reveal">
+            <img
+              src="assets/img/tracker-overview.png"
+              alt="Heatmap Tracker inside Obsidian showing a yearly grid, statistics and insights"
+              loading="lazy"
+              width="1600"
+              height="1000"
+            />
+          </figure>
+        </div>
+      </section>
+
+      <section class="section" id="usecases">
+        <div class="shell">
+          <p class="eyebrow reveal">Use cases</p>
+          <h2 class="section__title reveal">
+            Ten trackers people actually keep
+          </h2>
+          <p class="section__lede reveal">
+            Each one is a single frontmatter key. Every example below ships in
+            the
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker/tree/main/EXAMPLE_VAULT"
+              rel="noopener"
+              >example vault</a
+            >.
+          </p>
+
+          <div class="grid grid--uses">
+            <article class="use reveal">
+              <span>🏃</span>
+              <h3>Fitness</h3>
+              <code>exercise: 45</code>
+              <p>Spot the weeks you skipped, not just the total.</p>
+            </article>
+            <article class="use reveal">
+              <span>🧘</span>
+              <h3>Habits</h3>
+              <code>meditated: true</code>
+              <p>Streaks become visible — and hard to break.</p>
+            </article>
+            <article class="use reveal">
+              <span>😴</span>
+              <h3>Sleep</h3>
+              <code>hours-slept: 7.5</code>
+              <p>See the slow drift before it becomes a problem.</p>
+            </article>
+            <article class="use reveal">
+              <span>🙂</span>
+              <h3>Mood</h3>
+              <code>mood: 4</code>
+              <p>Correlate bad stretches with what else was happening.</p>
+            </article>
+            <article class="use reveal">
+              <span>💰</span>
+              <h3>Finance</h3>
+              <code>spent: 120</code>
+              <p>A year of spending on one screen.</p>
+            </article>
+            <article class="use reveal">
+              <span>📚</span>
+              <h3>Reading</h3>
+              <code>pages-read: 30</code>
+              <p>Small daily numbers add up visibly.</p>
+            </article>
+            <article class="use reveal">
+              <span>💧</span>
+              <h3>Water intake</h3>
+              <code>water: 6</code>
+              <p>Zero-effort adherence check.</p>
+            </article>
+            <article class="use reveal">
+              <span>💼</span>
+              <h3>Work log</h3>
+              <code>hours: 8</code>
+              <p>Export it as a report for your manager.</p>
+            </article>
+            <article class="use reveal">
+              <span>🤕</span>
+              <h3>Symptoms</h3>
+              <code>headache: 3</code>
+              <p>Bring a real timeline to your doctor.</p>
+            </article>
+            <article class="use reveal">
+              <span>✅</span>
+              <h3>Projects</h3>
+              <code>tasks-done: 5</code>
+              <p>Momentum, not just a burn-down chart.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--tint" id="export">
+        <div class="shell split">
+          <div class="split__text">
+            <p class="eyebrow reveal">Export</p>
+            <h2 class="section__title reveal">
+              From a year of notes to one shareable report
+            </h2>
+            <p class="section__lede reveal">
+              The Export tab sits between a bare calendar (too little context)
+              and a folder of raw notes (too much noise): the grid, rendered
+              pixel-for-pixel like your heatmap, then every day's own note
+              content underneath it, grouped by week.
+            </p>
+            <ul class="ticks reveal">
+              <li>
+                Weeks as columns or rows, with automatic wrapping for wide
+                ranges
+              </li>
+              <li>
+                Range presets: logged, last year, year to date, last month,
+                month to date
+              </li>
+              <li>
+                A legend editor pre-filled with the colors your data actually
+                uses
+              </li>
+              <li>
+                A summary line like <code>Workday: 22 · Leave: 1</code> with a
+                total
+              </li>
+              <li>
+                Save as Markdown or a self-contained HTML file, anywhere in your
+                vault
+              </li>
+            </ul>
+            <p class="reveal">
+              <a
+                class="btn btn--ghost"
+                href="https://github.com/mokkiebear/heatmap-tracker#-export-a-report"
+                rel="noopener"
+                >Read the export docs</a
+              >
+            </p>
+          </div>
+          <figure class="shot shot--split reveal">
+            <img
+              src="assets/img/two-mac-mockup.png"
+              alt="An exported Heatmap Tracker report shown next to the heatmap it was generated from"
+              loading="lazy"
+              width="1600"
+              height="1000"
+            />
+          </figure>
+        </div>
+      </section>
+
+      <section class="section" id="install">
+        <div class="shell">
+          <p class="eyebrow reveal">Install</p>
+          <h2 class="section__title reveal">
+            Two minutes, from inside Obsidian
+          </h2>
+          <div class="grid grid--install">
+            <article class="card reveal">
+              <h3>1 · Community plugins</h3>
+              <p>
+                <b>Settings → Community plugins</b>, turn Restricted mode off,
+                hit <b>Browse</b> and search for <b>Heatmap Tracker</b>.
+                Install, then enable.
+              </p>
+              <a
+                class="btn btn--primary"
+                href="https://obsidian.md/plugins?id=heatmap-tracker"
+                >Open the plugin page</a
+              >
+            </article>
+            <article class="card reveal">
+              <h3>2 · Add Dataview</h3>
+              <p>
+                The <code>heatmap-tracker</code> codeblock reads your notes
+                through
+                <a
+                  href="https://blacksmithgu.github.io/obsidian-dataview/"
+                  rel="noopener"
+                  >Dataview</a
+                >. Install it the same way; for <code>dataviewjs</code> examples
+                also enable <b>Enable JavaScript Queries</b>.
+              </p>
+            </article>
+            <article class="card reveal">
+              <h3>3 · Or do it by hand</h3>
+              <p>
+                Drop <code>main.js</code>, <code>styles.css</code> and
+                <code>manifest.json</code> from the latest release into
+                <code>&lt;vault&gt;/.obsidian/plugins/heatmap-tracker/</code>.
+                Beta builds go through BRAT.
+              </p>
+              <a
+                class="btn btn--ghost"
+                href="https://github.com/mokkiebear/heatmap-tracker/releases/latest"
+                rel="noopener"
+                >Latest release</a
+              >
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--tint" id="compare">
+        <div class="shell">
+          <p class="eyebrow reveal">How it compares</p>
+          <h2 class="section__title reveal">Grown out of heatmap-calendar</h2>
+          <p class="section__lede reveal">
+            Heatmap Tracker began as a rewrite of the excellent
+            <a
+              href="https://github.com/Richardsl/heatmap-calendar-obsidian"
+              rel="noopener"
+              >heatmap-calendar-obsidian</a
+            >
+            by Richardsl, and went further. If all you need is a one-year grid
+            from a
+            <code>dataviewjs</code> script, the original is lighter.
+          </p>
+          <div class="table-wrap reveal">
+            <table class="cmp">
+              <thead>
+                <tr>
+                  <th scope="col">Capability</th>
+                  <th scope="col">Heatmap Tracker</th>
+                  <th scope="col">heatmap-calendar</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">Codeblock without JavaScript</th>
+                  <td class="y">Yes</td>
+                  <td class="n">dataviewjs required</td>
+                </tr>
+                <tr>
+                  <th scope="row">Interactive insert command</th>
+                  <td class="y">Modal builder</td>
+                  <td class="n">No</td>
+                </tr>
+                <tr>
+                  <th scope="row">Statistics &amp; custom insights</th>
+                  <td class="y">Yes</td>
+                  <td class="n">No</td>
+                </tr>
+                <tr>
+                  <th scope="row">Monthly (calendar) layout</th>
+                  <td class="y">Yes</td>
+                  <td class="n">No</td>
+                </tr>
+                <tr>
+                  <th scope="row">Flexible date ranges</th>
+                  <td class="y">Days, months, explicit range</td>
+                  <td class="n">Full year</td>
+                </tr>
+                <tr>
+                  <th scope="row">Export to Markdown / HTML</th>
+                  <td class="y">Yes</td>
+                  <td class="n">No</td>
+                </tr>
+                <tr>
+                  <th scope="row">Localization</th>
+                  <td class="y">9 languages</td>
+                  <td class="n">No</td>
+                </tr>
+                <tr>
+                  <th scope="row">Click to open <em>and create</em> notes</th>
+                  <td class="y">Yes</td>
+                  <td class="n">Partial</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="faq">
+        <div class="shell shell--narrow">
+          <p class="eyebrow reveal">FAQ</p>
+          <h2 class="section__title reveal">Questions people actually ask</h2>
+
+          <details class="faq reveal">
+            <summary>Does my data leave my vault?</summary>
+            <p>
+              No. Everything is computed locally from your notes. There's no
+              account, no sync, no telemetry.
+            </p>
+          </details>
+          <details class="faq reveal">
+            <summary>Do I need Dataview?</summary>
+            <p>
+              For the no-code <code>heatmap-tracker</code> codeblock, yes —
+              that's how notes are read. But
+              <code>renderHeatmapTracker(container, trackerData)</code> accepts
+              any <code>entries</code> array, so any JavaScript that can build
+              one works.
+            </p>
+          </details>
+          <details class="faq reveal">
+            <summary>Does it work on Obsidian mobile?</summary>
+            <p>
+              Yes. The plugin isn't desktop-only; iOS and Android are supported.
+            </p>
+          </details>
+          <details class="faq reveal">
+            <summary>My heatmap is empty — what do I check?</summary>
+            <p>
+              In order: Dataview enabled; the property name spelled exactly
+              right (it's case-sensitive); your notes inside the searched folder
+              (set <code>path</code>
+              if they're not); the displayed year matching your data. A missing
+              <code>property</code> logs a warning in devtools.
+            </p>
+          </details>
+          <details class="faq reveal">
+            <summary>All my squares are the same color</summary>
+            <p>
+              Your values are landing in one bucket. Bracket the range you care
+              about with
+              <code>intensityConfig.scaleStart</code> and
+              <code>scaleEnd</code> — e.g. <code>30</code>–<code>120</code> for
+              reading minutes.
+            </p>
+          </details>
+          <details class="faq reveal">
+            <summary>Dates are off by one day</summary>
+            <p>
+              Almost always a timezone issue in how the date was parsed. Use
+              plain
+              <code>YYYY-MM-DD</code> strings for <code>date</code> rather than
+              <code>Date</code> objects or ISO timestamps with a time component.
+            </p>
+          </details>
+          <details class="faq reveal">
+            <summary>Can one heatmap show several properties?</summary>
+            <p>
+              Yes — <code>property: [running, cycling, swimming]</code>. The
+              values are aggregated into a single heatmap.
+            </p>
+          </details>
+          <details class="faq reveal">
+            <summary>What does it cost?</summary>
+            <p>
+              Nothing. Free and open source under Apache-2.0. If it saves you
+              time, you can
+              <a href="https://www.buymeacoffee.com/mrubanau" rel="noopener"
+                >buy the author a coffee</a
+              >
+              — entirely optional.
+            </p>
+          </details>
+
+          <p class="reveal center muted">
+            Still stuck?
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker/issues/new/choose"
+              rel="noopener"
+              >Open an issue</a
+            >
+            with your codeblock, a sample note and your versions.
+          </p>
+        </div>
+      </section>
+
+      <section class="cta">
+        <div class="shell cta__inner reveal">
+          <h2>Start tracking tonight's note</h2>
+          <p>
+            Free, open source, and it reads the notes you're already writing.
+            One codeblock and your year shows up.
+          </p>
+          <div class="hero__cta">
+            <a
+              class="btn btn--primary btn--lg"
+              href="https://obsidian.md/plugins?id=heatmap-tracker"
+              >Install Heatmap Tracker</a
+            >
+            <a
+              class="btn btn--ghost btn--lg"
+              href="https://github.com/mokkiebear/heatmap-tracker/tree/main/EXAMPLE_VAULT"
+              rel="noopener"
+              >Open the example vault</a
+            >
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="shell footer__inner">
+        <div class="footer__brand">
+          <a class="brand" href="#top">
+            <img src="assets/img/logo.svg" alt="" width="24" height="24" />
+            <span>Heatmap Tracker</span>
+          </a>
+          <p class="muted">
+            An Obsidian plugin by
+            <a href="https://github.com/mokkiebear" rel="noopener"
+              >Maksim Rubanau</a
+            >. Apache-2.0. Obsidian is a trademark of Dynalist Inc.; this
+            project is not affiliated with it.
+          </p>
+        </div>
+        <nav class="footer__cols" aria-label="Footer">
+          <div>
+            <h3>Product</h3>
+            <a href="#features">Features</a>
+            <a href="#usecases">Use cases</a>
+            <a href="#export">Export</a>
+            <a href="#compare">Comparison</a>
+          </div>
+          <div>
+            <h3>Docs</h3>
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker#readme"
+              rel="noopener"
+              >README</a
+            >
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker#-configuration-reference"
+              rel="noopener"
+              >Configuration</a
+            >
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker/tree/main/EXAMPLE_VAULT"
+              rel="noopener"
+              >Example vault</a
+            >
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker/blob/main/CHANGELOG.md"
+              rel="noopener"
+              >Changelog</a
+            >
+          </div>
+          <div>
+            <h3>Project</h3>
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker"
+              rel="noopener"
+              >GitHub</a
+            >
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker/issues/new/choose"
+              rel="noopener"
+              >Report an issue</a
+            >
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker/blob/main/CONTRIBUTING.md"
+              rel="noopener"
+              >Contributing</a
+            >
+            <a href="https://www.buymeacoffee.com/mrubanau" rel="noopener"
+              >Support</a
+            >
+          </div>
+        </nav>
+      </div>
+    </footer>
+
+    <script src="assets/js/main.js" defer></script>
+  </body>
+</html>
