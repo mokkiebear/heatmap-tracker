@@ -85,8 +85,8 @@ full data pipeline and a "where to make a change" table.
 ## Recurring workflows
 
 Multi-file tasks that are easy to half-finish have a skill in `.claude/skills/`:
-`add-tracker-parameter`, `add-language`, `debug-timezone`, `release`. Read the
-matching one before starting that kind of change.
+`add-tracker-parameter`, `add-language`, `debug-timezone`, `review-dependabot-pr`,
+`release`. Read the matching one before starting that kind of change.
 
 ## Verification
 
