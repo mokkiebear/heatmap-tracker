@@ -2,6 +2,7 @@
   "name": "heatmap-tracker",
   "version": "2.7.12",
   "description": "A heatmap tracker plugin for Obsidian",
+  "homepage": "https://mokkiebear.github.io/heatmap-tracker/",
   "main": "/build/main.js",
   "scripts": {
     "dev": "concurrently \"node esbuild.config.mjs\" \"npm run copyAndWatchMainJS\" \"npm run copyAndWatchStylesJS\" \"npm run copyAndWatchManifestJS\"",

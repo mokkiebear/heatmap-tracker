@@ -5,7 +5,7 @@ import {
   Plugin,
   stringifyYaml,
 } from "obsidian";
-import { getDataviewApi } from "src/utils/dataviewApi";
+import { resolveDataviewApi } from "src/utils/dataviewApi";
 import HeatmapTrackerSettingsTab from "./settings";
 import { TrackerData, TrackerParams, TrackerSettings } from "./types";
 import { buildEntriesFromDataview } from "./utils/dataviewEntries";
@@ -40,8 +40,14 @@ export default class HeatmapTrackerPlugin extends Plugin {
   async onload() {
     await this.loadSettings();
     // Codeblock errors and modals can be shown before any React tree mounts, so
-    // the language has to be set here rather than in App.tsx's effect.
-    await i18n.changeLanguage(this.settings.language);
+    // the language has to be set here rather than in App.tsx's effect. A
+    // rejection here must not take the whole plugin down with it — i18next
+    // falls back to English on its own.
+    try {
+      await i18n.changeLanguage(this.settings.language);
+    } catch (e) {
+      console.warn("Heatmap Tracker: could not switch language.", e);
+    }
     this.addSettingTab(new HeatmapTrackerSettingsTab(this.app, this));
 
     this.addCommand({
@@ -102,8 +108,10 @@ export default class HeatmapTrackerPlugin extends Plugin {
         // Dataview is preferred when the user has it: it indexes inline fields
         // (`steps:: 8420`) that Obsidian's own metadata cache does not expose.
         // Without it, frontmatter is read straight from the vault rather than
-        // the codeblock rendering nothing.
-        const dv = getDataviewApi(this.app) ?? getDataviewApi();
+        // the codeblock rendering nothing. When Dataview is enabled but still
+        // starting up, this waits for it instead of answering from frontmatter
+        // alone and silently dropping that vault's inline fields.
+        const dv = await resolveDataviewApi(this.app);
 
         const query = {
           path: params.path,

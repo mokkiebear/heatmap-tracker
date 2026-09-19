@@ -20,7 +20,7 @@
 [![Issues](https://img.shields.io/github/issues/mokkiebear/heatmap-tracker?color=0ea5e9)](https://github.com/mokkiebear/heatmap-tracker/issues)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-16a34a.svg)](./CONTRIBUTING.md)
 
-[**Install**](#-install) · [**Quick start**](#-quick-start) · [**Configuration**](#-configuration-reference) · [**Export**](#-export-a-report) · [**FAQ**](#-faq--troubleshooting) · [**Example vault**](https://github.com/mokkiebear/heatmap-tracker/tree/main/EXAMPLE_VAULT)
+[**Website**](https://mokkiebear.github.io/heatmap-tracker/) · [**Install**](#-install) · [**Quick start**](#-quick-start) · [**Configuration**](#-configuration-reference) · [**Export**](#-export-a-report) · [**FAQ**](#-faq--troubleshooting) · [**Example vault**](https://github.com/mokkiebear/heatmap-tracker/tree/main/EXAMPLE_VAULT)
 
 </div>
 

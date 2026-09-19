@@ -57,6 +57,17 @@ export default [
     },
   },
   {
+    // The product site (website/) is plain browser JavaScript served straight to
+    // GitHub Pages: no bundler, no Node globals.
+    files: ["website/**/*.js"],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
+      sourceType: "script",
+    },
+  },
+  {
     // Test files are deliberately NOT ignored here: they are part of the
     // codebase and drift just as easily as src/.
     ignores: [

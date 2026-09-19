@@ -4,8 +4,23 @@
     {
       "name": "harness",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "harness"],
+      "runtimeArgs": [
+        "run",
+        "harness"
+      ],
       "port": 5174
+    },
+    {
+      "name": "website",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "--yes",
+        "serve",
+        "website",
+        "-l",
+        "5175"
+      ],
+      "port": 5175
     }
   ]
 }
