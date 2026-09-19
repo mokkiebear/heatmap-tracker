@@ -20,7 +20,9 @@
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "verify": "npm run type-check && npm run lint && npm run format:check && npm test",
+    "verify:tz": "npm run test:utc && npm run test:usa"
   },
   "keywords": [
     "obsidian"

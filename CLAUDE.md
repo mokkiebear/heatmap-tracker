@@ -1,0 +1,78 @@
+# CLAUDE.md
+
+Obsidian plugin that renders GitHub-style heatmaps from note data. TypeScript +
+React (aliased to Preact at build time), bundled with esbuild.
+
+## Commands
+
+```bash
+npm run verify      # type-check + lint + format:check + test — run before every commit
+npm run verify:tz   # same suite under TZ=utc and TZ=America/New_York
+npm test            # jest only (~8s, 555 tests)
+npx jest src/utils/__tests__/date.spec.ts   # single file while iterating
+npm run build       # tsc --noEmit + esbuild production bundle into build/
+npm run dev         # watch build, copies into EXAMPLE_VAULT for hot-reload
+npm run lint:fix    # eslint --fix
+npm run format      # prettier --write
+```
+
+`npm run verify` runs the same checks as [ci.yml](.github/workflows/ci.yml) in the
+same order. Green locally means green in CI. CI additionally runs `verify:tz` and
+`build`.
+
+## Repo map
+
+| Path | What lives there |
+|---|---|
+| `src/main.tsx` | Obsidian plugin entry: codeblock processor, commands, settings persistence |
+| `src/render.tsx` | Merge → validate → mount pipeline; the `window.renderHeatmapTracker` global |
+| `src/schemas/` | Zod schemas — **the** source of truth for `TrackerData` fields |
+| `src/types.ts` | `TrackerData` (inferred from Zod, do not hand-edit), `TrackerSettings`, view enums |
+| `src/context/heatmap/` | `HeatmapProvider` — computes dates, colors, intensities, boxes once |
+| `src/utils/` | Pure derivation logic: `date.ts`, `intensity.ts`, `colors.ts`, `core.ts` |
+| `src/views/`, `src/components/` | Rendering only; read from `useHeatmapContext()` |
+| `src/settings.ts`, `src/settings/` | Plugin-wide settings tab |
+| `src/localization/locales/` | i18n resources |
+| `EXAMPLE_VAULT/` | Obsidian vault used for manual testing; also holds doc examples |
+
+Read [ARCHITECTURE.md](ARCHITECTURE.md) before any structural change — it has the
+full data pipeline and a "where to make a change" table.
+
+## Invariants
+
+- **`TrackerData` vs `TrackerSettings` are different things.** `TrackerData` is
+  one heatmap's config, lives in the user's note, is never persisted by the
+  plugin. `TrackerSettings` is plugin-wide defaults, persisted via `saveData()`.
+  Never merge one into the other.
+- **Schema first.** To add or rename a `trackerData` parameter, edit
+  `src/schemas/`; `TrackerData` in `src/types.ts` is `z.infer<...>` and updates
+  itself. Also update `DEFAULT_TRACKER_DATA` in `src/constants/`.
+- **Derive once, in the context.** Views must not recompute dates, colors or
+  intensities — add it to `HeatmapProvider` so every view sees the same values.
+- **Dates are timezone-sensitive.** Several past bugs were TZ-dependent, which is
+  why CI runs the suite under three zones. Touching `src/utils/date.ts`,
+  `intensity.ts` or anything date-shaped: run `npm run verify:tz`.
+- **Validation must not crash.** `validateTrackerData()` reports failures via a
+  `Notice` with a typo suggestion. Keep that contract; users have old codeblocks.
+- **Backwards compatibility.** Legacy fields are migrated in `mergeTrackerData()`
+  (`src/utils/core.ts`). Removing a legacy field breaks existing notes.
+
+## Conventions
+
+- Tests live in `__tests__/` next to the code, named `*.test.ts(x)` or `*.spec.ts(x)`.
+  Test files are linted like source — they are not exempt.
+- Prettier owns formatting. Don't hand-format; CI runs `format:check`.
+- User-facing change → add a bullet under `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md).
+- New `trackerData` parameter → document it in README's "Tracker Settings
+  Documentation" section (source of truth for users).
+- Commit messages: present tense, `type(scope): summary` as in recent history.
+- Don't commit `build/` or `coverage/` — both gitignored.
+- Don't bump the version by hand; releases go through
+  [.agent/workflows/release.md](.agent/workflows/release.md).
+
+## Verification
+
+Unit tests cover the derivation layer well. There is no headless way to see a
+rendered heatmap — Obsidian does not run headless. For render changes, either
+assert with `@testing-library/react` against `src/views/`, or state plainly that
+the change was not visually verified. Do not claim a UI result you did not observe.
