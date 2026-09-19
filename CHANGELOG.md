@@ -5,6 +5,8 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+## [2.8.1] - 2026-09-20
 ### Added
 - Three guide pages on the website — building a habit tracker, `dataviewjs` heatmaps, and a GitHub-style contribution graph — each with its own structured data and linked from the landing page.
 - A README section listing exactly which `date` formats are accepted, and a FAQ entry for heatmaps that look different on phone and desktop.
