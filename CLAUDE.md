@@ -62,6 +62,12 @@ full data pipeline and a "where to make a change" table.
 
 - Tests live in `__tests__/` next to the code, named `*.test.ts(x)` or `*.spec.ts(x)`.
   Test files are linted like source — they are not exempt.
+- Build test data with the helpers in `src/test-utils/` (`makeTrackerData`,
+  `makeSettings`, `makeEntries`, `renderWithHeatmap`) rather than casting an
+  incomplete literal with `as never` — the cast hides renamed fields from the
+  type checker. Never build a date from "today" in a test; pass the date in.
+- `npm run test:coverage` enforces a floor in `jest.config.js`. Raise it when
+  coverage rises; do not lower it to make a change pass.
 - Prettier owns formatting. Don't hand-format; CI runs `format:check`.
 - User-facing change → add a bullet under `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md).
 - New `trackerData` parameter → document it in README's "Tracker Settings

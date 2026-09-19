@@ -20,8 +20,20 @@ module.exports = {
     "!src/**/*.d.ts",
     "!src/__mocks__/**",
     "!src/localization/**",
+    "!src/test-utils/**",
   ],
   coverageDirectory: "coverage",
+  // A ratchet, not a target: set a couple of points under the level the suite
+  // reached so ordinary refactors don't trip it, but deleting tests to make a
+  // change pass does. Raise these when coverage rises; don't lower them.
+  coverageThreshold: {
+    global: {
+      statements: 72,
+      branches: 66,
+      functions: 68,
+      lines: 73,
+    },
+  },
   moduleDirectories: ["./node_modules", "./src"],
   rootDir: ".",
   moduleNameMapper: {
