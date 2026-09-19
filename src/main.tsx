@@ -5,7 +5,7 @@ import {
   Plugin,
   stringifyYaml,
 } from "obsidian";
-import { getDataviewApi } from "src/utils/dataviewApi";
+import { resolveDataviewApi } from "src/utils/dataviewApi";
 import HeatmapTrackerSettingsTab from "./settings";
 import { TrackerData, TrackerParams, TrackerSettings } from "./types";
 import { buildEntriesFromDataview } from "./utils/dataviewEntries";
@@ -14,6 +14,11 @@ import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
 
 import "./localization/i18n";
 
+import {
+  renderCodeblockIssue,
+  renderNoMatchesHint,
+} from "./utils/codeblockError";
+import i18n from "./localization/i18n";
 import { getRenderHeatmapTracker } from "./render";
 import { DEFAULT_SETTINGS } from "./constants/defaultSettings";
 import { HeatmapModal } from "./modals/HeatmapModal";
@@ -33,6 +38,15 @@ export default class HeatmapTrackerPlugin extends Plugin {
 
   async onload() {
     await this.loadSettings();
+    // Codeblock errors and modals can be shown before any React tree mounts, so
+    // the language has to be set here rather than in App.tsx's effect.
+    // A rejection here must not take the whole plugin down with it — i18next
+    // falls back to English on its own.
+    try {
+      await i18n.changeLanguage(this.settings.language);
+    } catch (e) {
+      console.warn("Heatmap Tracker: could not switch language.", e);
+    }
     this.addSettingTab(new HeatmapTrackerSettingsTab(this.app, this));
 
     this.addCommand({
@@ -62,11 +76,26 @@ export default class HeatmapTrackerPlugin extends Plugin {
         el: HTMLElement,
         ctx: MarkdownPostProcessorContext,
       ) => {
-        const params: any = parseYaml(source) as TrackerParams;
-        if (params.property === undefined) {
-          console.warn("Missing codeblock parameter: property");
+        // Every failure below used to end in console.warn, which left the
+        // reader looking at an empty space with no way to tell a broken
+        // codeblock from a vault with no data in it yet.
+        let params: any;
+
+        try {
+          params = parseYaml(source) as TrackerParams;
+        } catch (e) {
+          renderCodeblockIssue(el, {
+            kind: "invalid-yaml",
+            detail: (e as Error)?.message,
+          });
           return;
         }
+
+        if (params?.property === undefined) {
+          renderCodeblockIssue(el, { kind: "missing-property" });
+          return;
+        }
+
         if (params.path === undefined) {
           // Use DailyNotes API to get the Daily Notes folder
           const dailyNoteSettings = getDailyNoteSettings();
@@ -74,9 +103,19 @@ export default class HeatmapTrackerPlugin extends Plugin {
             params.path = dailyNoteSettings.folder;
           }
         }
+
+        // Use DataView API to filter pages that contain specified frontmatter property
+        // During Obsidian's startup a note can render before Dataview has
+        // installed its API. Without the wait, a vault that *has* Dataview gets
+        // told to install it.
+        const dv = await resolveDataviewApi(this.app);
+
+        if (!dv) {
+          renderCodeblockIssue(el, { kind: "dataview-missing" });
+          return;
+        }
+
         try {
-          // Use DataView API to filter pages that contain specified frontmatter property
-          const dv = getDataviewApi();
           const entries = buildEntriesFromDataview(
             dv,
             {
@@ -98,8 +137,21 @@ export default class HeatmapTrackerPlugin extends Plugin {
             // Append codeblock parameters to TrackerSettings object
             window.renderHeatmapTracker(el, trackerData, this.settings);
           }
+
+          // An empty grid is a valid state, so the heatmap is still rendered —
+          // this only explains why every square is blank.
+          if (entries.length === 0) {
+            renderNoMatchesHint(el, {
+              property: String(params.property),
+              path: params.path ? String(params.path) : undefined,
+            });
+          }
         } catch (e) {
           console.warn(e);
+          renderCodeblockIssue(el, {
+            kind: "unexpected",
+            detail: (e as Error)?.message,
+          });
         }
       },
     );

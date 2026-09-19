@@ -58,6 +58,17 @@ export class Modal {
   }
 }
 
+// Real Obsidian swaps the element's contents for an SVG icon. Recording the
+// name is enough for assertions and lets the render harness show which icon was
+// requested.
+export function setIcon(element: HTMLElement, iconId: string): void {
+  element.setAttribute("data-icon", iconId);
+}
+
+export function normalizePath(input: string): string {
+  return input.replace(/\\/g, "/").replace(/\/+/g, "/").replace(/\/$/, "");
+}
+
 declare global {
   function createDiv(): HTMLDivElement;
 }

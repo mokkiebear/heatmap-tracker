@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- A `heatmap-tracker` codeblock that cannot render now explains why in the note itself — Dataview not installed, no `property` set, invalid YAML, or an unexpected failure — instead of writing to the developer console and leaving an empty space.
+- A hint under heatmaps whose query matched no notes, naming the property and path it looked for.
+
+### Fixed
+- A codeblock rendered while Dataview is still starting up now waits for its index instead of reporting Dataview as missing.
+- The plugin language is now applied on load, so codeblock messages and modals are translated before any heatmap renders.
+
 
 ## [2.7.12] - 2026-08-31
 ### Fixed

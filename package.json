@@ -2,6 +2,7 @@
   "name": "heatmap-tracker",
   "version": "2.7.12",
   "description": "A heatmap tracker plugin for Obsidian",
+  "homepage": "https://mokkiebear.github.io/heatmap-tracker/",
   "main": "/build/main.js",
   "scripts": {
     "dev": "concurrently \"node esbuild.config.mjs\" \"npm run copyAndWatchMainJS\" \"npm run copyAndWatchStylesJS\" \"npm run copyAndWatchManifestJS\"",
@@ -20,7 +21,11 @@
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "verify": "npm run type-check && npm run lint && npm run format:check && npm test",
+    "verify:tz": "npm run test:utc && npm run test:usa",
+    "harness": "node harness/esbuild.harness.mjs --serve",
+    "harness:build": "node harness/esbuild.harness.mjs"
   },
   "keywords": [
     "obsidian"

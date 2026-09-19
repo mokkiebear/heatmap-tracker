@@ -16,6 +16,7 @@
 @use "./styles/heatmap-export.scss";
 @use "./styles/date-picker.scss";
 @use "./styles/heatmap-skeleton.scss";
+@use "./styles/heatmap-message.scss";
 
 /// Every view that can host a heatmap grid. `__container` is the inner element
 /// App.tsx renders; `-container` is the outer wrapper from render.tsx and the

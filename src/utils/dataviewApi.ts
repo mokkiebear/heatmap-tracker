@@ -34,3 +34,62 @@ export function getDataviewApi(app?: App): DataviewApi | undefined {
 
   return (window as Window & WindowWithDataview).DataviewAPI;
 }
+
+/**
+ * Whether the user has Dataview turned on, regardless of whether it has
+ * finished loading.
+ *
+ * The distinction matters: during Obsidian's startup a note can render before
+ * Dataview has installed its API, and treating that moment as "no Dataview" —
+ * and quietly answering from frontmatter alone — would drop every inline field
+ * from a vault that has them.
+ */
+export function isDataviewEnabled(app: App): boolean {
+  const plugins = (app as App & AppWithPlugins).plugins;
+
+  return Boolean(
+    plugins?.enabledPlugins?.has("dataview") || plugins?.plugins?.dataview,
+  );
+}
+
+/** Dataview fires this on the metadata cache once its index is usable. */
+const DATAVIEW_READY_EVENT = "dataview:index-ready";
+
+/**
+ * Resolves Dataview's API, waiting briefly when the plugin is enabled but has
+ * not installed it yet. Only ever delays a render that would previously have
+ * produced an empty heatmap, and always gives up after `timeoutMs`.
+ */
+export async function resolveDataviewApi(
+  app: App,
+  timeoutMs = 3000,
+): Promise<DataviewApi | undefined> {
+  const immediate = getDataviewApi(app) ?? getDataviewApi();
+  if (immediate || !isDataviewEnabled(app)) {
+    return immediate;
+  }
+
+  await new Promise<void>((resolve) => {
+    const cache = app.metadataCache as App["metadataCache"] & {
+      on?: (name: string, callback: () => void) => unknown;
+      offref?: (ref: unknown) => void;
+    };
+
+    const timer = setTimeout(finish, timeoutMs);
+    let ref: unknown;
+
+    function finish() {
+      clearTimeout(timer);
+      if (ref) cache.offref?.(ref);
+      resolve();
+    }
+
+    ref = cache.on?.(DATAVIEW_READY_EVENT, finish);
+
+    // No event system to hook into (older Obsidian, or a test double): the
+    // timeout is the only exit, so don't leave the render hanging on it.
+    if (!ref) finish();
+  });
+
+  return getDataviewApi(app) ?? getDataviewApi();
+}
