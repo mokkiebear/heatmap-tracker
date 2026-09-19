@@ -1,0 +1,68 @@
+/// Inline error and hint cards rendered into a `heatmap-tracker` codeblock when
+/// there is no heatmap to draw, or when the grid came back empty. These replace
+/// silent `console.warn` calls, so they have to be legible in the note itself.
+.heatmap-tracker-message {
+  display: flex;
+  gap: var(--size-4-2);
+  align-items: flex-start;
+  padding: var(--size-4-3);
+  border-radius: var(--radius-m);
+  border: var(--border-width) solid var(--background-modifier-border);
+  background-color: var(--background-secondary);
+
+  &--error {
+    border-color: var(--text-error);
+    background-color: rgba(var(--background-modifier-error-rgb), 0.1);
+  }
+
+  &--hint {
+    margin-top: var(--size-4-2);
+  }
+
+  &__icon {
+    display: flex;
+    flex-shrink: 0;
+    color: var(--text-muted);
+
+    .heatmap-tracker-message--error & {
+      color: var(--text-error);
+    }
+  }
+
+  &__body {
+    min-width: 0;
+  }
+
+  &__title {
+    font-weight: var(--font-semibold);
+    margin-bottom: var(--size-2-1);
+  }
+
+  &__text {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+  }
+
+  &__snippet,
+  &__detail {
+    margin: var(--size-4-2) 0 0;
+    padding: var(--size-4-2);
+    border-radius: var(--radius-s);
+    background-color: var(--background-primary-alt);
+    font-size: var(--font-ui-smaller);
+    // Long vault paths and stack traces must not stretch the note's width.
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  &__detail {
+    color: var(--text-error);
+  }
+
+  &__action {
+    display: inline-block;
+    margin-top: var(--size-4-2);
+    font-size: var(--font-ui-small);
+  }
+}

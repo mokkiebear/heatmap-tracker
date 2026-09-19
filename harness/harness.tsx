@@ -16,6 +16,11 @@ import ReactApp from "../src/App";
 import { renderApp } from "../src/render";
 import "../src/localization/i18n";
 
+import {
+  renderCodeblockIssue,
+  renderNoMatchesHint,
+} from "../src/utils/codeblockError";
+
 import { fixtures, harnessSettings } from "./fixtures";
 
 const app = new App();
@@ -50,6 +55,71 @@ for (const fixture of fixtures) {
     fixture.trackerData,
     <ReactApp />,
   );
+}
+
+/**
+ * The message cards a codeblock shows instead of a heatmap. They are plain DOM
+ * rendered by the codeblock processor, not part of the React tree, so they are
+ * mounted here directly.
+ */
+const messages: {
+  title: string;
+  note: string;
+  render: (el: HTMLElement) => void;
+}[] = [
+  {
+    title: "Dataview missing",
+    note: "What a brand-new user sees if they skipped the Dataview install.",
+    render: (el) => renderCodeblockIssue(el, { kind: "dataview-missing" }),
+  },
+  {
+    title: "No property set",
+    note: "An empty `heatmap-tracker` codeblock.",
+    render: (el) => renderCodeblockIssue(el, { kind: "missing-property" }),
+  },
+  {
+    title: "Invalid YAML",
+    note: "Bad indentation in the codeblock.",
+    render: (el) =>
+      renderCodeblockIssue(el, {
+        kind: "invalid-yaml",
+        detail: "bad indentation of a mapping entry at line 2, column 3",
+      }),
+  },
+  {
+    title: "Unexpected failure",
+    note: "Anything thrown while reading the vault.",
+    render: (el) =>
+      renderCodeblockIssue(el, {
+        kind: "unexpected",
+        detail: "dv.pages is not a function",
+      }),
+  },
+  {
+    title: "Empty result hint",
+    note: "Shown under a heatmap whose query matched nothing.",
+    render: (el) =>
+      renderNoMatchesHint(el, { property: "steps", path: "daily notes" }),
+  },
+];
+
+for (const message of messages) {
+  const section = document.createElement("section");
+  section.className = "harness-fixture";
+
+  const heading = document.createElement("h2");
+  heading.textContent = message.title;
+
+  const note = document.createElement("p");
+  note.className = "harness-note";
+  note.textContent = message.note;
+
+  const mount = document.createElement("div");
+  mount.className = "harness-mount";
+  message.render(mount);
+
+  section.append(heading, note, mount);
+  root.append(section);
 }
 
 const themeButton = document.getElementById("toggle-theme");

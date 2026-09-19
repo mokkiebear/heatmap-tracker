@@ -14,6 +14,11 @@ import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
 
 import "./localization/i18n";
 
+import {
+  renderCodeblockIssue,
+  renderNoMatchesHint,
+} from "./utils/codeblockError";
+import i18n from "./localization/i18n";
 import { getRenderHeatmapTracker } from "./render";
 import { DEFAULT_SETTINGS } from "./constants/defaultSettings";
 import { HeatmapModal } from "./modals/HeatmapModal";
@@ -33,6 +38,9 @@ export default class HeatmapTrackerPlugin extends Plugin {
 
   async onload() {
     await this.loadSettings();
+    // Codeblock errors and modals can be shown before any React tree mounts, so
+    // the language has to be set here rather than in App.tsx's effect.
+    await i18n.changeLanguage(this.settings.language);
     this.addSettingTab(new HeatmapTrackerSettingsTab(this.app, this));
 
     this.addCommand({
@@ -62,11 +70,26 @@ export default class HeatmapTrackerPlugin extends Plugin {
         el: HTMLElement,
         ctx: MarkdownPostProcessorContext,
       ) => {
-        const params: any = parseYaml(source) as TrackerParams;
-        if (params.property === undefined) {
-          console.warn("Missing codeblock parameter: property");
+        // Every failure below used to end in console.warn, which left the
+        // reader looking at an empty space with no way to tell a broken
+        // codeblock from a vault with no data in it yet.
+        let params: any;
+
+        try {
+          params = parseYaml(source) as TrackerParams;
+        } catch (e) {
+          renderCodeblockIssue(el, {
+            kind: "invalid-yaml",
+            detail: (e as Error)?.message,
+          });
           return;
         }
+
+        if (params?.property === undefined) {
+          renderCodeblockIssue(el, { kind: "missing-property" });
+          return;
+        }
+
         if (params.path === undefined) {
           // Use DailyNotes API to get the Daily Notes folder
           const dailyNoteSettings = getDailyNoteSettings();
@@ -74,9 +97,16 @@ export default class HeatmapTrackerPlugin extends Plugin {
             params.path = dailyNoteSettings.folder;
           }
         }
+
+        // Use DataView API to filter pages that contain specified frontmatter property
+        const dv = getDataviewApi(this.app) ?? getDataviewApi();
+
+        if (!dv) {
+          renderCodeblockIssue(el, { kind: "dataview-missing" });
+          return;
+        }
+
         try {
-          // Use DataView API to filter pages that contain specified frontmatter property
-          const dv = getDataviewApi();
           const entries = buildEntriesFromDataview(
             dv,
             {
@@ -98,8 +128,21 @@ export default class HeatmapTrackerPlugin extends Plugin {
             // Append codeblock parameters to TrackerSettings object
             window.renderHeatmapTracker(el, trackerData, this.settings);
           }
+
+          // An empty grid is a valid state, so the heatmap is still rendered —
+          // this only explains why every square is blank.
+          if (entries.length === 0) {
+            renderNoMatchesHint(el, {
+              property: String(params.property),
+              path: params.path ? String(params.path) : undefined,
+            });
+          }
         } catch (e) {
           console.warn(e);
+          renderCodeblockIssue(el, {
+            kind: "unexpected",
+            detail: (e as Error)?.message,
+          });
         }
       },
     );
