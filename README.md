@@ -333,7 +333,7 @@ The authoritative reference for every `trackerData` parameter. Each one links to
 
 | Field | Description |
 |---|---|
-| `date` | Date of the entry (ISO string, `YYYY-MM-DD`) |
+| `date` | Date of the entry (ISO string, `YYYY-MM-DD` — see [Accepted date formats](#accepted-date-formats)) |
 | `intensity` | Data intensity for that date |
 | `content` | Optional tooltip / note text |
 | `customColor` | Overrides the color for this entry |
@@ -341,6 +341,23 @@ The authoritative reference for every `trackerData` parameter. Each one links to
 | `customHref` | Custom URL to open on click (takes precedence over `filePath`) |
 
 - **Example:** [entries](https://github.com/mokkiebear/heatmap-tracker/blob/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters/11.%20entries.md)
+
+#### Accepted date formats
+
+`date` is parsed by the plugin itself, so a note renders identically on desktop,
+iOS and Android. Accepted:
+
+| Format | Example |
+|---|---|
+| `YYYY-MM-DD` / `YYYY/M/D` (**recommended**) | `2025-01-31` |
+| ISO timestamp — the calendar date wins, any time or offset is ignored | `2025-01-31T23:59:59-05:00` |
+| Month-first numeric, year last | `01-31-2025`, `1/31/2025`, `01.31.2025` |
+| Day-first numeric, when the first number can't be a month | `31-01-2025` |
+| English month names | `Jan 31, 2025`, `31 January 2025` |
+
+Anything else (`March 2025`, `31.01.25`, a raw `Date` object) is rejected and the
+entry is dropped. Prefer `YYYY-MM-DD`: `01-02-2025` is read as January 2nd, which
+is not what a European reader means by it.
 
 ---
 
@@ -586,6 +603,17 @@ This is almost always a timezone issue with how dates are parsed. Use plain `YYY
 </details>
 
 <details>
+<summary><b>The heatmap looks different on my phone than on my desktop</b></summary>
+<br>
+
+The plugin renders from the same data on every platform, so a difference almost always means some entries are being dropped on one of them — check the `date` format against [Accepted date formats](#accepted-date-formats), and switch to `YYYY-MM-DD` if you're using anything else.
+
+Historically this was the cause of [#29](https://github.com/mokkiebear/heatmap-tracker/issues/29): dates were handed to the JavaScript engine's own parser, which accepts different formats on desktop (Electron/V8) and on iOS (WebKit/JavaScriptCore), so `01-31-2025` worked on a Mac and silently produced an empty heatmap on an iPhone. Dates are now parsed by the plugin itself and behave the same everywhere.
+
+Still different after fixing the format? Please [open an issue](https://github.com/mokkiebear/heatmap-tracker/issues) with your codeblock and the Obsidian version on both devices.
+</details>
+
+<details>
 <summary><b>Clicking a square opens the wrong note</b></summary>
 <br>
 
@@ -669,9 +697,9 @@ If all you need is a one-year contribution grid from a `dataviewjs` script, the 
 
 ---
 
-## 🗺️ Roadmap
+## 🗺️ What's planned
 
-See [ROADMAP.md](./ROADMAP.md) for what's planned. Have an idea? [Open an issue](https://github.com/mokkiebear/heatmap-tracker/issues/new/choose) — feature requests genuinely shape this project.
+Have an idea? [Open an issue](https://github.com/mokkiebear/heatmap-tracker/issues/new/choose) — feature requests genuinely shape this project.
 
 ---
 

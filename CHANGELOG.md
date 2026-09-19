@@ -7,9 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ## [Unreleased]
 ### Added
 - Three guide pages on the website — building a habit tracker, `dataviewjs` heatmaps, and a GitHub-style contribution graph — each with its own structured data and linked from the landing page.
+- A README section listing exactly which `date` formats are accepted, and a FAQ entry for heatmaps that look different on phone and desktop.
 
 ### Changed
 - Website screenshots are now WebP at 1600px with a purpose-built 1200x630 social card, taking the page from 2.9 MB of images to 320 KB.
+- ROADMAP.md removed — it listed things that were never being worked on, and the issue tracker already says what's planned.
+
+### Fixed
+- Entry dates are parsed by the plugin instead of the JavaScript engine, so a note renders identically on desktop and mobile. Formats like `01-31-2025` and `Jan 5, 2024` were accepted by desktop Obsidian (V8) but rejected on iOS (JavaScriptCore), which silently produced an empty heatmap on the phone ([#29](https://github.com/mokkiebear/heatmap-tracker/issues/29)).
 
 ## [2.8.0] - 2026-09-19
 ### Added
