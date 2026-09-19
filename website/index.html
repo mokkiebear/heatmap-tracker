@@ -14,6 +14,10 @@
       rel="canonical"
       href="https://mokkiebear.github.io/heatmap-tracker/"
     />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
     <meta name="theme-color" content="#07070b" />
     <meta name="author" content="Maksim Rubanau" />
     <meta
@@ -37,8 +41,15 @@
     />
     <meta
       property="og:image"
-      content="https://mokkiebear.github.io/heatmap-tracker/assets/img/mac-mockup-dark.png"
+      content="https://mokkiebear.github.io/heatmap-tracker/assets/img/og.jpg"
     />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="A year of tracked notes drawn as a heatmap inside Obsidian"
+    />
+    <meta property="og:locale" content="en_US" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
@@ -50,7 +61,7 @@
     />
     <meta
       name="twitter:image"
-      content="https://mokkiebear.github.io/heatmap-tracker/assets/img/mac-mockup-dark.png"
+      content="https://mokkiebear.github.io/heatmap-tracker/assets/img/og.jpg"
     />
 
     <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
@@ -72,7 +83,7 @@
         "applicationCategory": "ProductivityApplication",
         "applicationSubCategory": "Obsidian plugin",
         "operatingSystem": "Windows, macOS, Linux, iOS, Android",
-        "softwareVersion": "2.7.12",
+        "softwareVersion": "2.8.0",
         "description": "An Obsidian plugin that turns dated notes into an interactive, GitHub-style heatmap for tracking habits, goals, workouts, mood, sleep, finances and work logs. Data stays local in the vault.",
         "url": "https://mokkiebear.github.io/heatmap-tracker/",
         "downloadUrl": "https://obsidian.md/plugins?id=heatmap-tracker",
@@ -170,6 +181,7 @@
           <a href="#features">Features</a>
           <a href="#usecases">Use cases</a>
           <a href="#export">Export</a>
+          <a href="#guides">Guides</a>
           <a href="#faq">FAQ</a>
         </nav>
         <div class="nav__actions">
@@ -201,7 +213,7 @@
       <section class="hero" id="top">
         <div class="shell hero__inner">
           <p class="eyebrow reveal">
-            <span class="dot"></span> Obsidian community plugin · v2.7.12 ·
+            <span class="dot"></span> Obsidian community plugin · v2.8.0 ·
             Apache-2.0
           </p>
           <h1 class="reveal">
@@ -524,11 +536,12 @@
 
           <figure class="shot reveal">
             <img
-              src="assets/img/tracker-overview.png"
+              src="assets/img/tracker-overview.webp"
               alt="Heatmap Tracker inside Obsidian showing a yearly grid, statistics and insights"
               loading="lazy"
+              decoding="async"
               width="1600"
-              height="1000"
+              height="1041"
             />
           </figure>
         </div>
@@ -661,11 +674,12 @@
           </div>
           <figure class="shot shot--split reveal">
             <img
-              src="assets/img/two-mac-mockup.png"
+              src="assets/img/two-mac-mockup.webp"
               alt="An exported Heatmap Tracker report shown next to the heatmap it was generated from"
               loading="lazy"
+              decoding="async"
               width="1600"
-              height="1000"
+              height="1600"
             />
           </figure>
         </div>
@@ -794,7 +808,55 @@
         </div>
       </section>
 
-      <section class="section" id="faq">
+      <section class="section" id="guides">
+        <div class="shell">
+          <p class="eyebrow reveal">Guides</p>
+          <h2 class="section__title reveal">Set it up, step by step</h2>
+          <p class="section__lede reveal">
+            Longer walkthroughs for the three things people build most often
+            with Heatmap Tracker.
+          </p>
+          <div class="grid grid--guides">
+            <a
+              class="card guide-card reveal"
+              href="guides/obsidian-habit-tracker.html"
+            >
+              <span class="card__icon">🧘</span>
+              <h3>How to build a habit tracker in Obsidian</h3>
+              <p>
+                From a line of frontmatter in a daily note to a year of visible
+                streaks — including multi-habit grids and what to check when the
+                grid is empty.
+              </p>
+            </a>
+            <a
+              class="card guide-card reveal"
+              href="guides/obsidian-heatmap-dataview.html"
+            >
+              <span class="card__icon">⚙️</span>
+              <h3>Obsidian heatmaps with Dataview</h3>
+              <p>
+                The working shape of a <code>dataviewjs</code> block: the
+                entries array, computed intensities, click-through paths, and
+                the timezone trap behind off-by-one days.
+              </p>
+            </a>
+            <a
+              class="card guide-card reveal"
+              href="guides/obsidian-contribution-graph.html"
+            >
+              <span class="card__icon">🟩</span>
+              <h3>A GitHub-style contribution graph</h3>
+              <p>
+                The same year grid, drawn from your own notes — what carries
+                over from GitHub, what is different, and how to shape the range.
+              </p>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--tint" id="faq">
         <div class="shell shell--narrow">
           <p class="eyebrow reveal">FAQ</p>
           <h2 class="section__title reveal">Questions people actually ask</h2>
@@ -941,6 +1003,8 @@
               rel="noopener"
               >Configuration</a
             >
+            <a href="guides/obsidian-habit-tracker.html">Habit tracker guide</a>
+            <a href="guides/obsidian-heatmap-dataview.html">Dataview guide</a>
             <a
               href="https://github.com/mokkiebear/heatmap-tracker/tree/main/EXAMPLE_VAULT"
               rel="noopener"

@@ -1166,3 +1166,159 @@ img {
     transform: none;
   }
 }
+
+/* Guide pages ------------------------------------------------------------ */
+
+.doc {
+  position: relative;
+  z-index: 1;
+  padding: clamp(40px, 6vw, 72px) 0 clamp(60px, 8vw, 96px);
+}
+
+.crumbs {
+  font-size: 0.84rem;
+  color: var(--text-dim);
+  margin-bottom: 18px;
+}
+
+.crumbs a {
+  color: var(--text-dim);
+}
+
+.doc h1 {
+  font-size: clamp(2rem, 4.4vw, 3rem);
+  max-width: 20ch;
+}
+
+.doc__lede {
+  font-size: 1.14rem;
+  color: var(--text-dim);
+  max-width: 64ch;
+}
+
+.prose {
+  max-width: 72ch;
+}
+
+.prose h2 {
+  font-size: clamp(1.5rem, 2.6vw, 1.9rem);
+  margin-top: 2.2em;
+}
+
+.prose h3 {
+  margin-top: 1.8em;
+  font-size: 1.1rem;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.2em;
+  color: var(--text-dim);
+}
+
+.prose li {
+  margin-bottom: 0.5em;
+}
+
+.prose .code {
+  margin: 1.4em 0;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.6em 0;
+  font-size: 0.94rem;
+}
+
+.prose th,
+.prose td {
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.prose thead th {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.toc {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  padding: 18px 22px;
+  margin: 32px 0 8px;
+  max-width: 72ch;
+}
+
+.toc h2 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin: 0 0 10px;
+}
+
+.toc ol {
+  margin: 0;
+  padding-left: 1.1em;
+  color: var(--text-dim);
+  font-size: 0.95rem;
+}
+
+.doc__cta {
+  margin-top: 46px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 26px;
+  max-width: 72ch;
+}
+
+.doc__cta h2 {
+  margin-top: 0;
+}
+
+.related {
+  margin-top: 46px;
+  max-width: 72ch;
+}
+
+.related h2 {
+  font-size: 1.1rem;
+}
+
+.related a {
+  display: block;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--text);
+}
+
+.related a:hover {
+  color: var(--accent-2);
+}
+
+.related span {
+  display: block;
+  font-size: 0.88rem;
+  color: var(--text-dim);
+}
+
+.grid--guides {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.guide-card {
+  display: block;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.guide-card h3 {
+  margin-bottom: 8px;
+}

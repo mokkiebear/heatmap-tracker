@@ -29,6 +29,12 @@ Source: https://github.com/mokkiebear/heatmap-tracker
 - Click a square to open the note behind it, or create it (`disableFileCreation: false`).
 - 9 UI languages; desktop and mobile.
 
+## Guides on this site
+
+- How to build a habit tracker in Obsidian: https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-habit-tracker.html
+- Obsidian heatmaps with Dataview (dataviewjs): https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-heatmap-dataview.html
+- A GitHub-style contribution graph in Obsidian: https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-contribution-graph.html
+
 ## Docs
 
 - README and full configuration reference: https://github.com/mokkiebear/heatmap-tracker#readme

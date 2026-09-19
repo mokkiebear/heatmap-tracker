@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>A GitHub-style Contribution Graph for Your Obsidian Notes</title>
+    <meta
+      name="description"
+      content="Get GitHub&#x27;s contribution graph for your own data in Obsidian: one square per day, colour by intensity, clickable notes, configurable ranges, and an export to Markdown or HTML."
+    />
+    <link
+      rel="canonical"
+      href="https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-contribution-graph.html"
+    />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
+    <meta name="theme-color" content="#07070b" />
+    <meta name="author" content="Maksim Rubanau" />
+
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Heatmap Tracker" />
+    <meta
+      property="og:title"
+      content="A GitHub-style Contribution Graph for Your Obsidian Notes"
+    />
+    <meta
+      property="og:description"
+      content="Get GitHub&#x27;s contribution graph for your own data in Obsidian: one square per day, colour by intensity, clickable notes, configurable ranges, and an export to Markdown or HTML."
+    />
+    <meta
+      property="og:url"
+      content="https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-contribution-graph.html"
+    />
+    <meta
+      property="og:image"
+      content="https://mokkiebear.github.io/heatmap-tracker/assets/img/og.jpg"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="A GitHub-style Contribution Graph for Your Obsidian Notes"
+    />
+    <meta
+      name="twitter:description"
+      content="Get GitHub&#x27;s contribution graph for your own data in Obsidian: one square per day, colour by intensity, clickable notes, configurable ranges, and an export to Markdown or HTML."
+    />
+    <meta
+      name="twitter:image"
+      content="https://mokkiebear.github.io/heatmap-tracker/assets/img/og.jpg"
+    />
+
+    <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/css/styles.css" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "A GitHub-style contribution graph in Obsidian",
+        "description": "Get GitHub's contribution graph for your own data in Obsidian: one square per day, colour by intensity, clickable notes, configurable ranges, and an export to Markdown or HTML.",
+        "inLanguage": "en",
+        "datePublished": "2026-09-19",
+        "dateModified": "2026-09-19",
+        "mainEntityOfPage": {
+          "@type": "WebPage",
+          "@id": "https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-contribution-graph.html"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Maksim Rubanau",
+          "url": "https://github.com/mokkiebear"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Heatmap Tracker",
+          "url": "https://mokkiebear.github.io/heatmap-tracker/"
+        },
+        "image": "https://mokkiebear.github.io/heatmap-tracker/assets/img/og.jpg",
+        "about": {
+          "@type": "SoftwareApplication",
+          "name": "Heatmap Tracker",
+          "url": "https://mokkiebear.github.io/heatmap-tracker/"
+        },
+        "proficiencyLevel": "Beginner"
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Can I get a GitHub-style contribution graph in Obsidian?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Heatmap Tracker draws the same year grid \u2014 one square per day, coloured by intensity \u2014 from any dated frontmatter value in your vault, using a three-line heatmap-tracker codeblock."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does it pull my real GitHub commits?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. The plugin reads your notes rather than any external API, which is what keeps it working offline and on mobile. To chart commits, log the daily count into a note and point the codeblock at that property."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I show only the last few months instead of a whole year?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Use monthsToShow or daysToShow for a rolling window, or startDate and endDate for an explicit range, including one that crosses a year boundary."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I export the graph?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. The Export tab writes the grid, a legend you label yourself, a summary line and each day's note content into a Markdown note or a self-contained HTML file saved in your vault."
+            }
+          }
+        ]
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Heatmap Tracker",
+            "item": "https://mokkiebear.github.io/heatmap-tracker/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Contribution graph",
+            "item": "https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-contribution-graph.html"
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="aurora" aria-hidden="true"></div>
+
+    <header class="nav" id="nav">
+      <div class="shell nav__inner">
+        <a class="brand" href="../" aria-label="Heatmap Tracker home">
+          <img src="../assets/img/logo.svg" alt="" width="28" height="28" />
+          <span>Heatmap&nbsp;Tracker</span>
+        </a>
+        <nav class="nav__links" aria-label="Primary">
+          <a href="../#how">How it works</a>
+          <a href="../#features">Features</a>
+          <a href="../#usecases">Use cases</a>
+          <a href="../#guides">Guides</a>
+          <a href="../#faq">FAQ</a>
+        </nav>
+        <div class="nav__actions">
+          <button
+            class="icon-btn"
+            id="theme-toggle"
+            type="button"
+            aria-label="Switch color theme"
+          >
+            <span class="icon-btn__sun" aria-hidden="true">☀</span>
+            <span class="icon-btn__moon" aria-hidden="true">☾</span>
+          </button>
+          <a
+            class="btn btn--primary"
+            href="https://obsidian.md/plugins?id=heatmap-tracker"
+            >Install free</a
+          >
+        </div>
+      </div>
+    </header>
+
+    <main id="main" class="doc">
+      <div class="shell shell--narrow">
+        <p class="crumbs">
+          <a href="../">Heatmap Tracker</a> › <span>Contribution graph</span>
+        </p>
+        <h1>A GitHub-style contribution graph in Obsidian</h1>
+        <p class="doc__lede">
+          Same grid, different data. One square per day, colour for how much,
+          and every square links to the note behind it — built from frontmatter
+          in your own vault.
+        </p>
+
+        <div class="toc">
+          <h2>On this page</h2>
+          <ol>
+            <li><a href="#same">What carries over from GitHub</a></li>
+            <li><a href="#different">What is different</a></li>
+            <li><a href="#build">Building one</a></li>
+            <li><a href="#commits">Tracking actual commits</a></li>
+            <li><a href="#look">Shaping the grid</a></li>
+            <li><a href="#export">Sharing the year</a></li>
+            <li><a href="#alternatives">Compared with heatmap-calendar</a></li>
+          </ol>
+        </div>
+
+        <article class="prose">
+          <p>
+            GitHub's contribution graph works because it answers one question
+            instantly: did I show up, and for how long did I keep it up. Heatmap
+            Tracker draws the same grid from your Obsidian notes — 53 columns,
+            seven rows, one square per day — for whatever it is you actually
+            want to keep up.
+          </p>
+
+          <h2 id="same">What carries over from GitHub</h2>
+          <ul>
+            <li>
+              One square per day, weeks as columns, the year on one screen.
+            </li>
+            <li>
+              Colour intensity standing in for "how much", not just "yes".
+            </li>
+            <li>Streaks and gaps visible at a glance, with no counting.</li>
+          </ul>
+
+          <h2 id="different">What is different</h2>
+          <ul>
+            <li>
+              <b>The data is yours.</b> Any frontmatter key in any note, not
+              commits in a repository.
+            </li>
+            <li>
+              <b>Squares are links.</b> Click one to open the note behind that
+              day, or create it.
+            </li>
+            <li>
+              <b>The scale is configurable.</b> GitHub buckets by commit count;
+              here you set <code>scaleStart</code> and <code>scaleEnd</code> so
+              the colours spread over the range you care about.
+            </li>
+            <li>
+              <b>It is local.</b> Nothing leaves the vault — no account, no
+              sync, no telemetry.
+            </li>
+            <li>
+              <b>It exports.</b> The grid plus each day's note content can be
+              written out as a Markdown or self-contained HTML report.
+            </li>
+          </ul>
+
+          <h2 id="build">Building one</h2>
+          <p>Put a number in a dated note:</p>
+          <div class="code">
+            <div class="code__bar">
+              <span>daily notes/2026-09-19.md</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy="---&#10;words: 1240&#10;---"
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code>---
+<span class="k">words</span>:<span class="s"> 1240</span>
+---</code></pre>
+          </div>
+          <p>Then drop the codeblock anywhere:</p>
+          <div class="code">
+            <div class="code__bar">
+              <span>Writing.md</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy="```heatmap-tracker&#10;property: words&#10;```"
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code><span class="c">```heatmap-tracker</span>
+<span class="k">property</span>:<span class="s"> words</span>
+<span class="c">```</span></code></pre>
+          </div>
+          <p>
+            That is the whole setup. The grid opens on the current year; the
+            arrows move between years, and <code>year: 2025</code> pins it.
+          </p>
+
+          <h2 id="commits">Tracking actual commits</h2>
+          <p>
+            If what you want really is a code contribution graph inside your
+            vault, log the number somewhere dated — a daily note field written
+            by a script, for instance — and point the codeblock at it. The
+            plugin does not talk to GitHub's API; it reads your notes, which
+            keeps it working offline and on mobile.
+          </p>
+
+          <h2 id="look">Shaping the grid</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Option</th>
+                <th>Effect</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>separateMonths</code></td>
+                <td>
+                  Adds padding between months so boundaries are unmistakable.
+                </td>
+              </tr>
+              <tr>
+                <td><code>layout: "monthly"</code></td>
+                <td>
+                  Swaps the year grid for one row per month, days 1–31 as
+                  columns.
+                </td>
+              </tr>
+              <tr>
+                <td><code>monthsToShow</code></td>
+                <td>Shows only the last N months — good for a dashboard.</td>
+              </tr>
+              <tr>
+                <td><code>startDate</code> + <code>endDate</code></td>
+                <td>
+                  An explicit window, including ranges that cross a year
+                  boundary.
+                </td>
+              </tr>
+              <tr>
+                <td><code>colorScheme.customColors</code></td>
+                <td>Your own colour ramp for this one heatmap.</td>
+              </tr>
+              <tr>
+                <td><code>showCurrentDayBorder</code></td>
+                <td>Outlines today's square.</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            Week numbers, the first day of the week and the font are plugin-wide
+            settings rather than per-heatmap options.
+          </p>
+
+          <h2 id="export">Sharing the year</h2>
+          <p>
+            The <b>Export</b> tab renders the same grid pixel-for-pixel into a
+            report, then walks every week in range and pulls in each day's note
+            content underneath it. You choose the range, the legend labels,
+            whether weeks run as columns or rows, and whether to save Markdown
+            or a self-contained HTML file. It is the difference between showing
+            a manager a calendar and showing them what happened.
+          </p>
+
+          <h2 id="alternatives">Compared with heatmap-calendar</h2>
+          <p>
+            Heatmap Tracker began as a rewrite of
+            <a
+              href="https://github.com/Richardsl/heatmap-calendar-obsidian"
+              rel="noopener"
+              >heatmap-calendar-obsidian</a
+            >. The original is lighter and needs a
+            <code>dataviewjs</code> script for every heatmap. Heatmap Tracker
+            adds the no-code codeblock, an insert-modal, statistics and custom
+            insights, the monthly layout, flexible date ranges, export, and nine
+            UI languages. If all you need is one scripted year grid, the
+            original still does that.
+          </p>
+        </article>
+
+        <section class="doc__cta">
+          <h2>Get the plugin</h2>
+          <p>
+            Heatmap Tracker is a free, open-source Obsidian community plugin.
+            Install it from <b>Settings → Community plugins → Browse</b>, or
+            open the plugin page directly.
+          </p>
+          <p>
+            <a
+              class="btn btn--primary"
+              href="https://obsidian.md/plugins?id=heatmap-tracker"
+              >Install Heatmap Tracker</a
+            >
+            <a
+              class="btn btn--ghost"
+              href="https://github.com/mokkiebear/heatmap-tracker"
+              rel="noopener"
+              >Source on GitHub</a
+            >
+          </p>
+        </section>
+
+        <nav class="related" aria-label="Related guides">
+          <h2>Keep reading</h2>
+          <a href="obsidian-habit-tracker.html"
+            >Habit tracker<span
+              >Turn daily-note frontmatter into a streak you can see.</span
+            ></a
+          >
+          <a href="obsidian-heatmap-dataview.html"
+            >Dataview heatmaps<span
+              >Build the entries array yourself with dataviewjs.</span
+            ></a
+          >
+          <a href="../"
+            >Heatmap Tracker overview<span
+              >What the plugin does, every feature, and the full FAQ.</span
+            ></a
+          >
+        </nav>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="shell footer__inner">
+        <div class="footer__brand">
+          <a class="brand" href="../">
+            <img src="../assets/img/logo.svg" alt="" width="24" height="24" />
+            <span>Heatmap Tracker</span>
+          </a>
+          <p class="muted">
+            An Obsidian plugin by
+            <a href="https://github.com/mokkiebear" rel="noopener"
+              >Maksim Rubanau</a
+            >. Apache-2.0. Obsidian is a trademark of Dynalist Inc.; this
+            project is not affiliated with it.
+          </p>
+        </div>
+        <nav class="footer__cols" aria-label="Footer">
+          <div>
+            <h3>Product</h3>
+            <a href="../#features">Features</a>
+            <a href="../#usecases">Use cases</a>
+            <a href="../#export">Export</a>
+            <a href="../#compare">Comparison</a>
+          </div>
+          <div>
+            <h3>Guides</h3>
+            <a href="obsidian-habit-tracker.html">Habit tracker</a>
+            <a href="obsidian-heatmap-dataview.html">Dataview heatmaps</a>
+            <a href="obsidian-contribution-graph.html">Contribution graph</a>
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker#readme"
+              rel="noopener"
+              >Full README</a
+            >
+          </div>
+          <div>
+            <h3>Project</h3>
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker"
+              rel="noopener"
+              >GitHub</a
+            >
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker/issues/new/choose"
+              rel="noopener"
+              >Report an issue</a
+            >
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker/blob/main/CONTRIBUTING.md"
+              rel="noopener"
+              >Contributing</a
+            >
+            <a href="https://www.buymeacoffee.com/mrubanau" rel="noopener"
+              >Support</a
+            >
+          </div>
+        </nav>
+      </div>
+    </footer>
+
+    <script src="../assets/js/main.js" defer></script>
+  </body>
+</html>

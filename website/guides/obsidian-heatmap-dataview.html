@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Obsidian Heatmap with Dataview: a dataviewjs Guide</title>
+    <meta
+      name="description"
+      content="Build an Obsidian heatmap from a dataviewjs block: the entries array, computed intensities, per-entry colours, click-through paths, and the timezone trap that causes off-by-one days."
+    />
+    <link
+      rel="canonical"
+      href="https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-heatmap-dataview.html"
+    />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
+    <meta name="theme-color" content="#07070b" />
+    <meta name="author" content="Maksim Rubanau" />
+
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Heatmap Tracker" />
+    <meta
+      property="og:title"
+      content="Obsidian Heatmap with Dataview: a dataviewjs Guide"
+    />
+    <meta
+      property="og:description"
+      content="Build an Obsidian heatmap from a dataviewjs block: the entries array, computed intensities, per-entry colours, click-through paths, and the timezone trap that causes off-by-one days."
+    />
+    <meta
+      property="og:url"
+      content="https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-heatmap-dataview.html"
+    />
+    <meta
+      property="og:image"
+      content="https://mokkiebear.github.io/heatmap-tracker/assets/img/og.jpg"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Obsidian Heatmap with Dataview: a dataviewjs Guide"
+    />
+    <meta
+      name="twitter:description"
+      content="Build an Obsidian heatmap from a dataviewjs block: the entries array, computed intensities, per-entry colours, click-through paths, and the timezone trap that causes off-by-one days."
+    />
+    <meta
+      name="twitter:image"
+      content="https://mokkiebear.github.io/heatmap-tracker/assets/img/og.jpg"
+    />
+
+    <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/css/styles.css" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "Obsidian heatmaps with Dataview and dataviewjs",
+        "description": "Build an Obsidian heatmap from a dataviewjs block: the entries array, computed intensities, per-entry colours, click-through paths, and the timezone trap that causes off-by-one days.",
+        "inLanguage": "en",
+        "datePublished": "2026-09-19",
+        "dateModified": "2026-09-19",
+        "mainEntityOfPage": {
+          "@type": "WebPage",
+          "@id": "https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-heatmap-dataview.html"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Maksim Rubanau",
+          "url": "https://github.com/mokkiebear"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Heatmap Tracker",
+          "url": "https://mokkiebear.github.io/heatmap-tracker/"
+        },
+        "image": "https://mokkiebear.github.io/heatmap-tracker/assets/img/og.jpg",
+        "about": {
+          "@type": "SoftwareApplication",
+          "name": "Heatmap Tracker",
+          "url": "https://mokkiebear.github.io/heatmap-tracker/"
+        },
+        "proficiencyLevel": "Beginner"
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Why does my dataviewjs heatmap render nothing?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "JavaScript queries are disabled in Dataview by default. Turn on Dataview \u2192 Settings \u2192 Enable JavaScript Queries and reload the note."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Why are my heatmap dates off by one day?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "A Date object or a full ISO timestamp carries a time component that can cross midnight when interpreted in the local timezone. Pass plain YYYY-MM-DD strings, such as page.file.name for daily notes."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How do I make a click open the correct note?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Set filePath on the entry to page.file.path rather than page.file.name. The absolute path removes the ambiguity when several notes share a filename."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I use Heatmap Tracker without Dataview?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The heatmap-tracker codeblock requires Dataview, but renderHeatmapTracker(container, trackerData) accepts any entries array, so any JavaScript that can build one will work."
+            }
+          }
+        ]
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Heatmap Tracker",
+            "item": "https://mokkiebear.github.io/heatmap-tracker/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Dataview heatmaps",
+            "item": "https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-heatmap-dataview.html"
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="aurora" aria-hidden="true"></div>
+
+    <header class="nav" id="nav">
+      <div class="shell nav__inner">
+        <a class="brand" href="../" aria-label="Heatmap Tracker home">
+          <img src="../assets/img/logo.svg" alt="" width="28" height="28" />
+          <span>Heatmap&nbsp;Tracker</span>
+        </a>
+        <nav class="nav__links" aria-label="Primary">
+          <a href="../#how">How it works</a>
+          <a href="../#features">Features</a>
+          <a href="../#usecases">Use cases</a>
+          <a href="../#guides">Guides</a>
+          <a href="../#faq">FAQ</a>
+        </nav>
+        <div class="nav__actions">
+          <button
+            class="icon-btn"
+            id="theme-toggle"
+            type="button"
+            aria-label="Switch color theme"
+          >
+            <span class="icon-btn__sun" aria-hidden="true">☀</span>
+            <span class="icon-btn__moon" aria-hidden="true">☾</span>
+          </button>
+          <a
+            class="btn btn--primary"
+            href="https://obsidian.md/plugins?id=heatmap-tracker"
+            >Install free</a
+          >
+        </div>
+      </div>
+    </header>
+
+    <main id="main" class="doc">
+      <div class="shell shell--narrow">
+        <p class="crumbs">
+          <a href="../">Heatmap Tracker</a> › <span>Dataview heatmaps</span>
+        </p>
+        <h1>Obsidian heatmaps with Dataview and dataviewjs</h1>
+        <p class="doc__lede">
+          When frontmatter alone is not enough, a dataviewjs block gives you the
+          whole dataset: computed values, merged sources, a colour per day. Here
+          is the working shape of one.
+        </p>
+
+        <div class="toc">
+          <h2>On this page</h2>
+          <ol>
+            <li><a href="#requirements">What you need first</a></li>
+            <li><a href="#minimal">The minimal working block</a></li>
+            <li><a href="#entry">The shape of an entry</a></li>
+            <li><a href="#dates">Getting dates right</a></li>
+            <li><a href="#computed">Computed and combined values</a></li>
+            <li><a href="#clicks">How a click resolves a file</a></li>
+            <li><a href="#options">Useful trackerData options</a></li>
+            <li>
+              <a href="#without-dataview">Does it have to be Dataview?</a>
+            </li>
+          </ol>
+        </div>
+
+        <article class="prose">
+          <p>
+            The no-code <code>heatmap-tracker</code> codeblock covers
+            frontmatter. A <code>dataviewjs</code> block covers everything else:
+            computed values, several sources merged, a colour per entry, values
+            that live in inline fields or in the note body. You build an
+            <code>entries</code> array and hand it to
+            <code>renderHeatmapTracker()</code>.
+          </p>
+
+          <h2 id="requirements">What you need first</h2>
+          <ul>
+            <li>
+              The
+              <a
+                href="https://blacksmithgu.github.io/obsidian-dataview/"
+                rel="noopener"
+                >Dataview</a
+              >
+              plugin, installed and enabled.
+            </li>
+            <li>
+              <b>Dataview → Settings → Enable JavaScript Queries</b>, which is
+              off by default. Without it a <code>dataviewjs</code> block renders
+              nothing at all.
+            </li>
+            <li>
+              Heatmap Tracker itself, which registers the global
+              <code>renderHeatmapTracker(container, trackerData)</code>.
+            </li>
+          </ul>
+
+          <h2 id="minimal">The minimal working block</h2>
+          <div class="code">
+            <div class="code__bar">
+              <span>Steps.md</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy='```dataviewjs&#10;const trackerData = {&#10;    entries: [],&#10;    heatmapTitle: "Steps",&#10;    heatmapSubtitle: "Pulled from my daily notes",&#10;    separateMonths: true,&#10;};&#10;&#10;const FOLDER = "daily notes";&#10;const PROPERTY = "steps";&#10;&#10;for (let page of dv.pages(`"${FOLDER}"`).where((p) =&gt; p[PROPERTY])) {&#10;    trackerData.entries.push({&#10;        date: page.file.name,&#10;        filePath: page.file.path,&#10;        intensity: page[PROPERTY],&#10;    });&#10;}&#10;&#10;trackerData.basePath = FOLDER;&#10;&#10;renderHeatmapTracker(this.container, trackerData);&#10;```'
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code><span class="c">```dataviewjs</span>
+const trackerData = {
+    <span class="k">entries</span>:<span class="s"> [],</span>
+    <span class="k">heatmapTitle</span>:<span class="s"> &quot;Steps&quot;,</span>
+    <span class="k">heatmapSubtitle</span>:<span class="s"> &quot;Pulled from my daily notes&quot;,</span>
+    <span class="k">separateMonths</span>:<span class="s"> true,</span>
+};
+
+const FOLDER = &quot;daily notes&quot;;
+const PROPERTY = &quot;steps&quot;;
+
+for (let page of dv.pages(`&quot;${FOLDER}&quot;`).where((p) =&gt; p[PROPERTY])) {
+    trackerData.entries.push({
+        <span class="k">date</span>:<span class="s"> page.file.name,</span>
+        <span class="k">filePath</span>:<span class="s"> page.file.path,</span>
+        <span class="k">intensity</span>:<span class="s"> page[PROPERTY],</span>
+    });
+}
+
+trackerData.basePath = FOLDER;
+
+renderHeatmapTracker(this.container, trackerData);
+<span class="c">```</span></code></pre>
+          </div>
+          <p>
+            Three fields carry the weight. <code>date</code> places the square,
+            <code>intensity</code> decides its colour, and
+            <code>filePath</code> is what a click opens.
+          </p>
+
+          <h2 id="entry">The shape of an entry</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>What it does</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>date</code></td>
+                <td>string</td>
+                <td>A plain <code>YYYY-MM-DD</code> string. Required.</td>
+              </tr>
+              <tr>
+                <td><code>intensity</code></td>
+                <td>number</td>
+                <td>Feeds the colour scale.</td>
+              </tr>
+              <tr>
+                <td><code>filePath</code></td>
+                <td>string</td>
+                <td>Absolute vault path, so a click opens the right note.</td>
+              </tr>
+              <tr>
+                <td><code>customColor</code></td>
+                <td>string</td>
+                <td>Overrides the palette for that one day.</td>
+              </tr>
+              <tr>
+                <td><code>content</code></td>
+                <td>string</td>
+                <td>Extra text shown for the day.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h2 id="dates">Getting dates right</h2>
+          <p>
+            The single most common bug in scripted heatmaps is an off-by-one
+            day, and it is almost always a timezone issue. Pass plain
+            <code>YYYY-MM-DD</code> strings. A JavaScript <code>Date</code> or a
+            full ISO timestamp carries a time component, and that time can cross
+            midnight once it is interpreted in the local zone.
+          </p>
+          <div class="code">
+            <div class="code__bar">
+              <span>safe vs unsafe dates</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy='// Good — the filename of a daily note is already YYYY-MM-DD&#10;date: page.file.name&#10;&#10;// Good — a Dataview date, formatted explicitly&#10;date: page.due.toFormat("yyyy-MM-dd")&#10;&#10;// Risky — a Date object or an ISO timestamp with a time part&#10;date: new Date(page.created)'
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code><span class="c">// Good — the filename of a daily note is already YYYY-MM-DD</span>
+<span class="k">date</span>:<span class="s"> page.file.name</span>
+
+<span class="c">// Good — a Dataview date, formatted explicitly</span>
+<span class="k">date</span>:<span class="s"> page.due.toFormat(&quot;yyyy-MM-dd&quot;)</span>
+
+<span class="c">// Risky — a Date object or an ISO timestamp with a time part</span>
+<span class="k">date</span>:<span class="s"> new Date(page.created)</span></code></pre>
+          </div>
+
+          <h2 id="computed">Computed and combined values</h2>
+          <p>
+            Because it is JavaScript, the value does not have to exist in any
+            note. Sum several fields, count tasks, or weigh categories
+            differently:
+          </p>
+          <div class="code">
+            <div class="code__bar">
+              <span>Productivity.md</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy='```dataviewjs&#10;const trackerData = { entries: [], heatmapTitle: "Focus score" };&#10;&#10;for (let page of dv.pages(&#x27;"daily notes"&#x27;)) {&#10;    const deep = page["deep-work"] ?? 0;&#10;    const meetings = page["meetings"] ?? 0;&#10;    const score = deep * 2 - meetings;&#10;    if (score &lt;= 0) continue;&#10;&#10;    trackerData.entries.push({&#10;        date: page.file.name,&#10;        filePath: page.file.path,&#10;        intensity: score,&#10;        customColor: score &gt; 8 ? "#39d353" : undefined,&#10;    });&#10;}&#10;&#10;renderHeatmapTracker(this.container, trackerData);&#10;```'
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code><span class="c">```dataviewjs</span>
+const trackerData = { entries: [], heatmapTitle: &quot;Focus score&quot; };
+
+for (let page of dv.pages(&#x27;&quot;daily notes&quot;&#x27;)) {
+    const deep = page[&quot;deep-work&quot;] ?? 0;
+    const meetings = page[&quot;meetings&quot;] ?? 0;
+    const score = deep * 2 - meetings;
+    if (score &lt;= 0) continue;
+
+    trackerData.entries.push({
+        <span class="k">date</span>:<span class="s"> page.file.name,</span>
+        <span class="k">filePath</span>:<span class="s"> page.file.path,</span>
+        <span class="k">intensity</span>:<span class="s"> score,</span>
+        <span class="k">customColor</span>:<span class="s"> score &gt; 8 ? &quot;#39d353&quot; : undefined,</span>
+    });
+}
+
+renderHeatmapTracker(this.container, trackerData);
+<span class="c">```</span></code></pre>
+          </div>
+          <p>
+            Counting completed tasks per day works the same way — iterate
+            <code>page.file.tasks</code> and use the count as the intensity.
+          </p>
+
+          <h2 id="clicks">How a click resolves a file</h2>
+          <ol>
+            <li>
+              If the entry has <code>filePath</code>, that exact file opens. If
+              it is missing, the plugin offers to create it at the same path.
+            </li>
+            <li>
+              Otherwise, if <code>trackerData.basePath</code> is set, it
+              proposes <code>basePath/YYYY-MM-DD.md</code>.
+            </li>
+            <li>
+              Otherwise it falls back to your Daily Notes folder and format.
+            </li>
+          </ol>
+          <p>
+            Use <code>page.file.path</code> rather than
+            <code>page.file.name</code> whenever two notes in the vault can
+            share a filename. Set <code>disableFileCreation: true</code> if you
+            would rather empty squares did nothing.
+          </p>
+
+          <h2 id="options">Useful trackerData options</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Option</th>
+                <th>Effect</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>year</code></td>
+                <td>Which year to open on. Defaults to the current one.</td>
+              </tr>
+              <tr>
+                <td><code>colorScheme</code></td>
+                <td>
+                  <code>paletteName</code> from settings, or an inline
+                  <code>customColors</code> array.
+                </td>
+              </tr>
+              <tr>
+                <td><code>intensityConfig</code></td>
+                <td>
+                  <code>scaleStart</code> / <code>scaleEnd</code>, plus
+                  <code>excludeFalsy</code>.
+                </td>
+              </tr>
+              <tr>
+                <td><code>layout</code></td>
+                <td>
+                  <code>"monthly"</code> for a calendar-style view instead of
+                  the year grid.
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <code>monthsToShow</code>, <code>daysToShow</code>,
+                  <code>startDate</code>/<code>endDate</code>
+                </td>
+                <td>Show a window instead of a full year.</td>
+              </tr>
+              <tr>
+                <td><code>insights</code></td>
+                <td>Your own metrics in the Statistics tab.</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            The
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker#-configuration-reference"
+              rel="noopener"
+              >configuration reference</a
+            >
+            documents every parameter, each with a worked example in the example
+            vault.
+          </p>
+
+          <h2 id="without-dataview">Does it have to be Dataview?</h2>
+          <p>
+            <code>renderHeatmapTracker(container, trackerData)</code> only cares
+            about the <code>entries</code> array. Any JavaScript that can build
+            one — a Templater script, a fetch from a local file — works the same
+            way. Dataview is simply the most convenient source of dated pages,
+            and the <code>heatmap-tracker</code> codeblock does depend on it.
+          </p>
+        </article>
+
+        <section class="doc__cta">
+          <h2>Get the plugin</h2>
+          <p>
+            Heatmap Tracker is a free, open-source Obsidian community plugin.
+            Install it from <b>Settings → Community plugins → Browse</b>, or
+            open the plugin page directly.
+          </p>
+          <p>
+            <a
+              class="btn btn--primary"
+              href="https://obsidian.md/plugins?id=heatmap-tracker"
+              >Install Heatmap Tracker</a
+            >
+            <a
+              class="btn btn--ghost"
+              href="https://github.com/mokkiebear/heatmap-tracker"
+              rel="noopener"
+              >Source on GitHub</a
+            >
+          </p>
+        </section>
+
+        <nav class="related" aria-label="Related guides">
+          <h2>Keep reading</h2>
+          <a href="obsidian-habit-tracker.html"
+            >Habit tracker<span
+              >Turn daily-note frontmatter into a streak you can see.</span
+            ></a
+          >
+          <a href="obsidian-contribution-graph.html"
+            >Contribution graph<span
+              >A GitHub-style year grid, drawn from your own notes.</span
+            ></a
+          >
+          <a href="../"
+            >Heatmap Tracker overview<span
+              >What the plugin does, every feature, and the full FAQ.</span
+            ></a
+          >
+        </nav>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="shell footer__inner">
+        <div class="footer__brand">
+          <a class="brand" href="../">
+            <img src="../assets/img/logo.svg" alt="" width="24" height="24" />
+            <span>Heatmap Tracker</span>
+          </a>
+          <p class="muted">
+            An Obsidian plugin by
+            <a href="https://github.com/mokkiebear" rel="noopener"
+              >Maksim Rubanau</a
+            >. Apache-2.0. Obsidian is a trademark of Dynalist Inc.; this
+            project is not affiliated with it.
+          </p>
+        </div>
+        <nav class="footer__cols" aria-label="Footer">
+          <div>
+            <h3>Product</h3>
+            <a href="../#features">Features</a>
+            <a href="../#usecases">Use cases</a>
+            <a href="../#export">Export</a>
+            <a href="../#compare">Comparison</a>
+          </div>
+          <div>
+            <h3>Guides</h3>
+            <a href="obsidian-habit-tracker.html">Habit tracker</a>
+            <a href="obsidian-heatmap-dataview.html">Dataview heatmaps</a>
+            <a href="obsidian-contribution-graph.html">Contribution graph</a>
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker#readme"
+              rel="noopener"
+              >Full README</a
+            >
+          </div>
+          <div>
+            <h3>Project</h3>
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker"
+              rel="noopener"
+              >GitHub</a
+            >
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker/issues/new/choose"
+              rel="noopener"
+              >Report an issue</a
+            >
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker/blob/main/CONTRIBUTING.md"
+              rel="noopener"
+              >Contributing</a
+            >
+            <a href="https://www.buymeacoffee.com/mrubanau" rel="noopener"
+              >Support</a
+            >
+          </div>
+        </nav>
+      </div>
+    </footer>
+
+    <script src="../assets/js/main.js" defer></script>
+  </body>
+</html>

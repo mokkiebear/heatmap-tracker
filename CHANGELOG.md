@@ -5,6 +5,11 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Three guide pages on the website — building a habit tracker, `dataviewjs` heatmaps, and a GitHub-style contribution graph — each with its own structured data and linked from the landing page.
+
+### Changed
+- Website screenshots are now WebP at 1600px with a purpose-built 1200x630 social card, taking the page from 2.9 MB of images to 320 KB.
 
 ## [2.8.0] - 2026-09-19
 ### Added

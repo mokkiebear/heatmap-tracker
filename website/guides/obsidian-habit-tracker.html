@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      How to Build a Habit Tracker in Obsidian (No Plugins to Script)
+    </title>
+    <meta
+      name="description"
+      content="Build a habit tracker in Obsidian from your daily notes: one line of frontmatter, a three-line codeblock, and a year of streaks you can actually see. Free plugin, no scripting."
+    />
+    <link
+      rel="canonical"
+      href="https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-habit-tracker.html"
+    />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
+    <meta name="theme-color" content="#07070b" />
+    <meta name="author" content="Maksim Rubanau" />
+
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Heatmap Tracker" />
+    <meta
+      property="og:title"
+      content="How to Build a Habit Tracker in Obsidian (No Plugins to Script)"
+    />
+    <meta
+      property="og:description"
+      content="Build a habit tracker in Obsidian from your daily notes: one line of frontmatter, a three-line codeblock, and a year of streaks you can actually see. Free plugin, no scripting."
+    />
+    <meta
+      property="og:url"
+      content="https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-habit-tracker.html"
+    />
+    <meta
+      property="og:image"
+      content="https://mokkiebear.github.io/heatmap-tracker/assets/img/og.jpg"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="How to Build a Habit Tracker in Obsidian (No Plugins to Script)"
+    />
+    <meta
+      name="twitter:description"
+      content="Build a habit tracker in Obsidian from your daily notes: one line of frontmatter, a three-line codeblock, and a year of streaks you can actually see. Free plugin, no scripting."
+    />
+    <meta
+      name="twitter:image"
+      content="https://mokkiebear.github.io/heatmap-tracker/assets/img/og.jpg"
+    />
+
+    <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/css/styles.css" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "How to build a habit tracker in Obsidian",
+        "description": "Build a habit tracker in Obsidian from your daily notes: one line of frontmatter, a three-line codeblock, and a year of streaks you can actually see. Free plugin, no scripting.",
+        "inLanguage": "en",
+        "datePublished": "2026-09-19",
+        "dateModified": "2026-09-19",
+        "mainEntityOfPage": {
+          "@type": "WebPage",
+          "@id": "https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-habit-tracker.html"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Maksim Rubanau",
+          "url": "https://github.com/mokkiebear"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Heatmap Tracker",
+          "url": "https://mokkiebear.github.io/heatmap-tracker/"
+        },
+        "image": "https://mokkiebear.github.io/heatmap-tracker/assets/img/og.jpg",
+        "about": {
+          "@type": "SoftwareApplication",
+          "name": "Heatmap Tracker",
+          "url": "https://mokkiebear.github.io/heatmap-tracker/"
+        },
+        "proficiencyLevel": "Beginner"
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "How do I track a habit in Obsidian without a plugin that needs scripting?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Put a frontmatter value in your daily note, such as meditated: true, and add a heatmap-tracker codeblock with property: meditated. Heatmap Tracker reads the notes and draws a year-long grid; no JavaScript is involved."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can one heatmap track several habits?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Pass an array, for example property: [running, cycling, swimming], and the values from all listed properties are aggregated into one grid. For a separate grid per habit, add one codeblock per habit."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How are boolean habits counted?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "true counts as 1, so meditated: true fills the square. false counts as 0; set intensityConfig.excludeFalsy to true if you want those days treated as untracked instead of as zero."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does Heatmap Tracker show streaks?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. The Statistics tab beside the heatmap shows totals, days tracked and the longest unbroken streak, and you can define your own insights such as the most active month."
+            }
+          }
+        ]
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Heatmap Tracker",
+            "item": "https://mokkiebear.github.io/heatmap-tracker/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Habit tracker",
+            "item": "https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-habit-tracker.html"
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="aurora" aria-hidden="true"></div>
+
+    <header class="nav" id="nav">
+      <div class="shell nav__inner">
+        <a class="brand" href="../" aria-label="Heatmap Tracker home">
+          <img src="../assets/img/logo.svg" alt="" width="28" height="28" />
+          <span>Heatmap&nbsp;Tracker</span>
+        </a>
+        <nav class="nav__links" aria-label="Primary">
+          <a href="../#how">How it works</a>
+          <a href="../#features">Features</a>
+          <a href="../#usecases">Use cases</a>
+          <a href="../#guides">Guides</a>
+          <a href="../#faq">FAQ</a>
+        </nav>
+        <div class="nav__actions">
+          <button
+            class="icon-btn"
+            id="theme-toggle"
+            type="button"
+            aria-label="Switch color theme"
+          >
+            <span class="icon-btn__sun" aria-hidden="true">☀</span>
+            <span class="icon-btn__moon" aria-hidden="true">☾</span>
+          </button>
+          <a
+            class="btn btn--primary"
+            href="https://obsidian.md/plugins?id=heatmap-tracker"
+            >Install free</a
+          >
+        </div>
+      </div>
+    </header>
+
+    <main id="main" class="doc">
+      <div class="shell shell--narrow">
+        <p class="crumbs">
+          <a href="../">Heatmap Tracker</a> › <span>Habit tracker</span>
+        </p>
+        <h1>How to build a habit tracker in Obsidian</h1>
+        <p class="doc__lede">
+          Record the habit in your daily note, add a three-line codeblock, and
+          read the streaks off a year-long grid. No spreadsheet, no external
+          app, no scripting required.
+        </p>
+
+        <div class="toc">
+          <h2>On this page</h2>
+          <ol>
+            <li><a href="#record">Record the habit in your daily note</a></li>
+            <li><a href="#render">Render the tracker</a></li>
+            <li><a href="#streaks">Read the streaks</a></li>
+            <li><a href="#multiple">Tracking several habits at once</a></li>
+            <li><a href="#narrow">Only counting the right notes</a></li>
+            <li><a href="#scale">Making the colours mean something</a></li>
+            <li><a href="#troubleshooting">When the grid comes up empty</a></li>
+          </ol>
+        </div>
+
+        <article class="prose">
+          <p>
+            A habit tracker in Obsidian needs three things: a place to record
+            the habit, a way to read those records back, and a view that makes a
+            streak obvious. With the
+            <a href="https://obsidian.md/plugins?id=heatmap-tracker"
+              >Heatmap Tracker</a
+            >
+            plugin, the first is a line of frontmatter in your daily note, the
+            second and third are a three-line codeblock. No spreadsheet, no
+            external app, no account.
+          </p>
+
+          <h2 id="record">1. Record the habit in your daily note</h2>
+          <p>
+            Anything you can put in frontmatter can be tracked. Booleans are the
+            natural fit for a yes/no habit and count as <code>1</code>; numbers
+            let you record a quantity as well as the fact that it happened.
+          </p>
+          <div class="code">
+            <div class="code__bar">
+              <span>daily notes/2026-09-19.md</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy="---&#10;meditated: true&#10;exercise: 45&#10;water: 6&#10;pages-read: 30&#10;---&#10;&#10;Felt sluggish this morning, better after the walk."
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code>---
+<span class="k">meditated</span>:<span class="s"> true</span>
+<span class="k">exercise</span>:<span class="s"> 45</span>
+<span class="k">water</span>:<span class="s"> 6</span>
+<span class="k">pages-read</span>:<span class="s"> 30</span>
+---
+
+Felt sluggish this morning, better after the walk.</code></pre>
+          </div>
+          <p>
+            The note's filename is what dates the entry, so keep the usual
+            <code>YYYY-MM-DD</code> convention. If you use Obsidian's core
+            <b>Daily notes</b> plugin with a template, add the habit keys to
+            that template once and every new day starts with the fields ready to
+            fill.
+          </p>
+
+          <h2 id="render">2. Render the tracker</h2>
+          <p>
+            Add a codeblock wherever you want the tracker to live — a dashboard
+            note is the usual place. One property, one heatmap:
+          </p>
+          <div class="code">
+            <div class="code__bar">
+              <span>Habits.md</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy="```heatmap-tracker&#10;property: meditated&#10;```"
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code><span class="c">```heatmap-tracker</span>
+<span class="k">property</span>:<span class="s"> meditated</span>
+<span class="c">```</span></code></pre>
+          </div>
+          <p>
+            Prefer not to write it by hand? Run
+            <b>Insert Heatmap Tracker</b> from the command palette; the modal
+            builds the codeblock and inserts it at the cursor.
+          </p>
+
+          <h2 id="streaks">3. Read the streaks</h2>
+          <p>
+            Each square is a day. Filled means the habit happened, and the
+            colour gets stronger as the value does. Two things make the grid
+            worth more than a checklist:
+          </p>
+          <ul>
+            <li>
+              <b>Gaps are visible.</b> A monthly total of 22 hides whether you
+              missed a day here and there or fell off for a week. The grid shows
+              which one it was.
+            </li>
+            <li>
+              <b>Every square is a link.</b> Click a filled day to open that
+              note. Click an empty one and the plugin offers to create it, so
+              backfilling is one click.
+            </li>
+          </ul>
+          <p>
+            The <b>Statistics</b> tab next to the heatmap keeps the numbers a
+            habit tracker actually needs — total, days tracked, and your longest
+            unbroken run.
+          </p>
+
+          <h2 id="multiple">Tracking several habits at once</h2>
+          <p>
+            Two approaches, and they combine. Put one codeblock per habit on a
+            dashboard note to get a separate grid for each, or aggregate related
+            habits into one grid by passing an array:
+          </p>
+          <div class="code">
+            <div class="code__bar">
+              <span>Fitness.md</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy="```heatmap-tracker&#10;property: [running, cycling, swimming]&#10;```"
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code><span class="c">```heatmap-tracker</span>
+<span class="k">property</span>:<span class="s"> [running, cycling, swimming]</span>
+<span class="c">```</span></code></pre>
+          </div>
+          <p>
+            Aggregation answers "did I move today", not "which sport" — pick it
+            when consistency matters more than the breakdown.
+          </p>
+
+          <h2 id="narrow">Only counting the right notes</h2>
+          <p>
+            By default the plugin searches your Daily Notes folder, falling back
+            to the whole vault. If your logs live somewhere else, or other notes
+            happen to use the same property name, narrow the query:
+          </p>
+          <div class="code">
+            <div class="code__bar">
+              <span>Habits.md</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy='```heatmap-tracker&#10;property: meditated&#10;path: "journal/daily"&#10;tags: [habit]&#10;filters:&#10;  - property: status&#10;    operator: equals&#10;    value: done&#10;```'
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code><span class="c">```heatmap-tracker</span>
+<span class="k">property</span>:<span class="s"> meditated</span>
+<span class="k">path</span>:<span class="s"> &quot;journal/daily&quot;</span>
+<span class="k">tags</span>:<span class="s"> [habit]</span>
+<span class="k">filters</span>:<span class="s"></span>
+  - property: status
+    <span class="k">operator</span>:<span class="s"> equals</span>
+    <span class="k">value</span>:<span class="s"> done</span>
+<span class="c">```</span></code></pre>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>What it does</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>path</code></td>
+                <td>Folder to search in.</td>
+              </tr>
+              <tr>
+                <td><code>tags</code></td>
+                <td>Only notes carrying at least one of these tags.</td>
+              </tr>
+              <tr>
+                <td><code>filters</code></td>
+                <td>
+                  Extra frontmatter conditions — <code>equals</code>,
+                  <code>contains</code> or <code>notEmpty</code>. All must
+                  match.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h2 id="scale">Making the colours mean something</h2>
+          <p>
+            A boolean habit only ever has one filled level, which is fine. A
+            numeric one benefits from a scale that matches the range you care
+            about. Reading minutes between 30 and 120, for example:
+          </p>
+          <div class="code">
+            <div class="code__bar">
+              <span>Reading.md</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy='```dataviewjs&#10;const trackerData = {&#10;    entries: [],&#10;    heatmapTitle: "Reading",&#10;    intensityConfig: { scaleStart: 30, scaleEnd: 120 },&#10;};&#10;// fill trackerData.entries from your notes, then:&#10;renderHeatmapTracker(this.container, trackerData);&#10;```'
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code><span class="c">```dataviewjs</span>
+const trackerData = {
+    <span class="k">entries</span>:<span class="s"> [],</span>
+    <span class="k">heatmapTitle</span>:<span class="s"> &quot;Reading&quot;,</span>
+    <span class="k">intensityConfig</span>:<span class="s"> { scaleStart: 30, scaleEnd: 120 },</span>
+};
+<span class="c">// fill trackerData.entries from your notes, then:</span>
+renderHeatmapTracker(this.container, trackerData);
+<span class="c">```</span></code></pre>
+          </div>
+          <p>
+            Without it, a year where most days sit between 30 and 40 minutes
+            renders as one flat colour. See the
+            <a href="obsidian-heatmap-dataview.html">Dataview guide</a> for the
+            full scripted form.
+          </p>
+
+          <h2 id="troubleshooting">When the grid comes up empty</h2>
+          <ol>
+            <li>
+              <b>Is Dataview installed and enabled?</b> Heatmap Tracker reads
+              notes through it.
+            </li>
+            <li>
+              <b>Does the property name match exactly?</b>
+              <code>Meditated</code> and <code>meditated</code> are different
+              keys.
+            </li>
+            <li>
+              <b>Are the notes in the searched folder?</b> Set
+              <code>path</code> if they are not.
+            </li>
+            <li>
+              <b>Is the year right?</b> The heatmap opens on the current year;
+              use the arrows or set <code>year</code>.
+            </li>
+          </ol>
+          <p>
+            Since v2.8.0 a codeblock that cannot render says why in the note
+            itself rather than failing silently, and a query that matched
+            nothing tells you which property and path it looked for.
+          </p>
+        </article>
+
+        <section class="doc__cta">
+          <h2>Get the plugin</h2>
+          <p>
+            Heatmap Tracker is a free, open-source Obsidian community plugin.
+            Install it from <b>Settings → Community plugins → Browse</b>, or
+            open the plugin page directly.
+          </p>
+          <p>
+            <a
+              class="btn btn--primary"
+              href="https://obsidian.md/plugins?id=heatmap-tracker"
+              >Install Heatmap Tracker</a
+            >
+            <a
+              class="btn btn--ghost"
+              href="https://github.com/mokkiebear/heatmap-tracker"
+              rel="noopener"
+              >Source on GitHub</a
+            >
+          </p>
+        </section>
+
+        <nav class="related" aria-label="Related guides">
+          <h2>Keep reading</h2>
+          <a href="obsidian-heatmap-dataview.html"
+            >Dataview heatmaps<span
+              >Build the entries array yourself with dataviewjs.</span
+            ></a
+          >
+          <a href="obsidian-contribution-graph.html"
+            >Contribution graph<span
+              >A GitHub-style year grid, drawn from your own notes.</span
+            ></a
+          >
+          <a href="../"
+            >Heatmap Tracker overview<span
+              >What the plugin does, every feature, and the full FAQ.</span
+            ></a
+          >
+        </nav>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="shell footer__inner">
+        <div class="footer__brand">
+          <a class="brand" href="../">
+            <img src="../assets/img/logo.svg" alt="" width="24" height="24" />
+            <span>Heatmap Tracker</span>
+          </a>
+          <p class="muted">
+            An Obsidian plugin by
+            <a href="https://github.com/mokkiebear" rel="noopener"
+              >Maksim Rubanau</a
+            >. Apache-2.0. Obsidian is a trademark of Dynalist Inc.; this
+            project is not affiliated with it.
+          </p>
+        </div>
+        <nav class="footer__cols" aria-label="Footer">
+          <div>
+            <h3>Product</h3>
+            <a href="../#features">Features</a>
+            <a href="../#usecases">Use cases</a>
+            <a href="../#export">Export</a>
+            <a href="../#compare">Comparison</a>
+          </div>
+          <div>
+            <h3>Guides</h3>
+            <a href="obsidian-habit-tracker.html">Habit tracker</a>
+            <a href="obsidian-heatmap-dataview.html">Dataview heatmaps</a>
+            <a href="obsidian-contribution-graph.html">Contribution graph</a>
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker#readme"
+              rel="noopener"
+              >Full README</a
+            >
+          </div>
+          <div>
+            <h3>Project</h3>
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker"
+              rel="noopener"
+              >GitHub</a
+            >
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker/issues/new/choose"
+              rel="noopener"
+              >Report an issue</a
+            >
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker/blob/main/CONTRIBUTING.md"
+              rel="noopener"
+              >Contributing</a
+            >
+            <a href="https://www.buymeacoffee.com/mrubanau" rel="noopener"
+              >Support</a
+            >
+          </div>
+        </nav>
+      </div>
+    </footer>
+
+    <script src="../assets/js/main.js" defer></script>
+  </body>
+</html>
