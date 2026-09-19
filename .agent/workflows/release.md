@@ -2,15 +2,18 @@
 description: How to release a new version of the Heatmap Tracker plugin
 ---
 
-1. Ensure all tests pass.
+Full detail and the rationale for each gate: [RELEASING.md](../../RELEASING.md).
+
+1. Verify the tree. All three must pass before a tag exists.
 ```bash
-npm run test
+npm run verify && npm run verify:tz && npm run build
 ```
 
-2. Update `CHANGELOG.md` with the new version, date, and list of changes.
+2. Make sure `CHANGELOG.md` has a non-empty `## [Unreleased]` section for this
+   release. The release script refuses to run without one.
 
-3. Run the automated release script.
-// turbo
+3. Run the automated release script. It commits, tags and pushes — the tag
+   publishes a public GitHub release immediately, so confirm the version first.
 ```bash
 ./update-version.sh <version>
 ```
