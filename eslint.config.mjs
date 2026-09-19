@@ -43,7 +43,9 @@ export default [
     },
   },
   {
-    files: ["*.mjs", "*.js"],
+    // `**/` matters: a bare `*.mjs` only matches the repo root, which left
+    // harness/esbuild.harness.mjs without Node globals.
+    files: ["**/*.mjs", "**/*.js"],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -62,6 +64,8 @@ export default [
       "dist/**",
       "node_modules/**",
       "coverage/**",
+      // Generated bundle: 3 MB of other people's code.
+      "harness/dist/**",
       "EXAMPLE_VAULT/**",
       // Nested git worktrees hold a full copy of the repo (plus a vendored
       // hot-reload plugin), which otherwise drowns real findings in noise.

@@ -1,0 +1,120 @@
+/*
+ * Approximation of the Obsidian CSS variables the plugin's styles consume.
+ * Obsidian ships these; a bare browser page does not, so without this every
+ * colour falls back to unset and the harness lies about how the plugin looks.
+ * Values track Obsidian's default light/dark themes closely enough to judge
+ * contrast and spacing — they are not a byte-exact copy.
+ */
+body.theme-light {
+  --background-primary: #ffffff;
+  --background-primary-alt: #f5f6f8;
+  --background-secondary: #f2f3f5;
+  --background-modifier-border: #e3e3e3;
+  --background-modifier-border-hover: #c9c9c9;
+  --background-modifier-hover: rgba(0, 0, 0, 0.05);
+  --background-modifier-error-rgb: 230, 78, 74;
+  --text-normal: #2e3338;
+  --text-muted: #6e6e6e;
+  --text-faint: #999999;
+  --text-accent: #705dcf;
+  --text-error: #e75545;
+  --text-on-accent: #ffffff;
+  --interactive-accent: #7b6cd9;
+  --interactive-accent-hover: #6a5acd;
+  --color-base-30: #d8d8d8;
+  --color-green: #2ea043;
+  --color-yellow: #d9b100;
+  --shadow-s: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+body.theme-dark {
+  --background-primary: #1e1e1e;
+  --background-primary-alt: #161616;
+  --background-secondary: #252525;
+  --background-modifier-border: #333333;
+  --background-modifier-border-hover: #444444;
+  --background-modifier-hover: rgba(255, 255, 255, 0.075);
+  --background-modifier-error-rgb: 230, 78, 74;
+  --text-normal: #dadada;
+  --text-muted: #9a9a9a;
+  --text-faint: #6b6b6b;
+  --text-accent: #a68cff;
+  --text-error: #ff6b5e;
+  --text-on-accent: #ffffff;
+  --interactive-accent: #7b6cd9;
+  --interactive-accent-hover: #8b7ce6;
+  --color-base-30: #3a3a3a;
+  --color-green: #4ac26b;
+  --color-yellow: #e3b341;
+  --shadow-s: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+body {
+  --font-semibold: 600;
+  --font-ui-small: 13px;
+  --font-ui-smaller: 12px;
+  --border-width: 1px;
+  --radius-s: 4px;
+  --radius-m: 8px;
+  --radius-xl: 16px;
+  --size-2-1: 2px;
+  --size-2-3: 6px;
+  --size-4-1: 4px;
+  --size-4-2: 8px;
+  --size-4-3: 12px;
+  --size-4-4: 16px;
+  --size-4-6: 24px;
+  --layer-popover: 30;
+}
+
+/* Harness chrome — deliberately plain so it cannot be mistaken for the plugin. */
+body {
+  margin: 0;
+  padding: 24px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.harness-bar {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.harness-bar h1 {
+  font-size: 16px;
+  margin: 0;
+}
+
+.harness-bar button {
+  font: inherit;
+  padding: 4px 10px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  cursor: pointer;
+}
+
+.harness-fixture {
+  border-top: 1px solid var(--background-modifier-border);
+  padding: 24px 0;
+}
+
+.harness-fixture h2 {
+  font-size: 14px;
+  margin: 0 0 4px;
+}
+
+.harness-note {
+  margin: 0 0 16px;
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.harness-mount {
+  max-width: 900px;
+}

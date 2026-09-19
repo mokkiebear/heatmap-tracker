@@ -12,6 +12,7 @@ npm test            # jest only (~8s, 555 tests)
 npx jest src/utils/__tests__/date.spec.ts   # single file while iterating
 npm run build       # tsc --noEmit + esbuild production bundle into build/
 npm run dev         # watch build, copies into EXAMPLE_VAULT for hot-reload
+npm run harness     # standalone render harness at http://127.0.0.1:5174/index.html
 npm run lint:fix    # eslint --fix
 npm run format      # prettier --write
 ```
@@ -72,7 +73,17 @@ full data pipeline and a "where to make a change" table.
 
 ## Verification
 
-Unit tests cover the derivation layer well. There is no headless way to see a
-rendered heatmap — Obsidian does not run headless. For render changes, either
-assert with `@testing-library/react` against `src/views/`, or state plainly that
-the change was not visually verified. Do not claim a UI result you did not observe.
+Unit tests cover the derivation layer. For anything that changes what the
+heatmap *looks like*, also run the render harness — Obsidian itself does not run
+headless, but the harness does:
+
+```bash
+npm run harness   # then open/screenshot http://127.0.0.1:5174/index.html
+```
+
+It mounts the real pipeline against fixed fixtures ([harness/README.md](harness/README.md)).
+Fixed a rendering bug? Add a fixture for it.
+
+Do not claim a visual result you did not observe. If you did not open the
+harness and did not write a `@testing-library/react` assertion, say the change
+is unverified.

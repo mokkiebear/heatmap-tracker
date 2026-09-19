@@ -43,3 +43,6 @@ build
 # personal overrides and agent worktrees are not.
 .claude/settings.local.json
 .claude/worktrees/
+
+# Render harness output (see harness/README.md)
+harness/dist

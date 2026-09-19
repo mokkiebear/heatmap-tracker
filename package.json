@@ -22,7 +22,9 @@
     "format:check": "prettier --check .",
     "test:coverage": "jest --coverage",
     "verify": "npm run type-check && npm run lint && npm run format:check && npm test",
-    "verify:tz": "npm run test:utc && npm run test:usa"
+    "verify:tz": "npm run test:utc && npm run test:usa",
+    "harness": "node harness/esbuild.harness.mjs --serve",
+    "harness:build": "node harness/esbuild.harness.mjs"
   },
   "keywords": [
     "obsidian"

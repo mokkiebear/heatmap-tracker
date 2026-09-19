@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "harness",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "harness"],
+      "port": 5174
+    }
+  ]
+}
