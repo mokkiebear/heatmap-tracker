@@ -10,6 +10,7 @@ import i18n from "src/localization/i18n";
  * no data yet. Obsidian users do not open the developer console.
  */
 export type CodeblockIssue =
+  | { kind: "dataview-missing" }
   | { kind: "missing-property" }
   | { kind: "invalid-yaml"; detail?: string }
   | { kind: "unexpected"; detail?: string };
@@ -28,6 +29,16 @@ const EXAMPLE_CODEBLOCK = "```heatmap-tracker\nproperty: steps\n```";
 
 export function describeCodeblockIssue(issue: CodeblockIssue): IssueCopy {
   switch (issue.kind) {
+    case "dataview-missing":
+      return {
+        title: i18n.t("errors.dataviewMissing.title"),
+        body: i18n.t("errors.dataviewMissing.body"),
+        action: {
+          label: i18n.t("errors.dataviewMissing.action"),
+          // Opens the plugin's page inside Obsidian — no browser round trip.
+          href: "obsidian://show-plugin?id=dataview",
+        },
+      };
     case "missing-property":
       return {
         title: i18n.t("errors.missingProperty.title"),
@@ -131,11 +142,7 @@ export function renderCodeblockIssue(
  */
 export function renderNoMatchesHint(
   el: HTMLElement,
-  {
-    property,
-    path,
-    dataviewAvailable = true,
-  }: { property: string; path?: string; dataviewAvailable?: boolean },
+  { property, path }: { property: string; path?: string },
 ): void {
   const body = createCard(el, "hint", "info");
 
@@ -149,20 +156,4 @@ export function renderNoMatchesHint(
       ? i18n.t("errors.noMatches.body", { property, path })
       : i18n.t("errors.noMatches.bodyNoPath", { property }),
   });
-
-  // Frontmatter is read without any third-party plugin, but inline fields are
-  // indexed by Dataview alone — so this is only worth raising when Dataview is
-  // absent and the search came back empty.
-  if (!dataviewAvailable) {
-    append(body, "p", {
-      cls: "heatmap-tracker-message__text",
-      text: i18n.t("errors.noMatches.inlineFields"),
-    });
-    append(body, "a", {
-      cls: "heatmap-tracker-message__action",
-      text: i18n.t("errors.noMatches.installDataview"),
-      // Opens the plugin's page inside Obsidian — no browser round trip.
-      href: "obsidian://show-plugin?id=dataview",
-    });
-  }
 }

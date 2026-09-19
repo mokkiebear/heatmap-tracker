@@ -9,7 +9,6 @@ import { resolveDataviewApi } from "src/utils/dataviewApi";
 import HeatmapTrackerSettingsTab from "./settings";
 import { TrackerData, TrackerParams, TrackerSettings } from "./types";
 import { buildEntriesFromDataview } from "./utils/dataviewEntries";
-import { buildEntriesFromVault } from "./utils/vaultEntries";
 
 import { getDailyNoteSettings } from "obsidian-daily-notes-interface";
 
@@ -40,8 +39,8 @@ export default class HeatmapTrackerPlugin extends Plugin {
   async onload() {
     await this.loadSettings();
     // Codeblock errors and modals can be shown before any React tree mounts, so
-    // the language has to be set here rather than in App.tsx's effect. A
-    // rejection here must not take the whole plugin down with it — i18next
+    // the language has to be set here rather than in App.tsx's effect.
+    // A rejection here must not take the whole plugin down with it — i18next
     // falls back to English on its own.
     try {
       await i18n.changeLanguage(this.settings.language);
@@ -105,29 +104,28 @@ export default class HeatmapTrackerPlugin extends Plugin {
           }
         }
 
-        // Dataview is preferred when the user has it: it indexes inline fields
-        // (`steps:: 8420`) that Obsidian's own metadata cache does not expose.
-        // Without it, frontmatter is read straight from the vault rather than
-        // the codeblock rendering nothing. When Dataview is enabled but still
-        // starting up, this waits for it instead of answering from frontmatter
-        // alone and silently dropping that vault's inline fields.
+        // Use DataView API to filter pages that contain specified frontmatter property
+        // During Obsidian's startup a note can render before Dataview has
+        // installed its API. Without the wait, a vault that *has* Dataview gets
+        // told to install it.
         const dv = await resolveDataviewApi(this.app);
 
-        const query = {
-          path: params.path,
-          property: params.property,
-          tags: params.tags,
-          filters: params.filters,
-        };
+        if (!dv) {
+          renderCodeblockIssue(el, { kind: "dataview-missing" });
+          return;
+        }
 
         try {
-          const entries = dv
-            ? buildEntriesFromDataview(dv, query, (page) =>
-                el.createSpan(`[](${page.file.name})`),
-              )
-            : buildEntriesFromVault(this.app, query, (page) =>
-                el.createSpan(`[](${page.file.basename})`),
-              );
+          const entries = buildEntriesFromDataview(
+            dv,
+            {
+              path: params.path,
+              property: params.property,
+              tags: params.tags,
+              filters: params.filters,
+            },
+            (page) => el.createSpan(`[](${page.file.name})`),
+          );
 
           // Append codeblock parameters to TrackerData object
           const trackerData: TrackerData = {
@@ -146,10 +144,6 @@ export default class HeatmapTrackerPlugin extends Plugin {
             renderNoMatchesHint(el, {
               property: String(params.property),
               path: params.path ? String(params.path) : undefined,
-              // Without Dataview, a value written as an inline field is
-              // invisible to us — worth saying before the user concludes the
-              // plugin is broken.
-              dataviewAvailable: Boolean(dv),
             });
           }
         } catch (e) {

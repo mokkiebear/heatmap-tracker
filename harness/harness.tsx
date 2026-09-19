@@ -68,6 +68,11 @@ const messages: {
   render: (el: HTMLElement) => void;
 }[] = [
   {
+    title: "Dataview missing",
+    note: "What a brand-new user sees if they skipped the Dataview install.",
+    render: (el) => renderCodeblockIssue(el, { kind: "dataview-missing" }),
+  },
+  {
     title: "No property set",
     note: "An empty `heatmap-tracker` codeblock.",
     render: (el) => renderCodeblockIssue(el, { kind: "missing-property" }),
@@ -95,16 +100,6 @@ const messages: {
     note: "Shown under a heatmap whose query matched nothing.",
     render: (el) =>
       renderNoMatchesHint(el, { property: "steps", path: "daily notes" }),
-  },
-  {
-    title: "Empty result, no Dataview",
-    note: "The same hint in a vault without Dataview, where inline fields are invisible to us.",
-    render: (el) =>
-      renderNoMatchesHint(el, {
-        property: "steps",
-        path: "daily notes",
-        dataviewAvailable: false,
-      }),
   },
 ];
 
