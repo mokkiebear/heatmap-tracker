@@ -36,6 +36,11 @@ same order. Green locally means green in CI. CI additionally runs `verify:tz` an
 | `src/localization/locales/` | i18n resources |
 | `EXAMPLE_VAULT/` | Obsidian vault used for manual testing; also holds doc examples |
 
+This repo is indexed by CodeGraph, so `codegraph explore "<symbol or question>"`
+answers "where is X / what calls X" in one call, with the blast radius, instead
+of a grep-and-read loop. The index (`.codegraph/codegraph.db`) is local and
+gitignored; rebuild it with `codegraph init`.
+
 Read [ARCHITECTURE.md](ARCHITECTURE.md) before any structural change — it has the
 full data pipeline and a "where to make a change" table.
 
