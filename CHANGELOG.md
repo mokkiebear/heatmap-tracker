@@ -5,6 +5,8 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+## [2.9.1] - 2026-09-20
 ### Changed
 - Zod is now imported as `import * as z`, which lets esbuild tree-shake it properly. Combined with the zod bump this takes the bundle from 429 KB to 333 KB (gzipped 126 KB to 100 KB) — smaller than before the bump.
 - Dependency updates: i18next, preact and zod to their latest minor/patch releases.
