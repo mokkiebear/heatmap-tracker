@@ -1,4 +1,4 @@
-import z from "zod";
+import * as z from "zod";
 import { ColorsListSchema } from "./colorsList.schema";
 
 export const ColorSchemeSchema = z

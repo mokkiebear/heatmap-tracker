@@ -1,4 +1,4 @@
-import z from "zod";
+import * as z from "zod";
 
 export const FilterConditionSchema = z.strictObject({
   /** Frontmatter key to read from the page. */

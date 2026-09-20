@@ -1,4 +1,4 @@
-import z from "zod";
+import * as z from "zod";
 
 export const NumberLike = z.preprocess((val: number | undefined) => {
   const num = Number(val);

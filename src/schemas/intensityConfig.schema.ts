@@ -1,4 +1,4 @@
-import z from "zod";
+import * as z from "zod";
 
 export const IntensityConfigSchema = z.strictObject({
   scaleStart: z.number().or(z.undefined()),

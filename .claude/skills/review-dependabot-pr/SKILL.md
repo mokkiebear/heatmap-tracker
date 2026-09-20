@@ -74,6 +74,27 @@ git branch -D pr<n> ...
 - **Conflicting lockfiles** — two dependabot PRs both rewriting
   `package-lock.json` will conflict with each other even though each is fine
   alone. Merge one, let dependabot rebase the rest.
+- **A green dependency PR that inflates the bundle.** `npm run verify` cannot
+  see this; only `npm run build` can. Compare `build/main.js` against the
+  pre-merge size on every PR touching `dependencies`, and bisect with
+  `npm i --no-save <pkg>@<old>` to find which one did it.
+
+## Always import zod as a namespace
+
+`import { z } from "zod"` and `import z from "zod"` defeat esbuild's
+tree-shaking: zod re-exports locales, JSON-schema generation and ISO helpers at
+the top level, so a named import drags all of it in. `import * as z from "zod"`
+shakes it out — worth ~95 KB raw / ~24 KB gzipped in this repo.
+
+Every file under `src/schemas/` plus `src/types.ts` must use the namespace
+form. Type-only named imports (`import { ZodError }`) are fine; they vanish at
+compile time.
+
+Check after any zod bump:
+
+```bash
+grep -rn 'import z from "zod"\|import { z } from "zod"' src --include=*.ts --include=*.tsx
+```
 
 ## Merge and confirm
 

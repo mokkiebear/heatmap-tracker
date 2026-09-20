@@ -1,4 +1,4 @@
-import z from "zod";
+import * as z from "zod";
 
 import { EntrySchema } from "./entry.schema";
 import { IntensityConfigSchema } from "./intensityConfig.schema";

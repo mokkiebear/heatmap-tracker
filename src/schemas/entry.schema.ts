@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 import { NumberLike } from "./common";
 
 export const EntrySchema = z.strictObject({

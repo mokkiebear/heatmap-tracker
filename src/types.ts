@@ -1,4 +1,4 @@
-import z from "zod";
+import * as z from "zod";
 
 import { EntrySchema } from "./schemas/entry.schema";
 import { TrackerDataSchema } from "./schemas/trackerData.schema";

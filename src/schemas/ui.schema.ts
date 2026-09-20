@@ -1,5 +1,5 @@
 import { IHeatmapView } from "src/types";
-import z from "zod";
+import * as z from "zod";
 
 export const UISchema = z.strictObject({
   /**
