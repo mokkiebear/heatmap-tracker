@@ -5,6 +5,8 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+## [2.10.0] - 2026-09-20
 ### Added
 - An **Edit heatmap** button on every rendered heatmap (hover, or focus it with the keyboard). It reopens the create modal pre-filled from that codeblock and writes the changes back to the note — a heatmap created through the modal no longer has to be maintained by hand-editing YAML.
 - A ribbon icon that opens the insert modal, so the modal is reachable in one click instead of only through the command palette.
