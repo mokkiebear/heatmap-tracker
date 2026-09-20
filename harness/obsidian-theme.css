@@ -58,6 +58,7 @@ body {
   --radius-m: 8px;
   --radius-xl: 16px;
   --size-2-1: 2px;
+  --size-2-2: 4px;
   --size-2-3: 6px;
   --size-4-1: 4px;
   --size-4-2: 8px;
@@ -65,6 +66,185 @@ body {
   --size-4-4: 16px;
   --size-4-6: 24px;
   --layer-popover: 30;
+  --layer-modal: 50;
+  --icon-xs: 14px;
+  --icon-s: 16px;
+  --input-height: 30px;
+  --cursor: default;
+  --font-monospace: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --tag-background: rgba(123, 108, 217, 0.1);
+  --tag-color: var(--text-accent);
+  --background-modifier-error: rgba(230, 78, 74, 0.1);
+  --background-modifier-error-hover: rgba(230, 78, 74, 0.2);
+  --text-warning: #d9b100;
+}
+
+/*
+ * Obsidian's modal and Setting chrome, approximated. The modal's own layout is
+ * plugin CSS (heatmap-create-modal.scss); this is the host frame it sits in.
+ */
+.modal-container {
+  position: fixed;
+  inset: 0;
+  z-index: var(--layer-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.modal {
+  background: var(--background-primary);
+  border: var(--border-width) solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+  padding: var(--size-4-4) var(--size-4-6) var(--size-4-6);
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+}
+
+.modal-title {
+  font-size: 1.2em;
+  font-weight: var(--font-semibold);
+  margin-bottom: var(--size-4-3);
+}
+
+/*
+ * Obsidian's default button, which every <button> the plugin creates inherits
+ * unless it opts out. Reproduced here because a plain browser's button looks
+ * nothing like it — icon-only buttons in particular came out with an
+ * unexpected grey plate in Obsidian but looked fine in the harness.
+ */
+button {
+  font: inherit;
+  font-size: var(--font-ui-small);
+  height: var(--input-height);
+  padding: var(--size-4-1) var(--size-4-3);
+  border: 0;
+  border-radius: var(--radius-s);
+  background-color: var(--interactive-normal, var(--background-secondary));
+  box-shadow: var(--shadow-s);
+  color: var(--text-normal);
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-4-4);
+  padding: var(--size-4-3) 0;
+  border-top: var(--border-width) solid var(--background-modifier-border);
+}
+
+.setting-item-info {
+  margin-inline-end: auto;
+}
+
+.setting-item-name {
+  font-size: var(--font-ui-small);
+}
+
+.setting-item-description {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  padding-top: var(--size-4-1);
+}
+
+.setting-item-control {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1;
+  gap: var(--size-4-2);
+}
+
+.setting-item-control input[type="text"],
+.setting-item-control input[type="number"],
+.setting-item-control input[type="date"],
+.setting-item-control select,
+.setting-item-control button {
+  font: inherit;
+  font-size: var(--font-ui-small);
+  height: var(--input-height);
+  padding: 0 var(--size-4-2);
+  border-radius: var(--radius-s);
+  border: var(--border-width) solid var(--background-modifier-border);
+  background: var(--background-primary);
+  color: var(--text-normal);
+}
+
+.setting-item-control button,
+button.mod-cta {
+  background: var(--interactive-normal, var(--background-secondary));
+  cursor: pointer;
+}
+
+button.mod-cta {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: transparent;
+  font-weight: var(--font-semibold);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.checkbox-container {
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--background-modifier-border);
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.checkbox-container::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--background-primary);
+  transition: transform 100ms ease-in-out;
+}
+
+.checkbox-container.is-enabled {
+  background: var(--interactive-accent);
+}
+
+.checkbox-container.is-enabled::after {
+  transform: translateX(18px);
+}
+
+.clickable-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--size-2-2);
+  border-radius: var(--radius-s);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.clickable-icon:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.svg-icon {
+  width: var(--icon-s);
+  height: var(--icon-s);
 }
 
 /* Harness chrome — deliberately plain so it cannot be mistaken for the plugin. */

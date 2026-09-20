@@ -4,6 +4,7 @@ import {
   buildHeatmapConfig,
   buildPreviewTrackerData,
   createInitialFormState,
+  formStateFromConfig,
   validateHeatmapForm,
 } from "../heatmapModal.utils";
 
@@ -355,5 +356,80 @@ describe("buildPreviewTrackerData", () => {
 
     expect(preview.heatmapTitle).toBe("My habit");
     expect(preview.heatmapSubtitle).toBe("Daily");
+  });
+});
+
+describe("formStateFromConfig", () => {
+  it("round-trips everything buildHeatmapConfig writes", () => {
+    const state = makeState({
+      heatmapTitle: "Exercise",
+      heatmapSubtitle: "Minutes per day",
+      properties: ["exercise", "steps"],
+      path: "Journal",
+      tags: ["#health"],
+      filters: [
+        { property: "status", operator: "equals", value: "done" },
+        { property: "note", operator: "notEmpty", value: "" },
+      ],
+      year: 2024,
+      layout: "monthly",
+      dateRangeMode: "months",
+      monthsToShow: "3",
+      separateMonths: false,
+      showCurrentDayBorder: false,
+      disableFileCreation: true,
+      excludeFalsy: true,
+      useCustomColors: true,
+      customColors: ["#111", "#222"],
+      scaleStart: "10",
+      scaleEnd: "120",
+      defaultIntensity: "2",
+      showOutOfRange: false,
+      hideTabs: true,
+      hideYear: true,
+      hideTitle: true,
+      hideSubtitle: true,
+      showWeekNums: true,
+      defaultView: IHeatmapView.HeatmapTrackerStatistics,
+    });
+
+    expect(formStateFromConfig(buildHeatmapConfig(state))).toEqual(state);
+  });
+
+  it("round-trips a palette-based, full-year config", () => {
+    const state = makeState({ properties: ["exercise"], palette: "default" });
+
+    expect(formStateFromConfig(buildHeatmapConfig(state))).toEqual(state);
+  });
+
+  it("round-trips a custom date range", () => {
+    const state = makeState({
+      properties: ["p"],
+      dateRangeMode: "custom",
+      startDate: "2026-01-01",
+      endDate: "2026-01-31",
+    });
+
+    expect(formStateFromConfig(buildHeatmapConfig(state))).toEqual(state);
+  });
+
+  it("falls back to defaults for a hand-written codeblock with junk values", () => {
+    const state = formStateFromConfig({
+      property: "steps",
+      year: "not a year",
+      layout: "weird",
+      colorScheme: "nope",
+      filters: [{ operator: "equals", value: "x" }],
+      ui: { defaultView: "made-up-view" },
+    });
+
+    expect(state.properties).toEqual(["steps"]);
+    expect(state.year).toBe(createInitialFormState().year);
+    expect(state.layout).toBe("default");
+    expect(state.palette).toBe("default");
+    // A condition with no property could never match; drop it rather than
+    // opening the modal in a permanently invalid state.
+    expect(state.filters).toEqual([]);
+    expect(state.defaultView).toBe(IHeatmapView.HeatmapTracker);
   });
 });

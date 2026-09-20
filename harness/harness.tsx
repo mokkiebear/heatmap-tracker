@@ -22,6 +22,7 @@ import {
 } from "../src/utils/codeblockError";
 
 import { fixtures, harnessSettings } from "./fixtures";
+import { HeatmapModal } from "../src/modals/HeatmapModal";
 
 const app = new App();
 const root = document.getElementById("fixtures");
@@ -126,4 +127,22 @@ const themeButton = document.getElementById("toggle-theme");
 themeButton?.addEventListener("click", () => {
   document.body.classList.toggle("theme-dark");
   document.body.classList.toggle("theme-light");
+});
+
+/**
+ * The create/edit modal. It builds plain DOM through Obsidian's `Setting` API
+ * (mocked here), so it renders in the harness the same way the heatmap does —
+ * which is the only way to see its layout without opening Obsidian.
+ */
+const modalButton = document.getElementById("open-modal");
+modalButton?.addEventListener("click", () => {
+  new HeatmapModal(
+    {
+      vault: { getMarkdownFiles: () => [] },
+      metadataCache: { getFileCache: () => null },
+    } as never as App,
+    harnessSettings,
+    (result: Record<string, unknown>) =>
+      console.log("Submitted config:", result),
+  ).open();
 });

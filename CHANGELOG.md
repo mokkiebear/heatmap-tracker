@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- An **Edit heatmap** button on every rendered heatmap (hover, or focus it with the keyboard). It reopens the create modal pre-filled from that codeblock and writes the changes back to the note — a heatmap created through the modal no longer has to be maintained by hand-editing YAML.
+- A ribbon icon that opens the insert modal, so the modal is reachable in one click instead of only through the command palette.
+- The modal's preview now reports how many notes the current property/path/tag combination matches, and says so explicitly when nothing matches — an empty preview and a misspelled property name used to look identical.
+
+### Changed
+- **The Insert Heatmap Tracker modal is now the recommended way to use the plugin.** README, the website, the in-plugin Documentation tab and the example vault all lead with it; the codeblock reference is now documented as what the modal writes, for people who prefer typing YAML.
+- The create/edit modal now shows only the essentials up front (properties to track, folder path, title); tags and conditions, layout and date range, appearance, intensity scale, and visible elements each moved into their own collapsed section.
+- The modal is restyled against Obsidian's own CSS variables: chevron-headed collapsible cards, a framed preview column, tag-styled chips, and a full-width primary action. It follows the active theme (light/dark) and any theme that overrides those variables, instead of carrying its own hardcoded spacing and colours.
+- The render harness can now mount the modal (`npm run harness` → "Open create modal"), so its layout is reviewable without opening Obsidian. The `obsidian` mock gained working `Setting`/`Modal`/component stubs and the DOM helpers Obsidian patches onto `HTMLElement`.
+
 ### Security
 - Replaced the two regular expressions used to normalise user-supplied paths and titles (`/^\/+|\/+$/` and `/<[^>]*>/`) with linear scans in `src/utils/path.ts`. Both were polynomial on adversarial input — stripping markup from a title of 100k `<` took over four seconds — and a heatmap's `title` and `basePath` come from the user's note. Tag stripping now counts nesting depth, so `<scr<b>ipt>` can no longer reassemble into `<script>` after one pass. Clears five CodeQL alerts.
 - Both GitHub Actions workflows now declare an explicit `permissions` block (`contents: read` for CI, `contents: write` for the release) instead of inheriting the repository default. Clears two CodeQL alerts.

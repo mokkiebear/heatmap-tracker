@@ -1,6 +1,7 @@
 import {
   MarkdownPostProcessorContext,
   MarkdownView,
+  Notice,
   parseYaml,
   Plugin,
   stringifyYaml,
@@ -22,6 +23,7 @@ import i18n from "./localization/i18n";
 import { getRenderHeatmapTracker } from "./render";
 import { DEFAULT_SETTINGS } from "./constants/defaultSettings";
 import { HeatmapModal } from "./modals/HeatmapModal";
+import { renderEditButton } from "./utils/editCodeblock";
 
 declare global {
   interface Window {
@@ -52,21 +54,17 @@ export default class HeatmapTrackerPlugin extends Plugin {
     this.addCommand({
       id: "insert-heatmap-tracker",
       name: "Insert Heatmap Tracker",
-      editorCallback: (editor, ctx) => {
-        new HeatmapModal(this.app, this.settings, (result) => {
-          const markdownView =
-            this.app.workspace.getActiveViewOfType(MarkdownView);
+      editorCallback: () => this.openInsertModal(),
+    });
 
-          if (!markdownView) {
-            return;
-          }
-
-          const codeblock = `\`\`\`heatmap-tracker\n${stringifyYaml(
-            result,
-          )}\`\`\`\n`;
-          editor.replaceSelection(codeblock);
-        }).open();
-      },
+    // The modal is the primary way to use the plugin, so it gets a one-click
+    // entry point rather than only living behind the command palette.
+    this.addRibbonIcon("calendar-days", "Insert Heatmap Tracker", () => {
+      if (!this.app.workspace.getActiveViewOfType(MarkdownView)) {
+        new Notice("Open a note in edit mode to insert a heatmap.");
+        return;
+      }
+      this.openInsertModal();
     });
 
     this.registerMarkdownCodeBlockProcessor(
@@ -138,6 +136,8 @@ export default class HeatmapTrackerPlugin extends Plugin {
             window.renderHeatmapTracker(el, trackerData, this.settings);
           }
 
+          renderEditButton(el, this.app, ctx, this.settings, params);
+
           // An empty grid is a valid state, so the heatmap is still rendered —
           // this only explains why every square is blank.
           if (entries.length === 0) {
@@ -161,6 +161,17 @@ export default class HeatmapTrackerPlugin extends Plugin {
       this.settings,
       () => this.saveSettings(),
     );
+  }
+
+  private openInsertModal() {
+    new HeatmapModal(this.app, this.settings, (result) => {
+      const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
+      if (!markdownView) return;
+
+      markdownView.editor.replaceSelection(
+        `\`\`\`heatmap-tracker\n${stringifyYaml(result)}\`\`\`\n`,
+      );
+    }).open();
   }
 
   onunload() {

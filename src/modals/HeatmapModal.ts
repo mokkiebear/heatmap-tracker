@@ -26,6 +26,7 @@ import {
   buildPreviewTrackerData,
   buildTags,
   createInitialFormState,
+  formStateFromConfig,
   validateHeatmapForm,
 } from "./heatmapModal.utils";
 
@@ -58,10 +59,14 @@ class ChipList {
     });
     this.renderChips();
 
-    const addFromList = new Setting(containerEl).setClass(
+    // One row, not two: picking from the vault's existing keys and typing a
+    // new one are the same action, and two stacked Setting rows read as two
+    // unrelated controls.
+    const addRow = new Setting(containerEl).setClass(
       "heatmap-create-modal__add-property-row",
     );
-    addFromList.addDropdown((dropdown) => {
+
+    addRow.addDropdown((dropdown) => {
       this.dropdown = dropdown;
       this.refreshSuggestions();
       dropdown.onChange((value) => {
@@ -71,10 +76,7 @@ class ChipList {
       });
     });
 
-    const addCustom = new Setting(containerEl).setClass(
-      "heatmap-create-modal__add-property-row",
-    );
-    addCustom.addText((text) => {
+    addRow.addText((text) => {
       text.setPlaceholder(options.addPlaceholder);
       this.customInputEl = text.inputEl;
       text.inputEl.addEventListener("keydown", (evt) => {
@@ -84,7 +86,8 @@ class ChipList {
         }
       });
     });
-    addCustom.addButton((btn) =>
+
+    addRow.addButton((btn) =>
       btn.setButtonText("Add").onClick(() => this.addFromCustomInput()),
     );
   }
@@ -146,8 +149,11 @@ class ChipList {
       });
       chip.createSpan({ text: value });
 
+      // `clickable-icon` is Obsidian's own icon-only button style: without it
+      // the chip's X inherits the default button background and box-shadow,
+      // which shows up as a grey plate inside the chip on hover.
       const removeBtn = chip.createEl("button", {
-        cls: "heatmap-create-modal__chip-remove",
+        cls: "clickable-icon heatmap-create-modal__chip-remove",
         attr: { "aria-label": `Remove ${value}` },
       });
       setIcon(removeBtn, "x");
@@ -167,6 +173,7 @@ export class HeatmapModal extends Modal {
   private previewTimer: number | null = null;
 
   private errorsEl: HTMLElement | null = null;
+  private matchesEl: HTMLElement | null = null;
   private submitButton: ButtonComponent | null = null;
 
   private propertyChipList: ChipList | null = null;
@@ -182,19 +189,29 @@ export class HeatmapModal extends Modal {
     app: App,
     settings: TrackerSettings,
     onSubmit: (result: Record<string, unknown>) => void,
+    /** Existing codeblock config to edit; omit to create a new heatmap. */
+    private initialConfig?: Record<string, unknown>,
   ) {
     super(app);
     this.settings = settings;
     this.onSubmit = onSubmit;
   }
 
+  private get isEditing(): boolean {
+    return this.initialConfig !== undefined;
+  }
+
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
     this.modalEl.addClass("heatmap-create-modal");
-    this.formState = createInitialFormState();
+    this.formState = this.initialConfig
+      ? formStateFromConfig(this.initialConfig)
+      : createInitialFormState();
 
-    this.setTitle("Create new Heatmap Tracker");
+    this.setTitle(
+      this.isEditing ? "Edit Heatmap Tracker" : "Create new Heatmap Tracker",
+    );
 
     const body = contentEl.createDiv({ cls: "heatmap-create-modal-body" });
     const fieldsEl = body.createDiv({
@@ -204,13 +221,24 @@ export class HeatmapModal extends Modal {
       cls: "heatmap-create-modal-body__preview-col",
     });
 
-    this.renderBasicSection(fieldsEl);
-    this.renderDataSourceSection(fieldsEl);
-    this.renderDateRangeSection(fieldsEl);
-    this.renderAppearanceSection(fieldsEl);
-    this.renderIntensitySection(fieldsEl);
-    this.renderBehaviorSection(fieldsEl);
-    this.renderUiSection(fieldsEl);
+    // Everything needed for a working heatmap stays visible; the rest is one
+    // click away, so the form reads as "3 fields" rather than "40 settings".
+    this.renderEssentialsSection(fieldsEl);
+    this.renderFilteringSection(
+      this.addCollapsibleSection(fieldsEl, "Filtering"),
+    );
+    this.renderLayoutSection(
+      this.addCollapsibleSection(fieldsEl, "Layout & date range"),
+    );
+    this.renderAppearanceSection(
+      this.addCollapsibleSection(fieldsEl, "Appearance"),
+    );
+    this.renderIntensitySection(
+      this.addCollapsibleSection(fieldsEl, "Intensity scale"),
+    );
+    this.renderUiSection(
+      this.addCollapsibleSection(fieldsEl, "Visible elements & behavior"),
+    );
 
     this.renderErrorsBanner(previewColEl);
     this.renderPreviewSection(previewColEl);
@@ -244,59 +272,32 @@ export class HeatmapModal extends Modal {
     });
   }
 
-  private renderBasicSection(contentEl: HTMLElement) {
-    new Setting(contentEl)
-      .setName("Title")
-      .setDesc('Displayed above the heatmap. Stored as "heatmapTitle".')
-      .addText((text) =>
-        text.onChange((value) => {
-          this.formState.heatmapTitle = value;
-          this.refresh();
-        }),
-      );
+  /**
+   * A native `<details>` group. Collapsed by default — see the progressive
+   * disclosure note in `onOpen` — and no JS toggle state to keep in sync.
+   */
+  private addCollapsibleSection(
+    contentEl: HTMLElement,
+    title: string,
+  ): HTMLElement {
+    const details = contentEl.createEl("details", {
+      cls: "heatmap-create-modal__section",
+    });
+    const summary = details.createEl("summary", {
+      cls: "heatmap-create-modal__section-summary",
+    });
+    // Obsidian's own collapsibles use a chevron, not the browser's default
+    // triangle (which `list-style: none` below removes).
+    setIcon(
+      summary.createSpan({ cls: "heatmap-create-modal__section-chevron" }),
+      "chevron-right",
+    );
+    summary.createSpan({ text: title });
 
-    new Setting(contentEl)
-      .setName("Subtitle")
-      .setDesc('Displayed under the title. Stored as "heatmapSubtitle".')
-      .addText((text) =>
-        text.onChange((value) => {
-          this.formState.heatmapSubtitle = value;
-          this.refresh();
-        }),
-      );
-
-    new Setting(contentEl)
-      .setName("Year")
-      .setDesc(
-        "Year shown by default. Ignored if a date range override below is set.",
-      )
-      .addText((text) => {
-        text.inputEl.type = "number";
-        text.setValue(String(this.formState.year));
-        text.onChange((value) => {
-          this.formState.year = Number(value);
-          this.refresh();
-        });
-      });
+    return details.createDiv({ cls: "heatmap-create-modal__section-body" });
   }
 
-  private renderDataSourceSection(contentEl: HTMLElement) {
-    this.addSectionHeading(contentEl, "Data source");
-
-    new Setting(contentEl)
-      .setName("Folder path")
-      .setDesc(
-        "Folder to search for notes in (optional). Leave blank to search the whole vault.",
-      )
-      .addText((text) =>
-        text.onChange((value) => {
-          this.formState.path = value;
-          this.propertyChipList?.refreshSuggestions();
-          this.refreshPropertyDatalist();
-          this.refresh();
-        }),
-      );
-
+  private renderEssentialsSection(contentEl: HTMLElement) {
     new Setting(contentEl)
       .setName("Properties to track")
       .setDesc(
@@ -317,6 +318,39 @@ export class HeatmapModal extends Modal {
     });
 
     new Setting(contentEl)
+      .setName("Folder path")
+      .setDesc(
+        "Folder to search for notes in (optional). Leave blank to search the whole vault.",
+      )
+      .addText((text) =>
+        text.setValue(this.formState.path).onChange((value) => {
+          this.formState.path = value;
+          this.propertyChipList?.refreshSuggestions();
+          this.refreshPropertyDatalist();
+          this.refresh();
+        }),
+      );
+
+    new Setting(contentEl)
+      .setName("Title")
+      .setDesc('Displayed above the heatmap. Stored as "heatmapTitle".')
+      .addText((text) =>
+        text.setValue(this.formState.heatmapTitle).onChange((value) => {
+          this.formState.heatmapTitle = value;
+          this.refresh();
+        }),
+      );
+
+    // The property datalist is shared with the filter rows further down, so it
+    // has to exist before any of them render.
+    this.propertyDatalistEl = contentEl.createEl("datalist", {
+      attr: { id: "heatmap-create-modal-property-list" },
+    });
+    this.refreshPropertyDatalist();
+  }
+
+  private renderFilteringSection(contentEl: HTMLElement) {
+    new Setting(contentEl)
       .setName("Tags")
       .setDesc(
         "Only include notes with at least one of these tags (optional). Leave empty to include notes regardless of tags.",
@@ -333,11 +367,6 @@ export class HeatmapModal extends Modal {
       onChange: () => this.refresh(),
     });
 
-    this.propertyDatalistEl = contentEl.createEl("datalist", {
-      attr: { id: "heatmap-create-modal-property-list" },
-    });
-    this.refreshPropertyDatalist();
-
     new Setting(contentEl)
       .setName("Additional conditions")
       .setDesc(
@@ -349,8 +378,16 @@ export class HeatmapModal extends Modal {
     this.renderFiltersEditor();
   }
 
-  private renderDateRangeSection(contentEl: HTMLElement) {
-    this.addSectionHeading(contentEl, "Layout & date range");
+  private renderLayoutSection(contentEl: HTMLElement) {
+    new Setting(contentEl)
+      .setName("Subtitle")
+      .setDesc('Displayed under the title. Stored as "heatmapSubtitle".')
+      .addText((text) =>
+        text.setValue(this.formState.heatmapSubtitle).onChange((value) => {
+          this.formState.heatmapSubtitle = value;
+          this.refresh();
+        }),
+      );
 
     new Setting(contentEl).setName("Layout").addDropdown((dropdown) => {
       dropdown.addOption("default", "Default (week columns)");
@@ -382,6 +419,18 @@ export class HeatmapModal extends Modal {
     this.dateRangeFieldsEl = contentEl.createDiv();
     this.renderDateRangeFields();
 
+    new Setting(contentEl)
+      .setName("Year")
+      .setDesc("Year shown by default. Ignored if a date range is set above.")
+      .addText((text) => {
+        text.inputEl.type = "number";
+        text.setValue(String(this.formState.year));
+        text.onChange((value) => {
+          this.formState.year = Number(value);
+          this.refresh();
+        });
+      });
+
     this.separateMonthsSettingEl = new Setting(contentEl)
       .setName("Separate months")
       .setDesc("Visually separate months in the default layout.")
@@ -396,8 +445,6 @@ export class HeatmapModal extends Modal {
   }
 
   private renderAppearanceSection(contentEl: HTMLElement) {
-    this.addSectionHeading(contentEl, "Appearance");
-
     new Setting(contentEl).setName("Palette").addDropdown((dropdown) => {
       Object.keys(this.settings.palettes).forEach((p) => {
         dropdown.addOption(p, p);
@@ -442,8 +489,6 @@ export class HeatmapModal extends Modal {
   }
 
   private renderIntensitySection(contentEl: HTMLElement) {
-    this.addSectionHeading(contentEl, "Intensity scale");
-
     new Setting(contentEl)
       .setName("Scale start / end")
       .setDesc(
@@ -452,6 +497,7 @@ export class HeatmapModal extends Modal {
       .addText((text) => {
         text.setPlaceholder("min");
         text.inputEl.type = "number";
+        text.setValue(this.formState.scaleStart);
         text.onChange((value) => {
           this.formState.scaleStart = value;
           this.refresh();
@@ -460,6 +506,7 @@ export class HeatmapModal extends Modal {
       .addText((text) => {
         text.setPlaceholder("max");
         text.inputEl.type = "number";
+        text.setValue(this.formState.scaleEnd);
         text.onChange((value) => {
           this.formState.scaleEnd = value;
           this.refresh();
@@ -472,6 +519,7 @@ export class HeatmapModal extends Modal {
       .addText((text) => {
         text.inputEl.type = "number";
         text.setPlaceholder("4");
+        text.setValue(this.formState.defaultIntensity);
         text.onChange((value) => {
           this.formState.defaultIntensity = value;
           this.refresh();
@@ -505,9 +553,7 @@ export class HeatmapModal extends Modal {
       });
   }
 
-  private renderBehaviorSection(contentEl: HTMLElement) {
-    this.addSectionHeading(contentEl, "Behavior");
-
+  private renderUiSection(contentEl: HTMLElement) {
     new Setting(contentEl)
       .setName("Disable file creation")
       .setDesc("Clicking an empty box won't offer to create a new note.")
@@ -517,10 +563,6 @@ export class HeatmapModal extends Modal {
           this.formState.disableFileCreation = value;
         });
       });
-  }
-
-  private renderUiSection(contentEl: HTMLElement) {
-    this.addSectionHeading(contentEl, "UI settings");
 
     new Setting(contentEl).setName("Hide tabs").addToggle((toggle) => {
       toggle.setValue(this.formState.hideTabs);
@@ -582,23 +624,28 @@ export class HeatmapModal extends Modal {
 
   private renderPreviewSection(contentEl: HTMLElement) {
     this.addSectionHeading(contentEl, "Preview");
+    this.matchesEl = contentEl.createDiv({
+      cls: "heatmap-create-modal__matches",
+    });
     this.previewContainer = contentEl.createDiv({
       cls: "heatmap-modal-preview",
     });
   }
 
   private renderSubmitSection(contentEl: HTMLElement) {
-    new Setting(contentEl).addButton((btn) => {
-      this.submitButton = btn;
-      btn
-        .setButtonText("Insert Heatmap")
-        .setCta()
-        .onClick(() => {
-          if (validateHeatmapForm(this.formState).length > 0) return;
-          this.close();
-          this.onSubmit(buildHeatmapConfig(this.formState));
-        });
-    });
+    new Setting(contentEl)
+      .setClass("heatmap-create-modal__submit-row")
+      .addButton((btn) => {
+        this.submitButton = btn;
+        btn
+          .setButtonText(this.isEditing ? "Save changes" : "Insert Heatmap")
+          .setCta()
+          .onClick(() => {
+            if (validateHeatmapForm(this.formState).length > 0) return;
+            this.close();
+            this.onSubmit(buildHeatmapConfig(this.formState));
+          });
+      });
   }
 
   // ---------------------------------------------------------------------
@@ -705,7 +752,7 @@ export class HeatmapModal extends Modal {
     });
 
     const addBtn = container.createEl("button", {
-      cls: "mod-cta heatmap-create-modal__add-color-button",
+      cls: "heatmap-create-modal__add-button",
       text: "Add condition",
     });
     addBtn.addEventListener("click", () => {
@@ -814,7 +861,7 @@ export class HeatmapModal extends Modal {
       });
 
       const removeBtn = row.createEl("button", {
-        cls: "heatmap-create-modal__chip-remove",
+        cls: "clickable-icon heatmap-create-modal__chip-remove",
         attr: { "aria-label": "Remove color" },
       });
       setIcon(removeBtn, "x");
@@ -826,7 +873,7 @@ export class HeatmapModal extends Modal {
     });
 
     const addBtn = container.createEl("button", {
-      cls: "mod-cta heatmap-create-modal__add-color-button",
+      cls: "heatmap-create-modal__add-button",
       text: "Add color",
     });
     addBtn.addEventListener("click", () => {
@@ -886,6 +933,31 @@ export class HeatmapModal extends Modal {
     }
   }
 
+  /**
+   * The one number that tells the user whether their property/path/tags
+   * actually select anything — without it an empty preview is indistinguishable
+   * from a misspelled property name.
+   */
+  private renderMatchesSummary(count: number) {
+    const el = this.matchesEl;
+    if (!el) return;
+
+    el.empty();
+
+    if (this.formState.properties.filter(Boolean).length === 0) {
+      el.toggleClass("is-empty", false);
+      return;
+    }
+
+    const noDataview = !getDataviewApi(this.app);
+    el.toggleClass("is-empty", count === 0 || noDataview);
+    el.textContent = noDataview
+      ? "Dataview is not available, so no notes can be matched."
+      : count === 0
+        ? "No matching notes found — check the property name and folder path."
+        : `${count} matching ${count === 1 ? "note" : "notes"} found.`;
+  }
+
   private updatePreview() {
     if (!this.previewContainer) return;
 
@@ -894,10 +966,10 @@ export class HeatmapModal extends Modal {
     }
     this.previewContainer.empty();
 
-    const previewData = buildPreviewTrackerData(
-      this.formState,
-      this.getPreviewEntries(),
-    );
+    const entries = this.getPreviewEntries();
+    this.renderMatchesSummary(entries.length);
+
+    const previewData = buildPreviewTrackerData(this.formState, entries);
 
     const container = this.previewContainer.createDiv({
       cls: "heatmap-tracker-container",

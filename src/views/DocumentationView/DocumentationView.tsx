@@ -73,6 +73,7 @@ function DocumentationView() {
   return (
     <div className="documentation-view__container">
       <p className="documentation-view__intro">{t("docs.intro")}</p>
+      <p className="documentation-view__note">{t("docs.modalTip")}</p>
 
       <h3 className="documentation-view__heading">{t("docs.quickStart")}</h3>
       <pre className="documentation-view__example">

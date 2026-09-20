@@ -11,14 +11,19 @@ Source: https://github.com/mokkiebear/heatmap-tracker
 ## How it works
 
 - Add a frontmatter value to a dated note, e.g. `steps: 8420`. Booleans count as 1.
-- Add a `heatmap-tracker` codeblock with `property: steps`. Optional keys: `path`, `tags`,
-  `filters` (`equals`, `contains`, `notEmpty`).
+- Recommended: run the **Insert Heatmap Tracker** command (or click the ribbon icon) and
+  fill in the modal — it has a live preview, tells you how many notes match, and writes
+  the codeblock for you. Every rendered heatmap carries an edit button that reopens the
+  same form and rewrites its codeblock.
+- Or write the `heatmap-tracker` codeblock yourself with `property: steps`. Optional keys:
+  `path`, `tags`, `filters` (`equals`, `contains`, `notEmpty`).
 - Or call `renderHeatmapTracker(container, trackerData)` from a `dataviewjs` block for
   full control over the dataset.
 - The `heatmap-tracker` codeblock requires the Dataview plugin; the JavaScript API does not.
 
 ## Capabilities
 
+- Guided create/edit modal with a live preview and match count; no YAML required.
 - Yearly contribution grid or a monthly calendar layout (`layout: "monthly"`).
 - Flexible ranges: `monthsToShow`, `daysToShow`, or `startDate` + `endDate`.
 - Color palettes in settings, `colorScheme.customColors` per heatmap, `customColor` per entry.

@@ -84,6 +84,109 @@ export function createInitialFormState(): HeatmapModalFormState {
   };
 }
 
+/** Reads a value the user may have hand-written in YAML — anything goes. */
+function asString(value: unknown): string | undefined {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return undefined;
+}
+
+function asStringArray(value: unknown): string[] | undefined {
+  if (typeof value === "string") return [value];
+  if (Array.isArray(value)) {
+    return value.map(asString).filter((v): v is string => v !== undefined);
+  }
+  return undefined;
+}
+
+function asBool(value: unknown): boolean | undefined {
+  return typeof value === "boolean" ? value : undefined;
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function pickDateRangeMode(config: Record<string, unknown>): DateRangeMode {
+  // Mirrors `resolveDateRange`'s precedence: monthsToShow > daysToShow > range.
+  if (config.monthsToShow !== undefined) return "months";
+  if (config.daysToShow !== undefined) return "days";
+  if (config.startDate !== undefined || config.endDate !== undefined) {
+    return "custom";
+  }
+  return "full-year";
+}
+
+/**
+ * Inverse of `buildHeatmapConfig`: turns an existing codeblock's parsed YAML
+ * back into form state so the modal can edit it instead of only creating.
+ * Anything missing or malformed falls back to the create-mode default, so a
+ * hand-written codeblock never blocks the editor.
+ */
+export function formStateFromConfig(
+  config: Record<string, unknown>,
+): HeatmapModalFormState {
+  const state = createInitialFormState();
+
+  const colorScheme = asRecord(config.colorScheme);
+  const intensity = asRecord(config.intensityConfig);
+  const ui = asRecord(config.ui);
+
+  const customColors = asStringArray(colorScheme.customColors) ?? [];
+  const year = Number(config.year);
+  const defaultView = asString(ui.defaultView);
+
+  return {
+    ...state,
+    heatmapTitle: asString(config.heatmapTitle) ?? state.heatmapTitle,
+    heatmapSubtitle: asString(config.heatmapSubtitle) ?? state.heatmapSubtitle,
+    properties: asStringArray(config.property) ?? state.properties,
+    path: asString(config.path) ?? state.path,
+    tags: asStringArray(config.tags) ?? state.tags,
+    filters: (Array.isArray(config.filters) ? config.filters : [])
+      .map((raw) => asRecord(raw))
+      .map((f) => ({
+        property: asString(f.property) ?? "",
+        operator: (asString(f.operator) ?? "equals") as FilterOperator,
+        value: asString(f.value) ?? "",
+      }))
+      .filter((f) => f.property !== ""),
+    year: Number.isFinite(year) ? year : state.year,
+    layout: config.layout === "monthly" ? "monthly" : "default",
+    dateRangeMode: pickDateRangeMode(config),
+    daysToShow: asString(config.daysToShow) ?? state.daysToShow,
+    monthsToShow: asString(config.monthsToShow) ?? state.monthsToShow,
+    startDate: asString(config.startDate) ?? state.startDate,
+    endDate: asString(config.endDate) ?? state.endDate,
+    separateMonths: asBool(config.separateMonths) ?? state.separateMonths,
+    showCurrentDayBorder:
+      asBool(config.showCurrentDayBorder) ?? state.showCurrentDayBorder,
+    disableFileCreation:
+      asBool(config.disableFileCreation) ?? state.disableFileCreation,
+    palette: asString(colorScheme.paletteName) ?? state.palette,
+    useCustomColors: customColors.length > 0,
+    customColors,
+    scaleStart: asString(intensity.scaleStart) ?? state.scaleStart,
+    scaleEnd: asString(intensity.scaleEnd) ?? state.scaleEnd,
+    defaultIntensity:
+      asString(intensity.defaultIntensity) ?? state.defaultIntensity,
+    showOutOfRange: asBool(intensity.showOutOfRange) ?? state.showOutOfRange,
+    excludeFalsy: asBool(intensity.excludeFalsy) ?? state.excludeFalsy,
+    hideTabs: asBool(ui.hideTabs) ?? state.hideTabs,
+    hideYear: asBool(ui.hideYear) ?? state.hideYear,
+    hideTitle: asBool(ui.hideTitle) ?? state.hideTitle,
+    hideSubtitle: asBool(ui.hideSubtitle) ?? state.hideSubtitle,
+    showWeekNums: asBool(ui.showWeekNums) ?? state.showWeekNums,
+    defaultView: Object.values(IHeatmapView).includes(
+      defaultView as IHeatmapView,
+    )
+      ? (defaultView as IHeatmapView)
+      : state.defaultView,
+  };
+}
+
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** A positive integer typed into a text field, or `undefined` if blank/invalid. */

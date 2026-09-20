@@ -171,6 +171,7 @@
   },
   "docs": {
     "intro": "A quick map of what you can put in a heatmap codeblock. Full types, defaults and copy-pasteable examples live in the README and the example vault — links at the bottom.",
+    "modalTip": "Recommended: run the **Insert Heatmap Tracker** command (or click the ribbon icon) to create a heatmap through a form with a live preview, and use the pencil button on any heatmap to edit it later — no YAML required.",
     "quickStart": "Smallest working heatmap",
     "quickStartNote": "Reads the `steps` property from every note in your vault and colors each day by its value. Everything below is optional.",
     "parameters": "trackerData parameters",

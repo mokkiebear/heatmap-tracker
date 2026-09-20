@@ -443,6 +443,11 @@ describe("HeatmapModal", () => {
       .filter((s: any) => s.texts[0]?.inputEl.placeholder === "Property")
       .flatMap((s: any) => s.extraButtons);
   }
+  function matchesText() {
+    return (modal as any).contentEl.querySelector(
+      ".heatmap-create-modal__matches",
+    )?.textContent;
+  }
 
   it("disables Insert until a property is selected", () => {
     expect(submitButton().disabled).toBe(true);
@@ -640,5 +645,72 @@ describe("HeatmapModal", () => {
 
     filterRemoveButtons()[0].trigger();
     expect(filterPropertyTexts()).toHaveLength(0);
+  });
+
+  it("reports how many notes the current query matches", () => {
+    dataviewPages = [
+      { file: { name: "2026-01-01", path: "d/2026-01-01.md" }, exercise: 10 },
+      { file: { name: "2026-01-02", path: "d/2026-01-02.md" }, exercise: 5 },
+    ];
+
+    addPropertyCustomText()!.trigger("exercise");
+    addCustomPropertyButton()!.trigger();
+    jest.advanceTimersByTime(250);
+
+    expect(matchesText()).toBe("2 matching notes found.");
+  });
+
+  it("warns instead of silently showing an empty preview when nothing matches", () => {
+    dataviewPages = [];
+
+    addPropertyCustomText()!.trigger("typo-property");
+    addCustomPropertyButton()!.trigger();
+    jest.advanceTimersByTime(250);
+
+    expect(matchesText()).toContain("No matching notes found");
+  });
+
+  describe("edit mode", () => {
+    beforeEach(() => {
+      Setting.instances = [];
+      onSubmit = jest.fn();
+      modal = new HeatmapModal(
+        {
+          vault: { getMarkdownFiles: () => [] },
+          metadataCache: { getFileCache: () => null },
+        } as any,
+        baseSettings,
+        onSubmit,
+        {
+          property: ["exercise", "steps"],
+          path: "Journal",
+          heatmapTitle: "My habit",
+          year: 2024,
+          colorScheme: { paletteName: "danger" },
+        },
+      );
+      modal.open();
+    });
+
+    it("pre-fills the form from the existing codeblock and can submit immediately", () => {
+      expect(allTexts().some((t: any) => t.inputEl.value === "My habit")).toBe(
+        true,
+      );
+      expect(allTexts().some((t: any) => t.inputEl.value === "Journal")).toBe(
+        true,
+      );
+      expect(submitButton().disabled).toBe(false);
+      expect(submitButton().buttonEl.textContent).toBe("Save changes");
+    });
+
+    it("submits the edited config, keeping untouched values", () => {
+      submitButton().trigger();
+
+      const config = onSubmit.mock.calls[0][0];
+      expect(config.property).toEqual(["exercise", "steps"]);
+      expect(config.path).toBe("Journal");
+      expect(config.year).toBe(2024);
+      expect(config.colorScheme).toEqual({ paletteName: "danger" });
+    });
   });
 });

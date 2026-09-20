@@ -36,7 +36,7 @@ You already write things down in Obsidian. Heatmap Tracker reads those notes and
 
 Add `steps: 8420` to a daily note and you get a heatmap. Add `mood: 4` and you get another. Every filled square is clickable and opens the note behind it; every empty square offers to create it.
 
-- **Zero-config for frontmatter.** A three-line codeblock is enough — no JavaScript required.
+- **Zero-config for frontmatter.** Run **Insert Heatmap Tracker**, fill in a form with a live preview, done — no YAML, no JavaScript. Every heatmap stays editable from the same form.
 - **Fully scriptable when you need it.** A `dataviewjs` escape hatch gives you complete control over the dataset.
 - **Everything stays local.** Your notes are the database.
 
@@ -101,11 +101,13 @@ steps: 8420
 
 Numbers work (`steps: 8420`), and so do booleans — `meditated: true` simply counts as `1`.
 
-**2. Add the heatmap.** Run the command **`Insert Heatmap Tracker`** from the command palette and fill in the modal — this is the easiest path and writes the codeblock for you.
+**2. Add the heatmap — use the modal.** Run **`Insert Heatmap Tracker`** from the command palette, or click the Heatmap Tracker icon in the left ribbon. This is the **recommended way to use the plugin**: the form has a live preview, tells you how many notes currently match, and writes the codeblock for you. Everything beyond the essentials is tucked into collapsed sections, so you only see what you need.
 
 <img alt="Insert Heatmap Tracker modal" src="https://github.com/user-attachments/assets/c41b5f2f-56d3-4cd3-9566-37e0390896af">
 
-Or write it by hand:
+Changed your mind later? Hover any rendered heatmap and click the **pencil** in its corner — the same form reopens with that heatmap's settings and rewrites its codeblock on save. No hand-editing YAML.
+
+If you'd rather write it by hand, the codeblock is plain YAML:
 
 ````markdown
 ```heatmap-tracker
@@ -141,7 +143,7 @@ Every one of these has a working example in the [Example Vault](https://github.c
 
 ## 🧩 Codeblock usage
 
-The `heatmap-tracker` codeblock handles frontmatter tracking out of the box.
+The `heatmap-tracker` codeblock handles frontmatter tracking out of the box. The [**Insert Heatmap Tracker** modal](#-quick-start) writes and edits it for you — the reference below is for anyone who prefers typing YAML, or wants to know what the modal produces.
 
 ### Single property
 
@@ -537,6 +539,16 @@ All of these preferences persist across sessions, so you only set them up once.
 ---
 
 ## 📦 Features
+
+<details>
+<summary><b>Create and edit without writing YAML</b> — the recommended way to use the plugin</summary>
+<br>
+<b>Insert Heatmap Tracker</b> (command palette or ribbon icon) opens a form with a live preview of the actual heatmap and a count of how many notes currently match your property, folder and tags — so a misspelled property name is obvious immediately rather than looking like an empty year.
+
+Only the essentials are shown up front (properties to track, folder, title); filtering, layout, appearance, intensity and visibility live in collapsed sections.
+
+Every rendered heatmap has a pencil button in its corner: it reopens the same form pre-filled from that codeblock and rewrites it on save.
+</details>
 
 <details>
 <summary><b>Easy switching between years</b> — render a dynamic heatmap for any year</summary>

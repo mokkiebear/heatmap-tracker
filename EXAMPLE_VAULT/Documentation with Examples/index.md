@@ -1,7 +1,7 @@
 # Documentation
 
 ## 🚀 Getting Started
-- [[1. How to start?/0. I installed plugin, how to see chart?|How to see the chart?]]
+- [[1. How to start?/0. I installed plugin, how to see chart?|How to see the chart? (start here — the modal)]]
 - [[1. How to start?/1. How to add a heatmap to your obsidian page?|How to add a heatmap?]]
 
 ## ⚙️ Configuration
