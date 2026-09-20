@@ -5,8 +5,6 @@ import { useTranslation } from "src/localization/useTranslation";
 
 import { HeatmapHeader } from "./components/HeatmapHeader/HeatmapHeader";
 
-import HeatmapFooter from "./components/HeatmapFooter/HeatmapFooter";
-
 // Static imports: an Obsidian plugin ships as a single main.js (esbuild runs
 // with no `splitting`), so lazy() + Suspense only added a skeleton that never
 // had a chance to render.
@@ -63,7 +61,6 @@ function ReactApp() {
     <div className="heatmap-tracker__container">
       <HeatmapHeader />
       {content}
-      <HeatmapFooter />
     </div>
   );
 }

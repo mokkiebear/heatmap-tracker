@@ -13,6 +13,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - CI drops the duplicate `Test (UTC)` step: GitHub's runners are already UTC, so it re-ran the previous step verbatim. `test:usa` still covers a non-UTC zone.
 - Removed dead CSS (`heatmap-breaking-changes.scss`, `heatmap-skeleton.scss`, `.heatmap-tracker-legend`, `.heatmap-statistics__header/__title`) and the orphaned `statistics.title` translation key.
 
+### Removed
+- The heatmap footer. Its only job was an "Actions Required" banner telling users to migrate the `colors` parameter, which was replaced by `colorScheme` in 1.9.0 — two years and eleven minor versions ago. Codeblocks still carrying `colors` keep rendering exactly as before; they just no longer get the nag.
+
 
 ## [2.10.0] - 2026-09-20
 ### Added

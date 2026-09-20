@@ -338,14 +338,13 @@ describe("ReactApp component", () => {
     );
   });
 
-  it("shows the documentation warning when the legacy colors prop is provided", async () => {
-    const { container, getByText } = await renderReactAppWithOverrides(
+  it("still renders the heatmap when the long-removed `colors` prop is present", async () => {
+    // `colors` was replaced by `colorScheme` in 1.9.0; the codeblock has to
+    // keep rendering rather than break on the stale key.
+    const { container } = await renderReactAppWithOverrides(
       legacyColorsTrackerData as TrackerData,
     );
 
-    expect(
-      container.querySelector(".heatmap-tracker-footer__important"),
-    ).toBeTruthy();
-    expect(getByText("Actions Required:")).toBeTruthy();
+    expect(container.querySelector(".heatmap-tracker__container")).toBeTruthy();
   });
 });
