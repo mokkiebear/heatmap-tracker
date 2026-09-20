@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ### Changed
 - The bundle drops from 333 KB to 254 KB (-24%). Three changes: `i18next` and `react-i18next` are replaced by a ~1 KB in-repo translation layer using only the features this plugin needs (dot-path lookup, `{{name}}` interpolation, English fallback, re-render on language change); zod's unused JSON-Schema emitter is stubbed out at build time; and esbuild now emits UTF-8 instead of escaping every Cyrillic, Devanagari and Chinese character in the bundled translations as `\uXXXX`. Translations, validation messages and rendering are unchanged.
 
+### Fixed
+- The support section in the plugin settings showed raw translation keys (`support.header`, `support.text1`, ...) instead of text, in every language. Introduced by the translation-layer change above and caught before release.
+
 ## [2.9.1] - 2026-09-20
 ### Changed
 - Zod is now imported as `import * as z`, which lets esbuild tree-shake it properly. Combined with the zod bump this takes the bundle from 429 KB to 333 KB (gzipped 126 KB to 100 KB) — smaller than before the bump.
