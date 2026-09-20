@@ -5,6 +5,8 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+## [2.11.0] - 2026-09-20
 ### Changed
 - The Export tab's start/end date fields are now native `<input type="date">` controls instead of a hand-written three-level picker. Deletes ~750 lines (picker, grid builder, stylesheet, calendar icon, 9 translation keys); the create modal already used the native control for the same job.
 - Views are imported statically again. `React.lazy` + `Suspense` + a loading skeleton could never do anything here: an Obsidian plugin ships as a single `main.js` and the bundle has no code splitting, so the skeleton never had a chance to render.
