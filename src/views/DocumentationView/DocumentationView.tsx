@@ -1,98 +1,109 @@
+import { useTranslation } from "src/localization/useTranslation";
+import { TrackerDataSchema } from "src/schemas/trackerData.schema";
+
+const README_URL =
+  "https://github.com/mokkiebear/heatmap-tracker#-configuration-reference";
+const EXAMPLE_VAULT_URL =
+  "https://github.com/mokkiebear/heatmap-tracker/tree/main/EXAMPLE_VAULT";
+const WEBSITE_URL = "https://mokkiebear.github.io/heatmap-tracker/";
+
+/**
+ * A one-line summary per `trackerData` parameter. Long-form docs (types,
+ * defaults, examples) live in the README — this tab exists to tell you what a
+ * parameter is called and whether it exists, not to restate the reference.
+ *
+ * Keys are checked against `TrackerDataSchema` by the view's test, so adding a
+ * parameter to the schema without describing it here fails the suite instead of
+ * silently shipping a gap: the previous hand-written version drifted to
+ * documenting 8 of 19 parameters.
+ */
+const PARAMETER_SUMMARY_KEYS: Record<
+  keyof typeof TrackerDataSchema.shape,
+  string
+> = {
+  year: "docs.params.year",
+  colorScheme: "docs.params.colorScheme",
+  entries: "docs.params.entries",
+  showCurrentDayBorder: "docs.params.showCurrentDayBorder",
+  basePath: "docs.params.basePath",
+  intensityConfig: "docs.params.intensityConfig",
+  separateMonths: "docs.params.separateMonths",
+  heatmapTitle: "docs.params.heatmapTitle",
+  heatmapSubtitle: "docs.params.heatmapSubtitle",
+  insights: "docs.params.insights",
+  disableFileCreation: "docs.params.disableFileCreation",
+  ui: "docs.params.ui",
+  layout: "docs.params.layout",
+  startDate: "docs.params.startDate",
+  endDate: "docs.params.endDate",
+  daysToShow: "docs.params.daysToShow",
+  monthsToShow: "docs.params.monthsToShow",
+  tags: "docs.params.tags",
+  filters: "docs.params.filters",
+};
+
+/** Ordered by how likely you are to reach for it, not alphabetically. */
+const PARAMETER_ORDER: (keyof typeof TrackerDataSchema.shape)[] = [
+  "entries",
+  "year",
+  "heatmapTitle",
+  "heatmapSubtitle",
+  "colorScheme",
+  "intensityConfig",
+  "layout",
+  "separateMonths",
+  "showCurrentDayBorder",
+  "monthsToShow",
+  "daysToShow",
+  "startDate",
+  "endDate",
+  "basePath",
+  "disableFileCreation",
+  "insights",
+  "tags",
+  "filters",
+  "ui",
+];
+
+const EXAMPLE = ["```heatmaptracker", "property: steps", "```"].join("\n");
+
 function DocumentationView() {
-  const codeString = `
-  const trackerData = {
-    entries: [{
-        date: "2021-01-01",
-        filePath: page.file.path,
-        intensity: 1,
-        // customColor: "#ff0000",
-    }],
-    separateMonths: true,
-    heatmapTitle: "This is the title for your heatmap",
-    heatmapSubtitle: "This is the subtitle for your heatmap. You can use it as a description.",
-    showCurrentDayBorder: true,
-    disableFileCreation: true, // OPTIONAL: If you want to disable new file creation on click
-
-    // OPTIONAL: If you want to define your own color scheme
-    colorScheme: {
-        paletteName: "default", // or customColors
-        customColors: ["#c6e48b", "#7bc96f", "#49af5d", "#2e8840", "#196127"]
-    },
-
-    // OPTIONAL: If you want to define your own intensity scale.
-    // E.g. if you want to track book reading progress only from 30 minutes to 2 hours.
-    intensityConfig: {
-        scaleStart: 1,
-        scaleEnd: 5,
-        defaultIntensity: 4,
-    }
-}
-  `;
+  const { t } = useTranslation();
 
   return (
     <div className="documentation-view__container">
-      <p>
-        <strong>Actual Heatmap Tracker API</strong>
-      </p>
-      <div className="breaking-changes-view__maintenance-border">
-        <div className="breaking-changes-view__container">
-          Since version <code>1.9</code> <code>colors</code> property is
-          removed. Please, remove <code>colors</code> and use{" "}
-          <code>colorScheme</code> instead (check example below).
-        </div>
-      </div>
+      <p className="documentation-view__intro">{t("docs.intro")}</p>
 
-      <pre>
-        <code>{codeString}</code>
+      <h3 className="documentation-view__heading">{t("docs.quickStart")}</h3>
+      <pre className="documentation-view__example">
+        <code>{EXAMPLE}</code>
       </pre>
+      <p className="documentation-view__note">{t("docs.quickStartNote")}</p>
 
-      <p>Color Scheme</p>
-      <p>You have 2 (to be honest 3) options how you can define colors</p>
-      <p>1. Palette name</p>
-      <p>
-        In the Heatmap Tracker plugin settings you can create your own palette
-        and use the name of this palette for you heatmap.
-      </p>
-      <pre>
-        <code>{`
-        {
-          colorScheme: {
-            paletteName: "the_name_of_your_palette", // "default" is used by default
-          }
-        }
-        `}</code>
-      </pre>
-      <p>2. Custom colors</p>
-      <p>
-        You can define your own colors for the heatmap. Just provide an array of
-        colors. In case you're lazy to create a palette.
-      </p>
-      <pre>
-        <code>{`
-        {
-          colorScheme: {
-            customColors: ["#c6e48b", "#7bc96f", "#49af5d", "#2e8840", "#196127"]
-          }
-        }
-        `}</code>
-      </pre>
-      <p>3. customColor for entry</p>
-      <p>
-        You can define custom color for each entry. Just provide a color in the
-        entry object. It can be useful if you want to take color from page
-        itself or other cases.
-      </p>
-      <pre>
-        <code>{`
-        {
-          entries: [{
-            date: "2021-01-01",
-            intensity: 1,
-            customColor: "#ff0000",
-          }]
-        }
-        `}</code>
-      </pre>
+      <h3 className="documentation-view__heading">{t("docs.parameters")}</h3>
+      <dl className="documentation-view__params">
+        {PARAMETER_ORDER.map((name) => (
+          <div key={name} className="documentation-view__param">
+            <dt>
+              <code>{name}</code>
+            </dt>
+            <dd>{t(PARAMETER_SUMMARY_KEYS[name])}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <h3 className="documentation-view__heading">{t("docs.moreTitle")}</h3>
+      <ul className="documentation-view__links">
+        <li>
+          <a href={README_URL}>{t("docs.linkReference")}</a>
+        </li>
+        <li>
+          <a href={EXAMPLE_VAULT_URL}>{t("docs.linkExamples")}</a>
+        </li>
+        <li>
+          <a href={WEBSITE_URL}>{t("docs.linkWebsite")}</a>
+        </li>
+      </ul>
     </div>
   );
 }

@@ -168,5 +168,36 @@
       "body": "Nothing under \"{{path}}\" has a \"{{property}}\" property. Add it to a dated note and the squares will fill in.",
       "bodyNoPath": "No note has a \"{{property}}\" property yet. Add it to a dated note and the squares will fill in."
     }
+  },
+  "docs": {
+    "intro": "A quick map of what you can put in a heatmap codeblock. Full types, defaults and copy-pasteable examples live in the README and the example vault — links at the bottom.",
+    "quickStart": "Smallest working heatmap",
+    "quickStartNote": "Reads the `steps` property from every note in your vault and colors each day by its value. Everything below is optional.",
+    "parameters": "trackerData parameters",
+    "moreTitle": "Full documentation",
+    "linkReference": "Configuration reference (README)",
+    "linkExamples": "Example vault — one note per parameter",
+    "linkWebsite": "Website and guides",
+    "params": {
+      "entries": "The days to draw. Each entry needs a `date`; `intensity`, `value`, `customColor`, `emoji`, `content` and `filePath` are optional.",
+      "year": "Which year to show. Defaults to the current one.",
+      "heatmapTitle": "Title shown above the heatmap.",
+      "heatmapSubtitle": "Smaller line under the title, for a description.",
+      "colorScheme": "Colors to use: a `paletteName` from the plugin settings, or your own `customColors` array.",
+      "intensityConfig": "Maps your values onto color steps: `scaleStart`, `scaleEnd`, `defaultIntensity`, `showOutOfRange`, `excludeFalsy`.",
+      "layout": "`default` for the GitHub-style year grid, `monthly` for one row per month.",
+      "separateMonths": "Adds a gap between months in the year grid.",
+      "showCurrentDayBorder": "Outlines today's box.",
+      "monthsToShow": "Show the current month plus N previous ones. Wins over the options below.",
+      "daysToShow": "Show the last N days from today. Wins over `startDate`/`endDate`.",
+      "startDate": "First day to display (YYYY-MM-DD).",
+      "endDate": "Last day to display (YYYY-MM-DD).",
+      "basePath": "Folder used when a box is clicked and a note has to be found or created.",
+      "disableFileCreation": "Never create a note when an empty box is clicked.",
+      "insights": "Your own summary lines, each with a `name` and a `calculate` function over the year's entries.",
+      "tags": "Only count notes carrying at least one of these tags.",
+      "filters": "Extra frontmatter conditions a note must satisfy: `property`, `operator` (equals / contains / notEmpty), `value`.",
+      "ui": "Toggles for chrome: `hideTabs`, `hideYear`, `hideTitle`, `hideSubtitle`, `showWeekNums`, `defaultView`."
+    }
   }
 }
