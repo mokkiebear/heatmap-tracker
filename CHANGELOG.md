@@ -5,6 +5,8 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+## [2.9.0] - 2026-09-20
 ### Added
 - An `emoji` field on entries: a glyph drawn inside the day's box while it keeps its palette color, so yes/no habits read at a glance instead of as a color gradient ([#49](https://github.com/mokkiebear/heatmap-tracker/issues/49)). Works in both the default and monthly layouts. Unlike a glyph placed in `content`, it stays out of the exported report and the accessible label, leaving those for the day's actual note text.
 - An `emoji` page in the example vault's parameter documentation.
