@@ -26,7 +26,6 @@
     "showWeekNumsDescription": "Wyświetlaj numery tygodni (1-53) pod mapą cieplną."
   },
   "statistics": {
-    "title": "Statystyki",
     "totalTrackingDaysThisYear": "Łączna liczba dni śledzenia w tym roku",
     "totalTrackingDays": "Łączna liczba dni śledzenia",
     "currentStreak": "Obecna seria",

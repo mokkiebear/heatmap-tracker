@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 import i18n from "src/localization/i18n";
+import { TrackerDataSchema } from "src/schemas/trackerData.schema";
 
 const SKIP_DIRS = new Set(["__tests__", "localization", "test-utils"]);
 
@@ -55,4 +56,27 @@ describe("translation keys used in src", () => {
       expect(i18n.t(key)).not.toBe(key);
     },
   );
+});
+
+/**
+ * Keys built from a template literal are invisible to the scan above, so the
+ * families that use one are checked against their real source of truth.
+ */
+describe("keys built from a template literal", () => {
+  it.each(Object.keys(TrackerDataSchema.shape))(
+    "documents the %s parameter",
+    (name) => {
+      expect(i18n.t(`docs.params.${name}`)).not.toBe(`docs.params.${name}`);
+    },
+  );
+
+  it.each([
+    "presetAllLoggedData",
+    "presetLastYear",
+    "presetYearToDate",
+    "presetLastMonth",
+    "presetMonthToDate",
+  ])("labels the %s export preset", (name) => {
+    expect(i18n.t(`report.${name}`)).not.toBe(`report.${name}`);
+  });
 });

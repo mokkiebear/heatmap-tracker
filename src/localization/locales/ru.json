@@ -26,7 +26,6 @@
     "showWeekNumsDescription": "Отображать номера недель (1-53) под тепловой картой."
   },
   "statistics": {
-    "title": "Статистика",
     "totalTrackingDaysThisYear": "Всего дней отслеживания в этом году",
     "totalTrackingDays": "Общее количество дней отслеживания",
     "currentStreak": "Текущая серия",

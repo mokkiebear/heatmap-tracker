@@ -102,24 +102,12 @@ export class PaletteSettings {
       cls: "heatmap-tracker-settings-palettes__new-palette-content",
     });
 
-    const newPaletteInput = this.addNewPaletteInput(newPaletteContent);
-    this.addNewPaletteButton(newPaletteContent, newPaletteInput);
-  }
-
-  private addNewPaletteInput(parent: HTMLElement) {
-    const newPaletteInput = parent.createEl("input", {
+    const newPaletteInput = newPaletteContent.createEl("input", {
       cls: "heatmap-tracker-settings-palettes__new-palette-input",
       attr: { placeholder: i18n.t("settings.paletteName"), type: "text" },
     });
 
-    return newPaletteInput;
-  }
-
-  private addNewPaletteButton(
-    parent: HTMLElement,
-    newPaletteInput: HTMLInputElement,
-  ) {
-    const addColorButton = parent.createEl("button", {
+    const addColorButton = newPaletteContent.createEl("button", {
       cls: "mod-cta heatmap-tracker-settings-palettes__new-palette-button",
       text: i18n.t("settings.addNewPalette"),
     });

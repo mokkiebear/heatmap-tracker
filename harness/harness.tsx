@@ -31,26 +31,31 @@ if (!root) {
   throw new Error("Harness: #fixtures container missing from index.html");
 }
 
-for (const fixture of fixtures) {
+/** A titled section with an empty mount point, appended to the page. */
+function addSection(title: string, note: string, id?: string): HTMLDivElement {
   const section = document.createElement("section");
   section.className = "harness-fixture";
-  section.id = `fixture-${fixture.id}`;
+  if (id) section.id = `fixture-${id}`;
 
   const heading = document.createElement("h2");
-  heading.textContent = fixture.title;
+  heading.textContent = title;
 
-  const note = document.createElement("p");
-  note.className = "harness-note";
-  note.textContent = fixture.note;
+  const noteEl = document.createElement("p");
+  noteEl.className = "harness-note";
+  noteEl.textContent = note;
 
   const mount = document.createElement("div");
   mount.className = "harness-mount";
 
-  section.append(heading, note, mount);
-  root.append(section);
+  section.append(heading, noteEl, mount);
+  root!.append(section);
 
+  return mount;
+}
+
+for (const fixture of fixtures) {
   renderApp(
-    mount as HTMLDivElement,
+    addSection(fixture.title, fixture.note, fixture.id) as HTMLDivElement,
     app,
     { ...harnessSettings, ...fixture.settings },
     fixture.trackerData,
@@ -105,22 +110,7 @@ const messages: {
 ];
 
 for (const message of messages) {
-  const section = document.createElement("section");
-  section.className = "harness-fixture";
-
-  const heading = document.createElement("h2");
-  heading.textContent = message.title;
-
-  const note = document.createElement("p");
-  note.className = "harness-note";
-  note.textContent = message.note;
-
-  const mount = document.createElement("div");
-  mount.className = "harness-mount";
-  message.render(mount);
-
-  section.append(heading, note, mount);
-  root.append(section);
+  message.render(addSection(message.title, message.note));
 }
 
 const themeButton = document.getElementById("toggle-theme");

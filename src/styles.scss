@@ -4,7 +4,6 @@
 @use "./styles/heatmap-settings.scss";
 @use "./styles/heatmap-tracker-header.scss";
 @use "./styles/heatmap-documentation.scss";
-@use "./styles/heatmap-breaking-changes.scss";
 @use "./styles/heatmap-tracker-footer.scss";
 @use "./styles/heatmap-tracker-months.scss";
 @use "./styles/heatmap-tracker-days.scss";
@@ -14,15 +13,12 @@
 @use "./styles/heatmap-monthly.scss";
 @use "./styles/heatmap-create-modal.scss";
 @use "./styles/heatmap-export.scss";
-@use "./styles/date-picker.scss";
-@use "./styles/heatmap-skeleton.scss";
 @use "./styles/heatmap-message.scss";
 
 /// Every view that can host a heatmap grid. `__container` is the inner element
 /// App.tsx renders; `-container` is the outer wrapper from render.tsx and the
 /// modal. Similar names, genuinely different elements.
 .heatmap-tracker__container,
-.heatmap-tracker-legend,
 .heatmap-tracker-statistics {
   --heatmap-tracker-box-size: 12px;
   --heatmap-tracker-box-gap: 2px;
@@ -57,7 +53,6 @@
 }
 
 .heatmap-tracker-container,
-.heatmap-tracker-legend,
 .heatmap-tracker-statistics {
   border: var(--border-width) solid transparent;
   border-radius: var(--radius-s);
@@ -66,10 +61,6 @@
   &:hover {
     border: var(--border-width) solid var(--background-modifier-border-hover);
   }
-}
-
-.heatmap-tracker-legend {
-  overflow-x: hidden;
 }
 
 .heatmap-tracker {

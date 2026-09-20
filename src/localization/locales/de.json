@@ -26,7 +26,6 @@
     "showWeekNumsDescription": "Wochennummern (1-53) unter der Heatmap anzeigen."
   },
   "statistics": {
-    "title": "Statistiken",
     "totalTrackingDaysThisYear": "Gesamte Tracking-Tage in diesem Jahr",
     "totalTrackingDays": "Gesamte Tracking-Tage",
     "currentStreak": "Aktuelle Serie",

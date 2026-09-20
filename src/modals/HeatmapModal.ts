@@ -32,6 +32,15 @@ import {
 
 const PREVIEW_DEBOUNCE_MS = 200;
 
+/** Form fields the toggle/number helpers below are allowed to bind to. */
+type BooleanFormKey = {
+  [K in keyof HeatmapModalFormState]: HeatmapModalFormState[K] extends boolean
+    ? K
+    : never;
+}[keyof HeatmapModalFormState];
+
+type NumericTextFormKey = "daysToShow" | "monthsToShow" | "defaultIntensity";
+
 /**
  * A small "add from suggestions or type your own, shown as removable chips"
  * control. Used for both tracked properties and tags — same interaction,
@@ -431,16 +440,12 @@ export class HeatmapModal extends Modal {
         });
       });
 
-    this.separateMonthsSettingEl = new Setting(contentEl)
-      .setName("Separate months")
-      .setDesc("Visually separate months in the default layout.")
-      .addToggle((toggle) => {
-        toggle.setValue(this.formState.separateMonths);
-        toggle.onChange((value) => {
-          this.formState.separateMonths = value;
-          this.refresh();
-        });
-      }).settingEl;
+    this.separateMonthsSettingEl = this.addToggleSetting(
+      contentEl,
+      "separateMonths",
+      "Separate months",
+      "Visually separate months in the default layout.",
+    ).settingEl;
     this.updateSeparateMonthsVisibility();
   }
 
@@ -477,15 +482,58 @@ export class HeatmapModal extends Modal {
     );
     this.renderCustomColorsEditor();
 
-    new Setting(contentEl)
-      .setName("Show current day border")
-      .addToggle((toggle) => {
-        toggle.setValue(this.formState.showCurrentDayBorder);
-        toggle.onChange((value) => {
-          this.formState.showCurrentDayBorder = value;
-          this.refresh();
-        });
+    this.addToggleSetting(
+      contentEl,
+      "showCurrentDayBorder",
+      "Show current day border",
+    );
+  }
+
+  /**
+   * A boolean form field. Every toggle in this modal does the same three
+   * things, so they are declared rather than hand-written.
+   */
+  private addToggleSetting(
+    contentEl: HTMLElement,
+    key: BooleanFormKey,
+    name: string,
+    desc?: string,
+  ) {
+    const setting = new Setting(contentEl).setName(name);
+    if (desc) setting.setDesc(desc);
+
+    setting.addToggle((toggle) => {
+      toggle.setValue(this.formState[key]);
+      toggle.onChange((value) => {
+        this.formState[key] = value;
+        this.refresh();
       });
+    });
+
+    return setting;
+  }
+
+  /** A number field kept as raw text, so it can be empty while typing. */
+  private addNumberSetting(
+    contentEl: HTMLElement,
+    key: NumericTextFormKey,
+    name: string,
+    options: { desc?: string; placeholder?: string } = {},
+  ) {
+    const setting = new Setting(contentEl).setName(name);
+    if (options.desc) setting.setDesc(options.desc);
+
+    setting.addText((text) => {
+      text.inputEl.type = "number";
+      if (options.placeholder) text.setPlaceholder(options.placeholder);
+      text.setValue(this.formState[key]);
+      text.onChange((value) => {
+        this.formState[key] = value;
+        this.refresh();
+      });
+    });
+
+    return setting;
   }
 
   private renderIntensitySection(contentEl: HTMLElement) {
@@ -513,47 +561,29 @@ export class HeatmapModal extends Modal {
         });
       });
 
-    new Setting(contentEl)
-      .setName("Default intensity")
-      .setDesc("Intensity used for entries that don't specify one. Default: 4.")
-      .addText((text) => {
-        text.inputEl.type = "number";
-        text.setPlaceholder("4");
-        text.setValue(this.formState.defaultIntensity);
-        text.onChange((value) => {
-          this.formState.defaultIntensity = value;
-          this.refresh();
-        });
-      });
+    this.addNumberSetting(contentEl, "defaultIntensity", "Default intensity", {
+      desc: "Intensity used for entries that don't specify one. Default: 4.",
+      placeholder: "4",
+    });
 
-    new Setting(contentEl)
-      .setName("Show out-of-range entries")
-      .setDesc(
-        "If off, entries outside the scale start/end are hidden instead of clamped.",
-      )
-      .addToggle((toggle) => {
-        toggle.setValue(this.formState.showOutOfRange);
-        toggle.onChange((value) => {
-          this.formState.showOutOfRange = value;
-          this.refresh();
-        });
-      });
+    this.addToggleSetting(
+      contentEl,
+      "showOutOfRange",
+      "Show out-of-range entries",
+      "If off, entries outside the scale start/end are hidden instead of clamped.",
+    );
 
-    new Setting(contentEl)
-      .setName("Exclude zero/falsy values")
-      .setDesc(
-        "If enabled, 0 or blank values will be ignored and won't break streaks.",
-      )
-      .addToggle((toggle) => {
-        toggle.setValue(this.formState.excludeFalsy);
-        toggle.onChange((value) => {
-          this.formState.excludeFalsy = value;
-          this.refresh();
-        });
-      });
+    this.addToggleSetting(
+      contentEl,
+      "excludeFalsy",
+      "Exclude zero/falsy values",
+      "If enabled, 0 or blank values will be ignored and won't break streaks.",
+    );
   }
 
   private renderUiSection(contentEl: HTMLElement) {
+    // The only toggle that doesn't re-render the preview: it changes nothing
+    // visible, and re-running the preview on it would just be noise.
     new Setting(contentEl)
       .setName("Disable file creation")
       .setDesc("Clicking an empty box won't offer to create a new note.")
@@ -564,45 +594,11 @@ export class HeatmapModal extends Modal {
         });
       });
 
-    new Setting(contentEl).setName("Hide tabs").addToggle((toggle) => {
-      toggle.setValue(this.formState.hideTabs);
-      toggle.onChange((value) => {
-        this.formState.hideTabs = value;
-        this.refresh();
-      });
-    });
-
-    new Setting(contentEl).setName("Hide year").addToggle((toggle) => {
-      toggle.setValue(this.formState.hideYear);
-      toggle.onChange((value) => {
-        this.formState.hideYear = value;
-        this.refresh();
-      });
-    });
-
-    new Setting(contentEl).setName("Hide title").addToggle((toggle) => {
-      toggle.setValue(this.formState.hideTitle);
-      toggle.onChange((value) => {
-        this.formState.hideTitle = value;
-        this.refresh();
-      });
-    });
-
-    new Setting(contentEl).setName("Hide subtitle").addToggle((toggle) => {
-      toggle.setValue(this.formState.hideSubtitle);
-      toggle.onChange((value) => {
-        this.formState.hideSubtitle = value;
-        this.refresh();
-      });
-    });
-
-    new Setting(contentEl).setName("Show week numbers").addToggle((toggle) => {
-      toggle.setValue(this.formState.showWeekNums);
-      toggle.onChange((value) => {
-        this.formState.showWeekNums = value;
-        this.refresh();
-      });
-    });
+    this.addToggleSetting(contentEl, "hideTabs", "Hide tabs");
+    this.addToggleSetting(contentEl, "hideYear", "Hide year");
+    this.addToggleSetting(contentEl, "hideTitle", "Hide title");
+    this.addToggleSetting(contentEl, "hideSubtitle", "Hide subtitle");
+    this.addToggleSetting(contentEl, "showWeekNums", "Show week numbers");
 
     new Setting(contentEl).setName("Default view").addDropdown((dropdown) => {
       Object.values(IHeatmapView).forEach((v) => {
@@ -777,27 +773,15 @@ export class HeatmapModal extends Modal {
 
     switch (this.formState.dateRangeMode) {
       case "days":
-        new Setting(container).setName("Number of days").addText((text) => {
-          text.inputEl.type = "number";
-          text.setValue(this.formState.daysToShow);
-          text.onChange((value) => {
-            this.formState.daysToShow = value;
-            this.refresh();
-          });
-        });
+        this.addNumberSetting(container, "daysToShow", "Number of days");
         break;
       case "months":
-        new Setting(container)
-          .setName("Previous months to include")
-          .setDesc("e.g. 3 shows the current month plus the 3 prior.")
-          .addText((text) => {
-            text.inputEl.type = "number";
-            text.setValue(this.formState.monthsToShow);
-            text.onChange((value) => {
-              this.formState.monthsToShow = value;
-              this.refresh();
-            });
-          });
+        this.addNumberSetting(
+          container,
+          "monthsToShow",
+          "Previous months to include",
+          { desc: "e.g. 3 shows the current month plus the 3 prior." },
+        );
         break;
       case "custom":
         new Setting(container)

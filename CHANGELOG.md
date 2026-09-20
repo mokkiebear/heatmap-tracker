@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Changed
+- The Export tab's start/end date fields are now native `<input type="date">` controls instead of a hand-written three-level picker. Deletes ~750 lines (picker, grid builder, stylesheet, calendar icon, 9 translation keys); the create modal already used the native control for the same job.
+- Views are imported statically again. `React.lazy` + `Suspense` + a loading skeleton could never do anything here: an Obsidian plugin ships as a single `main.js` and the bundle has no code splitting, so the skeleton never had a chance to render.
+- `npm run dev` now writes straight into `EXAMPLE_VAULT/.obsidian/plugins/heatmap-tracker`. The previous watch-and-copy pipeline used Windows-style backslash paths, so on macOS and Linux it created a file literally named `EXAMPLE_VAULT\.obsidian\plugins\heatmap-tracker` and the vault never received the build.
+- Dropped eight unused dev dependencies (`cpx`, `concurrently`, `rimraf`, `builtin-modules`, `tslib`, `typedoc`, `@types/react-window`, `@testing-library/dom`) — `node:module` and `fs.rmSync` cover the two that were doing real work. The zod JSON-Schema strip plugin lost its regex export-scraper for an explicit list, halving its size.
+- CI drops the duplicate `Test (UTC)` step: GitHub's runners are already UTC, so it re-ran the previous step verbatim. `test:usa` still covers a non-UTC zone.
+- Removed dead CSS (`heatmap-breaking-changes.scss`, `heatmap-skeleton.scss`, `.heatmap-tracker-legend`, `.heatmap-statistics__header/__title`) and the orphaned `statistics.title` translation key.
+
 
 ## [2.10.0] - 2026-09-20
 ### Added

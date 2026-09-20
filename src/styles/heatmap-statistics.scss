@@ -4,23 +4,6 @@
     margin: 8px 0;
   }
 
-  &__header {
-    display: grid;
-    grid-template-columns: 1fr 5fr 1fr;
-    justify-items: center;
-    align-items: center;
-    font-size: 0.65em;
-
-    button {
-      justify-self: start;
-    }
-  }
-
-  &__title {
-    font-size: 1.2em;
-    text-align: center;
-  }
-
   &__content {
     font-size: 0.8em;
     margin-top: 0.6em;

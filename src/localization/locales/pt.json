@@ -26,7 +26,6 @@
     "showWeekNumsDescription": "Exibir números da semana (1-53) abaixo do mapa de calor."
   },
   "statistics": {
-    "title": "Estatística",
     "totalTrackingDaysThisYear": "Total de dias rastreados esse ano",
     "totalTrackingDays": "Total de dias rastreados",
     "currentStreak": "Sequência atual",

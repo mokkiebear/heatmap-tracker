@@ -26,7 +26,6 @@
     "showWeekNumsDescription": "在热力图下方显示周数（1-53）。"
   },
   "statistics": {
-    "title": "统计",
     "totalTrackingDaysThisYear": "本年总追踪天数",
     "totalTrackingDays": "总追踪天数",
     "currentStreak": "当前连续记录",

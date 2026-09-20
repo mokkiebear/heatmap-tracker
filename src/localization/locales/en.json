@@ -26,7 +26,6 @@
     "showWeekNumsDescription": "Display week numbers (1-53) below the heatmap."
   },
   "statistics": {
-    "title": "Statistics",
     "totalTrackingDaysThisYear": "Total tracking days this year",
     "totalTrackingDays": "Total tracking days",
     "currentStreak": "The current streak",
@@ -91,17 +90,6 @@
     "export": "Export"
   },
   "tab": "Tab",
-  "datePicker": {
-    "clear": "Clear",
-    "today": "Today",
-    "openCalendar": "Open calendar",
-    "previousMonth": "Previous month",
-    "nextMonth": "Next month",
-    "previousYear": "Previous year",
-    "nextYear": "Next year",
-    "previousDecade": "Previous decade",
-    "nextDecade": "Next decade"
-  },
   "report": {
     "defaultTitle": "Work Log Report",
     "startDate": "Start date",

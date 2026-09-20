@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "src/localization/useTranslation";
-import { ColorsList, Entry } from "src/types";
+import { ColorsList, Entry, ExportDefaults } from "src/types";
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
 import { useAppContext } from "src/context/app/app.context";
 import { fillEntriesWithIntensityByDate } from "src/utils/intensity";
@@ -37,7 +37,6 @@ import {
   nextAvailablePath,
   sanitizeFilename,
 } from "src/utils/report/exportPath";
-import { DatePicker } from "src/components/DatePicker/DatePicker";
 
 const PREVIEW_DEBOUNCE_MS = 300;
 const SETTINGS_SAVE_DEBOUNCE_MS = 500;
@@ -52,6 +51,14 @@ const WEEK_START_DAY_OPTIONS = [
 interface DateSpan {
   start: string;
   end: string;
+}
+
+/** A `DateSpan` from two dates, blank when either fails to format. */
+function span(start: Date, end: Date): DateSpan {
+  return {
+    start: formatDateToISO8601(start) ?? "",
+    end: formatDateToISO8601(end) ?? "",
+  };
 }
 
 /**
@@ -262,6 +269,47 @@ function ExportView() {
 
   const rangeValid = Boolean(startDate && endDate && startDate <= endDate);
 
+  // One list of persisted fields, not three: the saved object doubles as the
+  // effect's dependency, so a new option can't be saved-but-not-watched.
+  const exportPreferences = useMemo<ExportDefaults>(
+    () => ({
+      orientation,
+      weekStartDay,
+      startDate,
+      endDate,
+      showWeekStartDate,
+      splitByMonth,
+      showMonthLabels,
+      skipWeekends,
+      hideSummary,
+      hideTotalValue,
+      hideAllValues,
+      valueLabel,
+      legend,
+      legendMode,
+      gradientLabel,
+      exportFolder,
+    }),
+    [
+      orientation,
+      weekStartDay,
+      startDate,
+      endDate,
+      showWeekStartDate,
+      splitByMonth,
+      showMonthLabels,
+      skipWeekends,
+      hideSummary,
+      hideTotalValue,
+      hideAllValues,
+      valueLabel,
+      legend,
+      legendMode,
+      gradientLabel,
+      exportFolder,
+    ],
+  );
+
   // Persist export preferences (including the date range) a short while
   // after the last change, so reopening the tab doesn't require redefining
   // the legend/toggles/range every time.
@@ -275,26 +323,7 @@ function ExportView() {
       window.clearTimeout(settingsSaveTimerRef.current);
     }
     settingsSaveTimerRef.current = window.setTimeout(() => {
-      updateSettings({
-        exportDefaults: {
-          orientation,
-          weekStartDay,
-          startDate,
-          endDate,
-          showWeekStartDate,
-          splitByMonth,
-          showMonthLabels,
-          skipWeekends,
-          hideSummary,
-          hideTotalValue,
-          hideAllValues,
-          valueLabel,
-          legend,
-          legendMode,
-          gradientLabel,
-          exportFolder,
-        },
-      });
+      updateSettings({ exportDefaults: exportPreferences });
     }, SETTINGS_SAVE_DEBOUNCE_MS);
 
     return () => {
@@ -302,24 +331,7 @@ function ExportView() {
         window.clearTimeout(settingsSaveTimerRef.current);
       }
     };
-  }, [
-    orientation,
-    weekStartDay,
-    startDate,
-    endDate,
-    showWeekStartDate,
-    splitByMonth,
-    showMonthLabels,
-    skipWeekends,
-    hideSummary,
-    hideTotalValue,
-    hideAllValues,
-    valueLabel,
-    legend,
-    legendMode,
-    gradientLabel,
-    exportFolder,
-  ]);
+  }, [exportPreferences]);
 
   useEffect(() => {
     if (!rangeValid) return;
@@ -463,59 +475,57 @@ function ExportView() {
     hideAllValues,
   ]);
 
-  function applyPreset(range: DateSpan) {
-    setStartDate(range.start);
-    setEndDate(range.end);
-  }
-
-  function handlePresetAllLoggedData() {
-    const range = computeDataRange(entriesByDate);
-    if (range) applyPreset(range);
-  }
-
   // Date-relative presets anchor to the real current date, not the heatmap's
   // (possibly year-navigated) `currentYear` — "last year"/"last month" only
   // make sense relative to today.
-  function handlePresetLastYear() {
-    const lastYear = getToday().getUTCFullYear() - 1;
-    applyPreset({
-      start: formatDateToISO8601(getFirstDayOfYear(lastYear)) ?? "",
-      end: formatDateToISO8601(getLastDayOfYear(lastYear)) ?? "",
-    });
-  }
+  const PRESETS: { key: string; span: () => DateSpan | null }[] = [
+    {
+      key: "presetAllLoggedData",
+      span: () => computeDataRange(entriesByDate),
+    },
+    {
+      key: "presetLastYear",
+      span: () => {
+        const lastYear = getToday().getUTCFullYear() - 1;
+        return span(getFirstDayOfYear(lastYear), getLastDayOfYear(lastYear));
+      },
+    },
+    {
+      key: "presetYearToDate",
+      span: () => {
+        const today = getToday();
+        return span(getFirstDayOfYear(today.getUTCFullYear()), today);
+      },
+    },
+    {
+      key: "presetLastMonth",
+      span: () => {
+        const today = getToday();
+        return span(
+          new Date(
+            Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 1, 1),
+          ),
+          new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 0)),
+        );
+      },
+    },
+    {
+      key: "presetMonthToDate",
+      span: () => {
+        const today = getToday();
+        return span(
+          new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1)),
+          today,
+        );
+      },
+    },
+  ];
 
-  function handlePresetYearToDate() {
-    const today = getToday();
-    applyPreset({
-      start:
-        formatDateToISO8601(getFirstDayOfYear(today.getUTCFullYear())) ?? "",
-      end: formatDateToISO8601(today) ?? "",
-    });
-  }
-
-  function handlePresetLastMonth() {
-    const today = getToday();
-    const firstOfLastMonth = new Date(
-      Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 1, 1),
-    );
-    const lastOfLastMonth = new Date(
-      Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 0),
-    );
-    applyPreset({
-      start: formatDateToISO8601(firstOfLastMonth) ?? "",
-      end: formatDateToISO8601(lastOfLastMonth) ?? "",
-    });
-  }
-
-  function handlePresetMonthToDate() {
-    const today = getToday();
-    const firstOfMonth = new Date(
-      Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1),
-    );
-    applyPreset({
-      start: formatDateToISO8601(firstOfMonth) ?? "",
-      end: formatDateToISO8601(today) ?? "",
-    });
+  function applyPreset(preset: (typeof PRESETS)[number]) {
+    const range = preset.span();
+    if (!range) return;
+    setStartDate(range.start);
+    setEndDate(range.end);
   }
 
   async function handleSaveMarkdown() {
@@ -592,38 +602,28 @@ function ExportView() {
       <div className="heatmap-export__controls">
         <label>
           {t("report.startDate")}
-          <DatePicker
+          <input
+            type="date"
             value={startDate}
-            onChange={setStartDate}
-            weekStartDay={weekStartDay}
-            ariaLabel={t("report.startDate")}
+            aria-label={t("report.startDate")}
+            onChange={(e) => setStartDate(e.currentTarget.value)}
           />
         </label>
         <label>
           {t("report.endDate")}
-          <DatePicker
+          <input
+            type="date"
             value={endDate}
-            onChange={setEndDate}
-            weekStartDay={weekStartDay}
-            ariaLabel={t("report.endDate")}
+            aria-label={t("report.endDate")}
+            onChange={(e) => setEndDate(e.currentTarget.value)}
           />
         </label>
         <div className="heatmap-export__presets">
-          <button onClick={handlePresetAllLoggedData}>
-            {t("report.presetAllLoggedData")}
-          </button>
-          <button onClick={handlePresetLastYear}>
-            {t("report.presetLastYear")}
-          </button>
-          <button onClick={handlePresetYearToDate}>
-            {t("report.presetYearToDate")}
-          </button>
-          <button onClick={handlePresetLastMonth}>
-            {t("report.presetLastMonth")}
-          </button>
-          <button onClick={handlePresetMonthToDate}>
-            {t("report.presetMonthToDate")}
-          </button>
+          {PRESETS.map((preset) => (
+            <button key={preset.key} onClick={() => applyPreset(preset)}>
+              {t(`report.${preset.key}`)}
+            </button>
+          ))}
         </div>
       </div>
 

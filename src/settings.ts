@@ -164,37 +164,29 @@ export default class HeatmapTrackerSettingsTab extends PluginSettingTab {
       cls: "heatmap-tracker-settings-support-section__options",
     });
 
-    const buyMeACoffeeContainer = supportSectionOptions.createDiv();
-    const buyMeACoffeeLink = buyMeACoffeeContainer.createEl("a", {
-      attr: {
+    // NOTE: the Ko-fi URL here differs from FUNDING_LINKS.koFi
+    // (X8X11E578R vs mrubanau); both resolve, left as-is deliberately.
+    const donationButtons = [
+      {
         href: "https://www.buymeacoffee.com/mrubanau",
-        target: "_blank",
-        rel: "noopener noreferrer",
-      },
-    });
-    buyMeACoffeeLink.createEl("img", {
-      cls: "heatmap-tracker-settings-support-section__buymeacoffee-image",
-      attr: {
         src: "https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png",
         alt: "Buy Me A Coffee",
+        cls: "heatmap-tracker-settings-support-section__buymeacoffee-image",
       },
-    });
-
-    const kofiContainer = supportSectionOptions.createDiv();
-    const kofiLink = kofiContainer.createEl("a", {
-      attr: {
+      {
         href: "https://ko-fi.com/X8X11E578R",
-        target: "_blank",
-        rel: "noopener noreferrer",
-      },
-    });
-    kofiLink.createEl("img", {
-      cls: "heatmap-tracker-settings-support-section__kofi-image",
-      attr: {
         src: "https://storage.ko-fi.com/cdn/kofi6.png?v=6",
         alt: "Buy Me a Coffee at ko-fi.com",
+        cls: "heatmap-tracker-settings-support-section__kofi-image",
       },
-    });
+    ];
+
+    for (const { href, src, alt, cls } of donationButtons) {
+      const link = supportSectionOptions.createDiv().createEl("a", {
+        attr: { href, target: "_blank", rel: "noopener noreferrer" },
+      });
+      link.createEl("img", { cls, attr: { src, alt } });
+    }
   }
 
   display() {

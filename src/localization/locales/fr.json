@@ -26,7 +26,6 @@
     "showWeekNumsDescription": "Afficher les numéros de semaine (1-53) sous la carte thermique."
   },
   "statistics": {
-    "title": "Statistiques",
     "totalTrackingDaysThisYear": "Nombre total de jours suivis cette année",
     "totalTrackingDays": "Nombre total de jours suivis",
     "currentStreak": "Série en cours",

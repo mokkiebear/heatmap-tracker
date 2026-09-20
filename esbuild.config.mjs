@@ -2,7 +2,7 @@ import esbuild from "esbuild";
 import process from "process";
 import path from "path";
 import fs from "fs";
-import builtins from "builtin-modules";
+import { builtinModules } from "node:module";
 import { sassPlugin } from "esbuild-sass-plugin";
 
 /**
@@ -38,82 +38,50 @@ const stripUnusedZodLocales = {
 };
 
 /**
- * zod's JSON-Schema emitter (`core/to-json-schema.js` +
- * `core/json-schema-processors.js`) is pulled in unconditionally: every schema
- * constructor in `classic/schemas.js` assigns
- * `inst._zod.processJSONSchema = processors.<x>Processor`, and `ZodType`
- * exposes both `toJSONSchema()` and a `~standard.jsonSchema` getter. esbuild
- * therefore cannot tree-shake it, and it costs ~17 KB minified.
+ * zod's JSON-Schema emitter is pulled in unconditionally (every schema
+ * constructor assigns `inst._zod.processJSONSchema`), so esbuild cannot
+ * tree-shake it — it costs ~17 KB, 6% of the plugin. Nothing in `src` calls
+ * `toJSONSchema()`, so its three modules are replaced by throwing stubs.
  *
- * We never convert a schema to JSON Schema: nothing in `src` calls
- * `toJSONSchema()` or reads `~standard`. Replacing both modules with stubs
- * whose exports throw keeps `parse`/`safeParse` byte-identical and turns the
- * unused path into a loud error instead of a silent wrong result.
- *
- * If a future change needs `z.toJSONSchema()`, delete this plugin.
+ * The stub must export every name zod itself imports or re-exports, listed
+ * here explicitly. If zod adds another one, the build fails loudly with
+ * "No matching export" — add it, or delete this plugin and take the 17 KB.
  */
-const ZOD_JSON_SCHEMA_MODULES = [
-  "node_modules/zod/v4/core/to-json-schema.js",
-  "node_modules/zod/v4/core/json-schema-processors.js",
-];
-
-/** Collect every exported binding name of an ESM file, aliases included. */
-function collectExportNames(source) {
-  const names = new Set();
-
-  for (const match of source.matchAll(
-    /^export\s+(?:async\s+)?(?:const|let|var|function\*?|class)\s+([A-Za-z_$][\w$]*)/gm,
-  )) {
-    names.add(match[1]);
-  }
-
-  for (const match of source.matchAll(/^export\s*\{([^}]*)\}/gm)) {
-    for (const part of match[1].split(",")) {
-      const name = part.trim().split(/\s+as\s+/)[1] ?? part.trim();
-      if (name) {
-        names.add(name);
-      }
-    }
-  }
-
-  names.delete("default");
-  return [...names];
-}
+const ZOD_JSON_SCHEMA_STUBS = {
+  "to-json-schema": [
+    "createStandardJSONSchemaMethod",
+    "createToJSONSchemaMethod",
+    "extractDefs",
+    "finalize",
+    "handleUnrepresentable",
+    "initializeContext",
+    "processSchema",
+  ],
+  "json-schema-processors": ["allProcessors", "toJSONSchema"],
+  "json-schema-generator": ["JSONSchemaGenerator"],
+};
 
 const stripZodJsonSchema = {
   name: "strip-zod-json-schema",
   setup(build) {
-    const stubs = new Map();
-
-    for (const modulePath of ZOD_JSON_SCHEMA_MODULES) {
-      const absolute = path.resolve(modulePath);
-      const names = collectExportNames(fs.readFileSync(absolute, "utf8"));
-
-      if (names.length === 0) {
-        throw new Error(
-          `strip-zod-json-schema: no exports found in ${modulePath}; zod's layout changed, update or remove this plugin.`,
-        );
-      }
-
-      stubs.set(
-        absolute,
-        [
-          "const unsupported = () => {",
-          '  throw new Error("heatmap-tracker: zod JSON Schema support is stripped from this bundle (see esbuild.config.mjs).");',
-          "};",
-          ...names.map((name) => `export const ${name} = unsupported;`),
-        ].join("\n"),
-      );
-    }
-
     build.onLoad(
       {
         filter:
-          /zod[\\/]v4[\\/]core[\\/](to-json-schema|json-schema-processors)\.js$/,
+          /zod[\\/]v4[\\/]core[\\/](to-json-schema|json-schema-processors|json-schema-generator)\.js$/,
       },
       (args) => {
-        const contents = stubs.get(args.path);
-        return contents ? { contents, loader: "js" } : null;
+        const module = path.basename(args.path, ".js");
+        return {
+          contents: [
+            "const unsupported = () => {",
+            '  throw new Error("heatmap-tracker: zod JSON Schema support is stripped from this bundle (see esbuild.config.mjs).");',
+            "};",
+            ...ZOD_JSON_SCHEMA_STUBS[module].map(
+              (name) => `export const ${name} = unsupported;`,
+            ),
+          ].join("\n"),
+          loader: "js",
+        };
       },
     );
   },
@@ -136,8 +104,17 @@ const externalDependencies = [
   "electron",
   "@codemirror/*",
   "@lezer/*",
-  ...builtins,
+  ...builtinModules,
+  ...builtinModules.map((name) => `node:${name}`),
 ];
+
+/**
+ * Dev builds write straight into the example vault's plugin folder (which has
+ * a `.hotreload` marker), so Obsidian picks changes up without a second
+ * watcher copying files around.
+ */
+const DEV_VAULT_PLUGIN_DIR = "EXAMPLE_VAULT/.obsidian/plugins/heatmap-tracker";
+const outdir = isProd ? "build" : DEV_VAULT_PLUGIN_DIR;
 
 // Build options common to both development and production
 const buildOptions = {
@@ -165,7 +142,7 @@ const buildOptions = {
   charset: "utf8",
   banner: { js: banner },
   logLevel: "info",
-  outdir: "build",
+  outdir,
   resolveExtensions: [".js", ".jsx", ".ts", ".tsx"], // Ensure extensions are resolved
   alias: {
     src: "./src", // Add this to map the alias
@@ -175,6 +152,11 @@ const buildOptions = {
 };
 
 async function build() {
+  fs.mkdirSync(outdir, { recursive: true });
+  // Obsidian needs the manifest next to main.js, in both the build output and
+  // the dev vault.
+  fs.copyFileSync("manifest.json", path.join(outdir, "manifest.json"));
+
   if (!isProd) {
     // Development build with watch mode
     const context = await esbuild.context(buildOptions);
@@ -182,7 +164,7 @@ async function build() {
     // Start watching for file changes
     await context.watch();
 
-    console.log("Watching for changes...");
+    console.log(`Watching for changes, writing into ${outdir}`);
   } else {
     // Production build (one-time build)
     await esbuild.build(buildOptions);

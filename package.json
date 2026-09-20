@@ -3,18 +3,12 @@
   "version": "2.10.0",
   "description": "A heatmap tracker plugin for Obsidian",
   "homepage": "https://mokkiebear.github.io/heatmap-tracker/",
-  "main": "/build/main.js",
   "scripts": {
-    "dev": "concurrently \"node esbuild.config.mjs\" \"npm run copyAndWatchMainJS\" \"npm run copyAndWatchStylesJS\" \"npm run copyAndWatchManifestJS\"",
-    "dev:debug": "concurrently \"node esbuild.config.mjs --debug\" \"npm run copyAndWatchMainJS\" \"npm run copyAndWatchStylesJS\" \"npm run copyAndWatchManifestJS\"",
-    "copyAndWatchMainJS": "node ./node_modules/cpx/bin/index.js \"./build/main.js\" \"EXAMPLE_VAULT\\.obsidian\\plugins\\heatmap-tracker\" -w",
-    "copyAndWatchStylesJS": "node ./node_modules/cpx/bin/index.js \"./build/styles.css\" \"EXAMPLE_VAULT\\.obsidian\\plugins\\heatmap-tracker\" -w",
-    "copyAndWatchManifestJS": "node ./node_modules/cpx/bin/index.js \"manifest.json\" \"EXAMPLE_VAULT\\.obsidian\\plugins\\heatmap-tracker\" -w",
-    "build": "rimraf build && tsc -noEmit -skipLibCheck && node esbuild.config.mjs --production && npm run copyToBuild",
-    "copyToBuild": "node ./node_modules/cpx/bin/index.js \"./build/styles.css\" \"build\" && node ./node_modules/cpx/bin/index.js \"manifest.json\" \"build\"",
+    "dev": "node esbuild.config.mjs",
+    "dev:debug": "node esbuild.config.mjs --debug",
+    "build": "node -e \"require('fs').rmSync('build',{recursive:true,force:true})\" && tsc -noEmit -skipLibCheck && node esbuild.config.mjs --production",
     "version": "node version-bump.mjs && git add manifest.json versions.json",
     "test": "jest",
-    "test:utc": "TZ=utc jest",
     "test:usa": "TZ=America/New_York jest",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -23,7 +17,7 @@
     "format:check": "prettier --check .",
     "test:coverage": "jest --coverage",
     "verify": "npm run type-check && npm run lint && npm run format:check && npm test",
-    "verify:tz": "npm run test:utc && npm run test:usa",
+    "verify:tz": "npm run test:usa",
     "harness": "node harness/esbuild.harness.mjs --serve",
     "harness:build": "node harness/esbuild.harness.mjs"
   },
@@ -33,18 +27,13 @@
   "author": "Maksim Rubanau (mokkiebear)",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",
     "@types/jest": "^30.0.0",
     "@types/node": "26.6.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@types/react-window": "^1.8.8",
     "@typescript-eslint/eslint-plugin": "^8.70.0",
     "@typescript-eslint/parser": "^8.38.0",
-    "builtin-modules": "5.3.0",
-    "concurrently": "9.2.0",
-    "cpx": "^1.5.0",
     "esbuild": "0.28.2",
     "esbuild-sass-plugin": "^3.3.1",
     "globals": "^17.12.0",
@@ -56,10 +45,7 @@
     "prettier": "3.9.7",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "rimraf": "^6.0.1",
     "ts-jest": "^29.4.12",
-    "tslib": "2.8.1",
-    "typedoc": "^0.28.20",
     "typescript": "5.8.3"
   },
   "dependencies": {
@@ -68,7 +54,6 @@
   },
   "overrides": {
     "svelte": "3.59.2",
-    "braces": "3.0.3",
     "@codemirror/language": "^6.12.3"
   }
 }

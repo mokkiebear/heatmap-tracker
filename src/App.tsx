@@ -1,28 +1,21 @@
 import { IHeatmapView } from "./types";
 import { useHeatmapContext } from "./context/heatmap/heatmap.context";
-import React, { lazy, Suspense, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useTranslation } from "src/localization/useTranslation";
 
 import { HeatmapHeader } from "./components/HeatmapHeader/HeatmapHeader";
 
 import HeatmapFooter from "./components/HeatmapFooter/HeatmapFooter";
-import { ViewSkeleton } from "./components/ViewSkeleton/ViewSkeleton";
 
-const HeatmapTrackerView = lazy(
-  () => import("./views/HeatmapTrackerView/HeatmapTrackerView"),
-);
-const StatisticsView = lazy(
-  () => import("./views/StatisticsView/StatisticsView"),
-);
-const DocumentationView = lazy(
-  () => import("./views/DocumentationView/DocumentationView"),
-);
-
-const LegendView = lazy(() => import("./views/LegendView/LegendView"));
-const MonthlyHeatmapView = lazy(
-  () => import("./views/MonthlyHeatmapView/MonthlyHeatmapView"),
-);
-const ExportView = lazy(() => import("./views/ExportView/ExportView"));
+// Static imports: an Obsidian plugin ships as a single main.js (esbuild runs
+// with no `splitting`), so lazy() + Suspense only added a skeleton that never
+// had a chance to render.
+import HeatmapTrackerView from "./views/HeatmapTrackerView/HeatmapTrackerView";
+import StatisticsView from "./views/StatisticsView/StatisticsView";
+import DocumentationView from "./views/DocumentationView/DocumentationView";
+import LegendView from "./views/LegendView/LegendView";
+import MonthlyHeatmapView from "./views/MonthlyHeatmapView/MonthlyHeatmapView";
+import ExportView from "./views/ExportView/ExportView";
 
 function ReactApp() {
   const { i18n } = useTranslation();
@@ -69,7 +62,7 @@ function ReactApp() {
   return (
     <div className="heatmap-tracker__container">
       <HeatmapHeader />
-      <Suspense fallback={<ViewSkeleton />}>{content}</Suspense>
+      {content}
       <HeatmapFooter />
     </div>
   );

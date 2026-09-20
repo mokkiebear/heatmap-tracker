@@ -43,10 +43,8 @@ jobs:
         run: npm run test:coverage
 
       # Dates are a core concern of this plugin and several past bugs were
-      # timezone-dependent, so the suite runs under non-UTC zones too.
-      - name: Test (UTC)
-        run: npm run test:utc
-
+      # timezone-dependent. The runner is already UTC, so only a non-UTC zone
+      # adds signal here.
       - name: Test (America/New_York)
         run: npm run test:usa
 

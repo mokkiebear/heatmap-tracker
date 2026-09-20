@@ -35,16 +35,13 @@ export function aggregateVisibility(entries: LegendEntry[]): LegendVisibility {
 export type LegendDisplayMode = "separate" | "gradient";
 
 /**
- * Merges `entries` with a default baseline, preserving `entries`' own
- * customizations *and* relative order — only appending brand-new colors (in
- * the baseline's own order) and dropping any entry whose color doesn't
- * appear in the baseline at all. This is the "Refresh" button's whole job:
- * fetch new colors and remove genuinely stale ones without disturbing
- * anything the user has already set up. Called with `LegendModal`'s own
- * `baseline` — every color used ANYWHERE in the whole calendar, not just the
- * export's current date range (see `ExportView.buildRefreshBaseline`) — so a
- * color only drops out here once it no longer appears at all, not merely
- * because the currently selected range doesn't happen to include it.
+ * Merges `entries` with a default baseline, preserving their customizations
+ * and relative order — appending brand-new colors and dropping ones the
+ * baseline no longer has. This is the "Refresh" button's whole job.
+ *
+ * `baseline` is every color used ANYWHERE in the calendar, not just the
+ * export's current range (`ExportView.buildRefreshBaseline`), so a color only
+ * drops out once it no longer appears at all.
  */
 export function mergeLegendWithDefaults(
   entries: LegendEntry[],
@@ -61,15 +58,10 @@ export function mergeLegendWithDefaults(
 }
 
 /**
- * `entries` whose color is actually in `colorsList` (the configured
- * intensity palette), in the palette's own low-to-high order — not
- * `entries`' own order, which may have been drag-reordered for separate-mode
- * display and has no bearing on the gradient strip's fixed intensity
- * ordering. This is exactly the set of colors gradient mode squashes into
- * one row (see `LegendModal.renderGradientGroupRow`); any entry whose color
- * isn't in `colorsList` at all (a custom color used on individual days, or
- * the blank/background color) is never included here and keeps its own full
- * row instead.
+ * `entries` whose color is in `colorsList` (the intensity palette), in the
+ * palette's own low-to-high order rather than `entries`' possibly
+ * drag-reordered one. Exactly the set gradient mode squashes into one row;
+ * anything else (a per-day custom color, the blank color) keeps its own row.
  */
 export function paletteEntriesInOrder(
   entries: LegendEntry[],
@@ -114,17 +106,10 @@ export function reorderLegendEntries(
 }
 
 /**
- * Popup opened from the gear icon on the gradient-mode squashed row (see
- * `LegendModal.renderGradientGroupRow`) — the squashed row only has room for
- * one shared label, not one control per palette color, so per-color day-
- * count weight and fixed value are set here instead. No separate
- * include/exclude toggle: a weight of 0 already excludes a color from the
- * shared total, so a second control for the same thing would be redundant
- * (bulk-toggling every palette color at once is still available via the
- * group eye button on the squashed row itself). Mutates the given entries in
- * place (the very same objects referenced by the parent modal's `entries`
- * array), so there's nothing to save back explicitly — closing this popup is
- * enough.
+ * Per-palette-color weight and fixed value, opened from the gear on the
+ * gradient-mode squashed row (which has room for one shared label only).
+ * A weight of 0 already excludes a color, so there is no separate toggle.
+ * Mutates the parent modal's entry objects in place — closing is saving.
  */
 class GradientWeightsModal extends Modal {
   private listEl: HTMLElement | null = null;
@@ -223,53 +208,26 @@ class GradientWeightsModal extends Modal {
 }
 
 /**
- * Popup editor for the report's {color, label} legend. Rows are auto-
- * populated (one per configured intensity color, plus the blank/background
- * color) by the caller — see `ExportView`'s default-entries builder — since
- * every color the calendar can ever show is already known in advance; there
- * is deliberately no way to add an arbitrary extra row or delete one here,
- * only to customize the ones that exist. That population only happens
- * up front though — reopening this modal shows exactly what was last saved,
- * untouched, unless the user explicitly clicks "Refresh" (merge in any new
- * colors, drop any stale ones, keep everything else exactly as edited/
- * reordered — see `mergeLegendWithDefaults`) or "Reset" (discard all
- * customizations and start over from scratch). Both draw from the exact same
- * `baseline` — every color used ANYWHERE in the whole calendar, not just the
- * export's current date range (see `ExportView.buildRefreshBaseline`) — so
- * neither one silently drops a color just because none of its days happen to
- * fall within whatever range is currently selected.
+ * Popup editor for the report's {color, label} legend, driving both the legend
+ * under the heatmap and the summary's day-type breakdown
+ * (`src/utils/report/legend.ts`).
  *
- * The same list drives both the legend rendered under the heatmap and the
- * summary's day-type breakdown (see `src/utils/report/legend.ts`). Rows can
- * be dragged (via the grip handle specifically, not the row at large) to
- * reorder — controls the order categories appear in separate-rows mode.
- * Colors themselves aren't editable here — they're sourced automatically
- * from the calendar's actual palette, so retyping one would just desync the
- * swatch from what the calendar really shows; shown as plain text next to
- * the swatch rather than a (disabled-looking) input.
+ * Rows are auto-populated by the caller (one per intensity color plus the
+ * blank/background color), so there is deliberately no add/delete here — only
+ * customization. Reopening shows exactly what was last saved; "Refresh"
+ * (`mergeLegendWithDefaults`) and "Reset" both work off `baseline`.
  *
- * Each row's borderless eye button (unboxed, matching `GradientWeightsModal`)
- * cycles through three visibility states (see `LegendVisibility`): shown in
- * both the legend and the summary; shown in the legend only; hidden from
- * both. Its days still count correctly toward `Other`/matching either way
- * (see `buildSummaryModel`) — only its own display is affected.
+ * Colors are not editable: they come from the calendar's real palette, so
+ * retyping one would only desync the swatch from what the calendar shows.
  *
- * The legend-style dropdown switches between "separate" (one row per color,
- * each with its own label) and "gradient". In gradient mode, every row whose
- * color is actually in the configured intensity palette (`colorsList`) is
- * squashed into a single row: a mini GitHub-style swatch strip on the left
- * (see `renderGradientGroupRow`) instead of one swatch per color, a shared-
- * label input, a gear icon opening `GradientWeightsModal` to set each
- * palette color's day-count weight/fixed value, and a group eye button that
- * bulk-applies a visibility state to every palette color at once. This row
- * is draggable too, just like any other — dragging it moves every palette
- * color together as one contiguous block (see `reorderLegendEntries`),
- * without disturbing their relative order among themselves. Individual
- * palette colors' own labels are left untouched in memory while squashed —
- * they simply aren't shown — and reappear as soon as the user switches back
- * to "separate" mode. Any matched color outside the palette (including the
- * blank/background color) is never squashed — it always keeps its own full,
- * independent, draggable row in both modes.
+ * Rows drag by their grip handle to set separate-mode order. The eye button
+ * cycles three visibility states (`LegendVisibility`) affecting display only —
+ * the days still count toward the summary either way.
+ *
+ * In "gradient" mode every palette color squashes into one row: a swatch
+ * strip, a shared label, a gear opening `GradientWeightsModal`, and a group
+ * eye button. That row drags as one block. Colors outside the palette (and
+ * the blank color) always keep their own row in both modes.
  */
 export class LegendModal extends Modal {
   private entries: LegendEntry[];

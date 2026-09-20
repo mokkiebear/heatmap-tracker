@@ -8,42 +8,10 @@ const EXAMPLE_VAULT_URL =
 const WEBSITE_URL = "https://mokkiebear.github.io/heatmap-tracker/";
 
 /**
- * A one-line summary per `trackerData` parameter. Long-form docs (types,
- * defaults, examples) live in the README — this tab exists to tell you what a
- * parameter is called and whether it exists, not to restate the reference.
- *
- * Keys are checked against `TrackerDataSchema` by the view's test, so adding a
- * parameter to the schema without describing it here fails the suite instead of
- * silently shipping a gap: the previous hand-written version drifted to
- * documenting 8 of 19 parameters.
+ * Ordered by how likely you are to reach for it, not alphabetically. Each name
+ * renders `docs.params.<name>` from the locale files.
  */
-const PARAMETER_SUMMARY_KEYS: Record<
-  keyof typeof TrackerDataSchema.shape,
-  string
-> = {
-  year: "docs.params.year",
-  colorScheme: "docs.params.colorScheme",
-  entries: "docs.params.entries",
-  showCurrentDayBorder: "docs.params.showCurrentDayBorder",
-  basePath: "docs.params.basePath",
-  intensityConfig: "docs.params.intensityConfig",
-  separateMonths: "docs.params.separateMonths",
-  heatmapTitle: "docs.params.heatmapTitle",
-  heatmapSubtitle: "docs.params.heatmapSubtitle",
-  insights: "docs.params.insights",
-  disableFileCreation: "docs.params.disableFileCreation",
-  ui: "docs.params.ui",
-  layout: "docs.params.layout",
-  startDate: "docs.params.startDate",
-  endDate: "docs.params.endDate",
-  daysToShow: "docs.params.daysToShow",
-  monthsToShow: "docs.params.monthsToShow",
-  tags: "docs.params.tags",
-  filters: "docs.params.filters",
-};
-
-/** Ordered by how likely you are to reach for it, not alphabetically. */
-const PARAMETER_ORDER: (keyof typeof TrackerDataSchema.shape)[] = [
+const PARAMETER_ORDER = [
   "entries",
   "year",
   "heatmapTitle",
@@ -63,7 +31,20 @@ const PARAMETER_ORDER: (keyof typeof TrackerDataSchema.shape)[] = [
   "tags",
   "filters",
   "ui",
-];
+] as const satisfies readonly (keyof typeof TrackerDataSchema.shape)[];
+
+/**
+ * Fails to compile if a parameter is added to the schema without being listed
+ * above — the previous hand-written view drifted to documenting 8 of 19.
+ */
+type UndocumentedParameter = Exclude<
+  keyof typeof TrackerDataSchema.shape,
+  (typeof PARAMETER_ORDER)[number]
+>;
+const _allParametersDocumented: [UndocumentedParameter] extends [never]
+  ? true
+  : UndocumentedParameter = true;
+void _allParametersDocumented;
 
 const EXAMPLE = ["```heatmaptracker", "property: steps", "```"].join("\n");
 
@@ -88,7 +69,7 @@ function DocumentationView() {
             <dt>
               <code>{name}</code>
             </dt>
-            <dd>{t(PARAMETER_SUMMARY_KEYS[name])}</dd>
+            <dd>{t(`docs.params.${name}`)}</dd>
           </div>
         ))}
       </dl>

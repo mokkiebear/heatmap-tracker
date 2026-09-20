@@ -10,10 +10,7 @@ function HeatmapFooter() {
   const [isActionRequired, setIsActionRequired] = useState(false);
 
   useEffect(() => {
-    if (
-      (!isActionRequired && typeof (trackerData as any)?.colors === "string") ||
-      (trackerData as any)?.colors
-    ) {
+    if ((trackerData as any)?.colors) {
       setIsActionRequired(true);
     }
   }, [trackerData]);
