@@ -33,6 +33,17 @@ nesting (`$t(...)`), contexts and namespaces are not implemented**: a locale
 using them renders the raw template. Phrase the translation to avoid them, or
 bring i18next back rather than growing that file.
 
+Keys resolve in two shapes, because the locale files use both: a literal
+top-level key containing dots (`"support.header": "..."`) and a nested object
+(`"monthsShort": { "January": "..." }`). Either works; don't "normalise" one
+into the other without checking the call sites.
+
+`src/localization/__tests__/keyCoverage.spec.ts` asserts that every literal
+`t("...")` call site in `src` resolves to a real string. If it fails, a key was
+renamed in the code but not in `en.json` (or vice versa). Note that tests which
+mock `i18n.t` as an identity function cannot catch this — don't assert on the
+key name in those.
+
 ## Look at it
 
 ```bash

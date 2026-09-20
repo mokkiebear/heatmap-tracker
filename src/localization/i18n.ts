@@ -47,8 +47,18 @@ const supportedLanguages = Object.keys(languages);
  * Resolve a dotted key against one language's tree. Returns `undefined` for a
  * missing key *and* for a key that lands on a subtree, so the caller can fall
  * back instead of rendering "[object Object]".
+ *
+ * A literal key wins over the nested walk: the locale files mix both shapes —
+ * `support.header` is a flat top-level key with a dot in its name, while
+ * `monthsShort.January` is nested. i18next accepted both (`ignoreJSONStructure`)
+ * and the settings tab's support section relies on it, so we do too.
  */
 function lookup(tree: TranslationTree, key: string): string | undefined {
+  const literal = tree[key];
+  if (typeof literal === "string") {
+    return literal;
+  }
+
   let node: string | TranslationTree | undefined = tree;
 
   for (const segment of key.split(".")) {

@@ -33,6 +33,23 @@ describe("i18n", () => {
     expect(i18n.t("report.defaultTitle")).toBe(english);
   });
 
+  it("resolves a flat top-level key that contains dots", () => {
+    // The locale files mix shapes: `support.*` are flat keys with dots in the
+    // name, not a nested `support` object. Walking the dots finds nothing and
+    // the settings tab renders the raw key.
+    expect(i18n.t("support.header")).not.toBe("support.header");
+    expect(i18n.t("support.cta")).not.toBe("support.cta");
+  });
+
+  it("falls back to English for a flat dotted key too", async () => {
+    const english = i18n.t("support.text1");
+    await i18n.changeLanguage("de");
+
+    expect(i18n.t("support.text1")).not.toBe("support.text1");
+    // de.json has its own translation, so it must differ from the English one.
+    expect(i18n.t("support.text1")).not.toBe(english);
+  });
+
   it("returns the key itself when nothing matches", () => {
     expect(i18n.t("definitely.not.a.real.key")).toBe(
       "definitely.not.a.real.key",
