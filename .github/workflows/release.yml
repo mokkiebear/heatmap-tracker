@@ -5,6 +5,10 @@ on:
     tags:
       - "*"
 
+# `gh release create` needs write access to contents; nothing else is granted.
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest

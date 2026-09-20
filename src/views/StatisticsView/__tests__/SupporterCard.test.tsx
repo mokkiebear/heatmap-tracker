@@ -68,9 +68,13 @@ describe("SupporterCard", () => {
       container.querySelectorAll<HTMLAnchorElement>(".heatmap-supporter__link"),
     ).map((a) => a.href);
 
+    // Compare the parsed host, not a substring of the URL: `includes()` also
+    // matches "buymeacoffee.com.evil.test" and "evil.test/?x=ko-fi.com".
+    const hosts = hrefs.map((h) => new URL(h).host);
+
     expect(hrefs).toHaveLength(2);
-    expect(hrefs.some((h) => h.includes("buymeacoffee.com"))).toBe(true);
-    expect(hrefs.some((h) => h.includes("ko-fi.com"))).toBe(true);
+    expect(hosts).toContain("www.buymeacoffee.com");
+    expect(hosts).toContain("ko-fi.com");
   });
 
   it("hides itself and persists the dismissal when dismissed", () => {

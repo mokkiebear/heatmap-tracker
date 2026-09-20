@@ -4,6 +4,8 @@
  * without rendering the 600-line export screen.
  */
 
+import { stripTags, trimSlashes } from "src/utils/path";
+
 /** Characters Obsidian/most filesystems reject in a file name. */
 const ILLEGAL_FILENAME_CHARS = /[\\/:*?"<>|]/g;
 
@@ -15,16 +17,13 @@ const FALLBACK_REPORT_NAME = "Work Log Report";
  * title is empty or consisted only of markup.
  */
 export function sanitizeFilename(name: string): string {
-  const stripped = name
-    .replace(/<[^>]*>/g, "")
-    .replace(ILLEGAL_FILENAME_CHARS, "-")
-    .trim();
+  const stripped = stripTags(name).replace(ILLEGAL_FILENAME_CHARS, "-").trim();
   return stripped || FALLBACK_REPORT_NAME;
 }
 
 /** Joins an export folder and a file name, tolerating stray leading/trailing slashes. */
 export function joinPath(folder: string, filename: string): string {
-  const trimmed = folder.replace(/^\/+|\/+$/g, "");
+  const trimmed = trimSlashes(folder);
   return trimmed ? `${trimmed}/${filename}` : filename;
 }
 

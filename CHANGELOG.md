@@ -5,6 +5,10 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Security
+- Replaced the two regular expressions used to normalise user-supplied paths and titles (`/^\/+|\/+$/` and `/<[^>]*>/`) with linear scans in `src/utils/path.ts`. Both were polynomial on adversarial input — stripping markup from a title of 100k `<` took over four seconds — and a heatmap's `title` and `basePath` come from the user's note. Tag stripping now counts nesting depth, so `<scr<b>ipt>` can no longer reassemble into `<script>` after one pass. Clears five CodeQL alerts.
+- Both GitHub Actions workflows now declare an explicit `permissions` block (`contents: read` for CI, `contents: write` for the release) instead of inheriting the repository default. Clears two CodeQL alerts.
+
 
 ## [2.9.2] - 2026-09-20
 ### Changed

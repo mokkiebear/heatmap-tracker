@@ -6,6 +6,7 @@ import {
   getDailyNoteSettings,
 } from "obsidian-daily-notes-interface";
 import { App, TFile, moment as obsidianMoment } from "obsidian";
+import { trimSlashes } from "src/utils/path";
 // Type-only: erased at build time, so the `moment` package stays out of the
 // bundle. Obsidian's own `moment` export is typed as `typeof Moment` off an
 // `import * as Moment` (obsidian.d.ts), which has no call signature — hence
@@ -127,7 +128,7 @@ async function tryOpenBasePathFile(
     return false;
   }
 
-  const normalizedBase = trackerData.basePath.replace(/^\/+|\/+$/g, "");
+  const normalizedBase = trimSlashes(trackerData.basePath);
   const expectedPath = `${
     normalizedBase ? normalizedBase + "/" : ""
   }${date.format("YYYY-MM-DD")}.md`;
@@ -160,7 +161,7 @@ async function tryOpenDailyNote(
 
     const dnSettings = getDailyNoteSettings();
     const format = dnSettings?.format || "YYYY-MM-DD";
-    const folder = (dnSettings?.folder || "").replace(/^\/+|\/+$/g, "");
+    const folder = trimSlashes(dnSettings?.folder || "");
     const filename = `${date.format(format)}.md`;
     const expectedPath = `${folder ? folder + "/" : ""}${filename}`;
 

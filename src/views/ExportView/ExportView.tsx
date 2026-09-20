@@ -12,6 +12,7 @@ import {
   parseUTCDate,
 } from "src/utils/date";
 import { openFileInLeaf } from "src/utils/heatmapBox";
+import { trimSlashes } from "src/utils/path";
 import { formatGeneratedAt } from "src/utils/report/dateLabels";
 import { readNoteBodies } from "src/utils/report/noteBody";
 import {
@@ -166,7 +167,7 @@ async function ensureFolder(
   app: ReturnType<typeof useAppContext>,
   folderPath: string,
 ): Promise<void> {
-  const trimmed = folderPath.replace(/^\/+|\/+$/g, "");
+  const trimmed = trimSlashes(folderPath);
   if (!trimmed) return;
   if (app.vault.getAbstractFileByPath(trimmed)) return;
   await app.vault.createFolder(trimmed);

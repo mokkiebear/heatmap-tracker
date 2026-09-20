@@ -11,6 +11,11 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Read-only: this workflow only checks out and builds. Without an explicit
+# block the job inherits the repository default, which may be write-all.
+permissions:
+  contents: read
+
 jobs:
   check:
     runs-on: ubuntu-latest
