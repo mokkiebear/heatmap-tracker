@@ -82,6 +82,21 @@ export const fixtures: Fixture[] = [
     },
   },
   {
+    id: "emoji",
+    title: "Emoji habit tracker",
+    note: "entry.emoji — a glyph drawn in the box (issue #49). Checks the glyph fits the 12px box, stays legible on light and dark palette colors, and coexists with the current-day border.",
+    trackerData: {
+      year: 2024,
+      heatmapTitle: "Emoji habits",
+      showCurrentDayBorder: true,
+      colorScheme: { customColors: ["#c6e48b", "#7bc96f", "#239a3b"] },
+      entries: entries(2024, { skipEvery: 3 }).map((entry, index) => ({
+        ...entry,
+        emoji: ["✅", "🏃", "📖", "🧘"][index % 4],
+      })),
+    },
+  },
+  {
     id: "empty",
     title: "No entries",
     note: "The empty state. Must render a grid, not a blank div or a crash.",

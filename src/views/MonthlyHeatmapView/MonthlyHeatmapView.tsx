@@ -93,6 +93,7 @@ function MonthlyHeatmapView() {
           box.hasData = true;
           const entry = entriesWithIntensityByDate[dateKey];
           box.content = entry.content || undefined;
+          box.emoji = entry.emoji || undefined;
           box.value = entry.value;
           box.filePath = entry.filePath || undefined;
           box.customHref = entry.customHref || undefined;

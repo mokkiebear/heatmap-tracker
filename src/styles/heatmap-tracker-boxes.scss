@@ -49,3 +49,26 @@
     border: solid var(--border-width) var(--text-normal);
   }
 }
+
+/// A glyph drawn inside the day box (`entry.emoji`). Sized off the box
+/// variable rather than a fixed px value so it keeps filling the square when a
+/// theme or snippet changes `--heatmap-tracker-box-size`.
+.heatmap-tracker-box-emoji {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  // Slightly under the box so the glyph's own bearings don't clip against the
+  // 12px default; emoji fonts render larger than their nominal size.
+  font-size: calc(var(--heatmap-tracker-box-size) * 0.8);
+  line-height: 1;
+  // The box may carry a click handler or an anchor; the glyph must not
+  // swallow those events.
+  pointer-events: none;
+  // Emoji ignore `color`, but a text glyph ("x", "✓") would otherwise inherit
+  // the link color and read as a hyperlink rather than a marker.
+  color: var(--text-normal);
+  // Keeps a monochrome glyph readable on a saturated palette color.
+  text-shadow: 0 0 2px var(--background-primary);
+}

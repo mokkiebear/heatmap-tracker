@@ -110,6 +110,10 @@ function mergeIntoDay(existing: Entry | undefined, entry: Entry): Entry {
       existing.content && entry.content
         ? `${existing.content}\n${entry.content}`
         : existing.content || entry.content,
+    // Only one glyph fits in a box, so the first one set for the day wins —
+    // but a later entry's emoji must still be picked up when the earlier one
+    // had none, which the `...existing` spread alone would drop.
+    emoji: existing.emoji || entry.emoji,
   };
 }
 

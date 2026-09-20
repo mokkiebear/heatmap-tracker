@@ -126,4 +126,52 @@ describe("HeatmapBox accessibility", () => {
     expect(anchor.getAttribute("aria-label")).toBe("2024-01-01, box.value=7");
     expect(anchor.getAttribute("data-href")).toBe("daily notes/2024-01-01.md");
   });
+
+  describe("emoji", () => {
+    it("renders the glyph inside the box", () => {
+      const { container } = renderBox({
+        date: "2024-01-01",
+        hasData: true,
+        emoji: "✅",
+      });
+
+      const glyph = container.querySelector(".heatmap-tracker-box-emoji")!;
+      expect(glyph.textContent).toBe("✅");
+    });
+
+    it("hides the glyph from assistive tech, leaving the label to say the day", () => {
+      const { container } = renderBox({
+        date: "2024-01-01",
+        hasData: true,
+        value: 3,
+        emoji: "🏃",
+      });
+
+      const glyph = container.querySelector(".heatmap-tracker-box-emoji")!;
+      // The box already announces "2024-01-01, value 3"; reading the glyph too
+      // would just add noise.
+      expect(glyph.getAttribute("aria-hidden")).toBe("true");
+    });
+
+    it("renders emoji and content together rather than one replacing the other", () => {
+      const { container } = renderBox({
+        date: "2024-01-01",
+        hasData: true,
+        emoji: "✅",
+        content: "meditation",
+      });
+
+      const anchor = container.querySelector(".heatmap-tracker-content")!;
+      expect(
+        anchor.querySelector(".heatmap-tracker-box-emoji")!.textContent,
+      ).toBe("✅");
+      expect(anchor.textContent).toContain("meditation");
+    });
+
+    it("renders no glyph element when the entry has no emoji", () => {
+      const { container } = renderBox({ date: "2024-01-01", hasData: true });
+
+      expect(container.querySelector(".heatmap-tracker-box-emoji")).toBeNull();
+    });
+  });
 });

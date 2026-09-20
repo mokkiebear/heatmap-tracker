@@ -110,6 +110,8 @@ export interface Box {
   /** Custom href for this box; takes precedence over filePath. */
   customHref?: string;
   content?: string | HTMLElement;
+  /** Short glyph rendered inside the box (see `Entry.emoji`). */
+  emoji?: string;
   /** Raw user value for this day, used for the accessible label. */
   value?: number;
   isToday?: boolean;

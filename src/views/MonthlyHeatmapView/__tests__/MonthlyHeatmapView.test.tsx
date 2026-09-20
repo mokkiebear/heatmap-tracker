@@ -174,4 +174,21 @@ describe("MonthlyHeatmapView", () => {
     ).not.toBeNull();
     expect(container.querySelector('[data-htp-date="2024-03-01"]')).toBeNull();
   });
+
+  it("draws an entry's emoji in the monthly layout too", () => {
+    const { container } = renderView({
+      entriesWithIntensityByDate: {
+        "2024-01-05": { date: "2024-01-05", intensity: 1, emoji: "✅" },
+      },
+    });
+
+    const box = container.querySelector('[data-htp-date="2024-01-05"]')!;
+    expect(box.querySelector(".heatmap-tracker-box-emoji")!.textContent).toBe(
+      "✅",
+    );
+
+    // A day without an entry must not gain a stray glyph.
+    const empty = container.querySelector('[data-htp-date="2024-01-06"]')!;
+    expect(empty.querySelector(".heatmap-tracker-box-emoji")).toBeNull();
+  });
 });

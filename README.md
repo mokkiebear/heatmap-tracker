@@ -337,6 +337,7 @@ The authoritative reference for every `trackerData` parameter. Each one links to
 | `intensity` | Data intensity for that date |
 | `content` | Optional tooltip / note text |
 | `customColor` | Overrides the color for this entry |
+| `emoji` | A short glyph drawn inside the box, e.g. `"✅"` (max 8 chars) — see [Emoji habit tracking](#emoji-habit-tracking) |
 | `filePath` | Absolute path to the file opened on click |
 | `customHref` | Custom URL to open on click (takes precedence over `filePath`) |
 
@@ -358,6 +359,55 @@ iOS and Android. Accepted:
 Anything else (`March 2025`, `31.01.25`, a raw `Date` object) is rejected and the
 entry is dropped. Prefer `YYYY-MM-DD`: `01-02-2025` is read as January 2nd, which
 is not what a European reader means by it.
+
+#### Emoji habit tracking
+
+Set `emoji` on an entry to draw a glyph inside that day's box. The box keeps its
+palette color, so "which habit" and "how much" are readable at the same time —
+useful for yes/no habits where a color gradient says little.
+
+```dataviewjs
+const trackerData = {
+  entries: [],
+  heatmapTitle: "Habits",
+  colorScheme: { customColors: ["#c6e48b", "#7bc96f", "#239a3b"] },
+};
+
+for (const page of dv.pages('"Daily"').where(p => p.workout || p.reading)) {
+  trackerData.entries.push({
+    date: page.file.name,
+    intensity: 1,
+    emoji: page.workout ? "🏃" : "📖",
+    filePath: page.file.path,
+  });
+}
+
+renderHeatmapTracker(this.container, trackerData);
+```
+
+Notes:
+
+- **Keep it to one glyph.** The box is 12px by default, so the value is capped
+  at 8 characters and validation rejects longer strings rather than drawing
+  unreadable pixels. Use `content` for text.
+- **`emoji` and `content` are different fields, and complement each other.**
+  `emoji` is the marker; `content` is what happened that day. Only `content`
+  reaches the exported report and screen readers, so a glyph put in `content`
+  becomes a lone "✅" in your report, while an `emoji` leaves the report free
+  for the real note text:
+
+  ```js
+  { date: "2025-01-01", emoji: "🏃", content: "5km, felt good" }
+  // box shows 🏃 · report says "5km, felt good"
+  ```
+
+- **Two entries on one day:** only one glyph fits, so the first `emoji` set for
+  that day is the one drawn.
+- Any text works, not just emoji — `"✓"`, `"x"` and `"1"` are all valid, and
+  monochrome glyphs get a subtle outline so they stay legible on dark palette
+  colors.
+- The glyph is decorative: screen readers announce the date and value from the
+  box's own label and skip it.
 
 ---
 

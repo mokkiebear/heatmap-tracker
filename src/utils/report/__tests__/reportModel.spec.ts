@@ -106,6 +106,42 @@ describe("buildReportModel", () => {
     ]);
   });
 
+  it("keeps the emoji marker out of the report body, unlike content", () => {
+    // `emoji` is decoration on the grid; `content` is the day's text. Putting
+    // a glyph in `content` (the pre-`emoji` workaround) made the exported
+    // report a column of lone "✅"s, which is what the separate field avoids.
+    const model = buildReportModel({
+      entriesByDate: {
+        "2026-01-01": entry({
+          date: "2026-01-01",
+          value: 1,
+          intensity: 1,
+          emoji: "🏃",
+          content: "5km, felt good",
+        }),
+        "2026-01-02": entry({
+          date: "2026-01-02",
+          value: 1,
+          intensity: 1,
+          emoji: "🧘",
+        }),
+      },
+      colorsList,
+      bodiesByPath: {},
+      startDate: "2026-01-01",
+      endDate: "2026-01-02",
+      weekStartDay: 1,
+    });
+
+    const days = model.weeks.flatMap((week) => week.days);
+
+    expect(days.find((d) => d.date === "2026-01-01")?.body).toBe(
+      "5km, felt good",
+    );
+    // An emoji-only day carries no body at all rather than a stray glyph.
+    expect(days.find((d) => d.date === "2026-01-02")?.body).toBeUndefined();
+  });
+
   it("returns an empty model when nothing falls in range", () => {
     const model = buildReportModel({
       entriesByDate: {},

@@ -94,6 +94,7 @@ export function getBoxes(
     if (entry) {
       box.hasData = true;
       box.content = entry.content || undefined;
+      box.emoji = entry.emoji || undefined;
       box.value = entry.value;
       box.filePath = entry.filePath || undefined;
       box.customHref = entry.customHref || undefined;

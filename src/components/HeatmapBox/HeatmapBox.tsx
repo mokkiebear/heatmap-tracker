@@ -47,6 +47,16 @@ export function HeatmapBox({ box }: HeatmapBoxProps) {
       (box.content as ReactNode)
     );
 
+  // The emoji is decoration layered over the colored box, not a second piece
+  // of content: it is hidden from assistive tech (the `aria-label` below
+  // already names the day and value) and never replaces `content`, so an
+  // entry can carry both.
+  const emoji = box.emoji ? (
+    <span className="heatmap-tracker-box-emoji" aria-hidden="true">
+      {box.emoji}
+    </span>
+  ) : null;
+
   const isExternal =
     typeof linkTarget === "string" && /^https?:\/\//i.test(linkTarget);
 
@@ -118,6 +128,7 @@ export function HeatmapBox({ box }: HeatmapBoxProps) {
         aria-label={linkTarget ? label : undefined}
         {...linkAttrs}
       >
+        {emoji}
         {content}
       </a>
     </div>

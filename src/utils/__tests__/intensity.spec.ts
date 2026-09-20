@@ -103,6 +103,34 @@ describe("getIntensitiesInfo", () => {
 });
 
 describe("fillEntriesWithIntensity", () => {
+  it("keeps an emoji when several entries land on the same day", () => {
+    const colors: ColorsList = ["#111", "#222", "#333"];
+    const config = createConfig({ defaultIntensity: 1 });
+
+    // Only one glyph fits in a box, so the first one set for the day wins.
+    const firstWins = fillEntriesWithIntensity(
+      [
+        { date: "2024-01-01", intensity: 1, emoji: "✅" },
+        { date: "2024-01-01", intensity: 1, emoji: "🏃" },
+      ],
+      config,
+      colors,
+    );
+    expect(firstWins[1].emoji).toBe("✅");
+
+    // ...but an emoji on a later entry must still survive when the earlier
+    // one had none, which a plain `{...existing}` merge would drop.
+    const laterSurvives = fillEntriesWithIntensity(
+      [
+        { date: "2024-01-01", intensity: 1 },
+        { date: "2024-01-01", intensity: 1, emoji: "🏃" },
+      ],
+      config,
+      colors,
+    );
+    expect(laterSurvives[1].emoji).toBe("🏃");
+  });
+
   it("should map entries to the generated intensity buckets and keep original values", () => {
     const colors: ColorsList = ["#111", "#222", "#333"];
     const config = createConfig({ defaultIntensity: 50 });
