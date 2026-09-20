@@ -20,6 +20,7 @@ import {
 import {
   DateRangeMode,
   FilterOperator,
+  HeatmapLayout,
   HeatmapModalFormState,
   buildFilters,
   buildHeatmapConfig,
@@ -401,9 +402,11 @@ export class HeatmapModal extends Modal {
     new Setting(contentEl).setName("Layout").addDropdown((dropdown) => {
       dropdown.addOption("default", "Default (week columns)");
       dropdown.addOption("monthly", "Monthly (one row per month)");
+      dropdown.addOption("month", "Single month (calendar)");
+      dropdown.addOption("week", "Single week (one row)");
       dropdown.setValue(this.formState.layout);
       dropdown.onChange((value) => {
-        this.formState.layout = value as "default" | "monthly";
+        this.formState.layout = value as HeatmapLayout;
         this.updateSeparateMonthsVisibility();
         this.refresh();
       });
@@ -810,9 +813,10 @@ export class HeatmapModal extends Modal {
   }
 
   private updateSeparateMonthsVisibility() {
+    // Only the default week-column grid draws month gaps.
     this.separateMonthsSettingEl?.toggleClass(
       "is-hidden",
-      this.formState.layout === "monthly",
+      this.formState.layout !== "default",
     );
   }
 

@@ -13,11 +13,13 @@ import StatisticsView from "./views/StatisticsView/StatisticsView";
 import DocumentationView from "./views/DocumentationView/DocumentationView";
 import LegendView from "./views/LegendView/LegendView";
 import MonthlyHeatmapView from "./views/MonthlyHeatmapView/MonthlyHeatmapView";
+import CalendarHeatmapView from "./views/CalendarHeatmapView/CalendarHeatmapView";
 import ExportView from "./views/ExportView/ExportView";
 
 function ReactApp() {
   const { i18n } = useTranslation();
-  const { currentYear, settings, view, trackerData } = useHeatmapContext();
+  const { currentYear, settings, view, trackerData, calendarPeriod } =
+    useHeatmapContext();
 
   useEffect(() => {
     // Resources are bundled, so this only rejects if i18next itself is broken;
@@ -30,12 +32,13 @@ function ReactApp() {
   let content;
   switch (view) {
     case IHeatmapView.HeatmapTracker:
-      content =
-        trackerData.layout === "monthly" ? (
-          <MonthlyHeatmapView />
-        ) : (
-          <HeatmapTrackerView />
-        );
+      if (trackerData.layout === "monthly") {
+        content = <MonthlyHeatmapView />;
+      } else if (calendarPeriod) {
+        content = <CalendarHeatmapView />;
+      } else {
+        content = <HeatmapTrackerView />;
+      }
       break;
     case IHeatmapView.HeatmapTrackerStatistics:
       content = <StatisticsView />;

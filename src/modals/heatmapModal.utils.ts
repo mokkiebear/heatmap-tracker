@@ -1,7 +1,12 @@
-import { IHeatmapView } from "../types";
+import { IHeatmapView, TrackerData } from "../types";
 import { getCurrentFullYear } from "../utils/date";
 
 export type DateRangeMode = "full-year" | "days" | "months" | "custom";
+
+/** Derived from the schema so the modal can't offer a layout it doesn't accept. */
+export type HeatmapLayout = NonNullable<TrackerData["layout"]>;
+
+const LAYOUTS: HeatmapLayout[] = ["default", "monthly", "month", "week"];
 
 export type FilterOperator = "equals" | "contains" | "notEmpty";
 
@@ -23,7 +28,7 @@ export interface HeatmapModalFormState {
   /** Additional frontmatter conditions a page must satisfy (all must match). */
   filters: FilterConditionFormState[];
   year: number;
-  layout: "default" | "monthly";
+  layout: HeatmapLayout;
   dateRangeMode: DateRangeMode;
   /** Raw text input, parsed on build so the field can be empty while typing. */
   daysToShow: string;
@@ -154,7 +159,9 @@ export function formStateFromConfig(
       }))
       .filter((f) => f.property !== ""),
     year: Number.isFinite(year) ? year : state.year,
-    layout: config.layout === "monthly" ? "monthly" : "default",
+    layout: LAYOUTS.includes(config.layout as HeatmapLayout)
+      ? (config.layout as HeatmapLayout)
+      : "default",
     dateRangeMode: pickDateRangeMode(config),
     daysToShow: asString(config.daysToShow) ?? state.daysToShow,
     monthsToShow: asString(config.monthsToShow) ?? state.monthsToShow,

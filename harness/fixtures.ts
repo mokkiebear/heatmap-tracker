@@ -97,6 +97,30 @@ export const fixtures: Fixture[] = [
     },
   },
   {
+    id: "single-month",
+    title: "Single month (calendar)",
+    note: 'layout: "month" — weekdays as columns, weeks as rows (issue #73). Pinned to an explicit range so the screenshot is stable; without one it shows the current month and the header arrows page through months.',
+    trackerData: {
+      layout: "month",
+      heatmapTitle: "March 2024",
+      startDate: "2024-03-01",
+      endDate: "2024-03-31",
+      entries: entries(2024, { skipEvery: 4 }),
+    },
+  },
+  {
+    id: "single-week",
+    title: "Single week",
+    note: 'layout: "week" — one row of seven days (issue #73). Pinned to an explicit range; live it shows the current week.',
+    trackerData: {
+      layout: "week",
+      heatmapTitle: "Week of 2024-03-04",
+      startDate: "2024-03-04",
+      endDate: "2024-03-10",
+      entries: entries(2024, { skipEvery: 4 }),
+    },
+  },
+  {
     id: "empty",
     title: "No entries",
     note: "The empty state. Must render a grid, not a blank div or a crash.",

@@ -1,0 +1,54 @@
+/// `layout: "month"` / `layout: "week"` — a single calendar period drawn as a
+/// 7-column grid: weekday header row, then the days row-major. Cells are fluid
+/// (not the fixed `--heatmap-tracker-box-size` of the year grid) so a month
+/// reads as a calendar at any pane width.
+.heatmap-tracker.calendar-heatmap-month,
+.heatmap-tracker.calendar-heatmap-week {
+  display: block;
+  width: 100%;
+  padding: 8px 4px;
+  overflow: hidden;
+}
+
+.calendar-heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--heatmap-tracker-box-gap);
+  // Seven fluid columns would otherwise stretch each day into a huge square on
+  // a wide pane; this keeps a month reading as a calendar. Still fluid below it.
+  max-width: 28em;
+
+  .heatmap-tracker-box {
+    aspect-ratio: 1;
+    width: 100%;
+
+    // Same fallback as the monthly layout: without `aspect-ratio` these cells
+    // have no height at all (iOS Safari before 15).
+    @supports not (aspect-ratio: 1) {
+      min-height: var(--heatmap-tracker-box-size);
+    }
+  }
+
+  .with-border {
+    border: solid var(--border-width) var(--text-normal);
+  }
+
+  .space-between-box {
+    background-color: transparent;
+
+    &:hover {
+      transform: unset;
+      border: unset;
+      cursor: default;
+    }
+  }
+}
+
+.calendar-heatmap-day-header {
+  text-align: center;
+  font-size: clamp(0.5em, 1.2vw, 0.7em);
+  color: var(--text-muted);
+  padding-bottom: 2px;
+  overflow: hidden;
+  min-width: 0;
+}

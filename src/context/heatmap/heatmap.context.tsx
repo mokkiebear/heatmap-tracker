@@ -9,11 +9,15 @@ import {
   IntensityConfig,
 } from "src/types";
 import { getColors } from "src/utils/colors";
-import { getBoxes, getEntriesForYear } from "src/utils/core";
+import { getBoxes, getBoxesForRange, getEntriesForYear } from "src/utils/core";
 import {
+  CalendarPeriod,
   DateRange,
+  getCalendarPeriodRange,
   getCurrentFullYear,
+  getToday,
   resolveDateRange,
+  shiftCalendarPeriod,
 } from "src/utils/date";
 import {
   fillEntriesWithIntensity,
@@ -49,7 +53,15 @@ export function HeatmapProvider({
 
   const isMonthlyLayout = trackerData.layout === "monthly";
 
-  const dateRange = useMemo<DateRange | null>(
+  const calendarPeriod: CalendarPeriod | null =
+    trackerData.layout === "month" || trackerData.layout === "week"
+      ? trackerData.layout
+      : null;
+
+  /** Any day inside the month/week currently shown; moved by `shiftPeriod`. */
+  const [periodAnchor, setPeriodAnchor] = useState(getToday);
+
+  const explicitDateRange = useMemo<DateRange | null>(
     () =>
       resolveDateRange(
         trackerData.startDate,
@@ -65,6 +77,30 @@ export function HeatmapProvider({
     ],
   );
 
+  // A month/week layout without an explicit range gets the calendar period
+  // around its anchor, so the header arrows page through months/weeks the way
+  // they page through years in the default layout.
+  const dateRange = useMemo<DateRange | null>(
+    () =>
+      explicitDateRange ??
+      (calendarPeriod
+        ? getCalendarPeriodRange(
+            periodAnchor,
+            calendarPeriod,
+            settings.weekStartDay,
+          )
+        : null),
+    [explicitDateRange, calendarPeriod, periodAnchor, settings.weekStartDay],
+  );
+
+  /** Whether the header pages through periods instead of years. */
+  const canShiftPeriod = calendarPeriod !== null && !explicitDateRange;
+
+  function shiftPeriod(delta: number) {
+    if (!calendarPeriod) return;
+    setPeriodAnchor((prev) => shiftCalendarPeriod(prev, calendarPeriod, delta));
+  }
+
   const allFilteredEntries = useMemo(() => {
     return trackerData.entries.filter((e) => {
       if (trackerData.intensityConfig?.excludeFalsy && !e.intensity) {
@@ -74,12 +110,16 @@ export function HeatmapProvider({
     });
   }, [trackerData.entries, trackerData.intensityConfig?.excludeFalsy]);
 
+  // Date-keyed layouts scale their intensities over every entry, not just one
+  // calendar year, so paging to an adjacent month doesn't recolor the data.
+  const usesDateKeyedBoxes = calendarPeriod !== null || isMonthlyLayout;
+
   const currentYearEntries = useMemo(
     () =>
-      isMonthlyLayout && dateRange
+      usesDateKeyedBoxes && dateRange
         ? allFilteredEntries
         : getEntriesForYear(allFilteredEntries, currentYear),
-    [allFilteredEntries, currentYear, isMonthlyLayout, dateRange],
+    [allFilteredEntries, currentYear, usesDateKeyedBoxes, dateRange],
   );
 
   const mergedTrackerData: TrackerData = useMemo(() => {
@@ -106,7 +146,7 @@ export function HeatmapProvider({
 
   const entriesWithIntensityByDate = useMemo(
     () =>
-      isMonthlyLayout
+      usesDateKeyedBoxes
         ? fillEntriesWithIntensityByDate(
             currentYearEntries,
             mergedTrackerData.intensityConfig,
@@ -114,33 +154,47 @@ export function HeatmapProvider({
           )
         : {},
     [
-      isMonthlyLayout,
+      usesDateKeyedBoxes,
       currentYearEntries,
       mergedTrackerData.intensityConfig,
       colorsList,
     ],
   );
 
-  const boxes = useMemo(
-    () =>
-      isMonthlyLayout
-        ? [] // Monthly layout builds its own grid, not boxes
-        : getBoxes(
-            currentYear,
-            entriesWithIntensity,
-            colorsList,
-            mergedTrackerData,
-            settings,
-          ),
-    [
-      isMonthlyLayout,
+  const boxes = useMemo(() => {
+    if (isMonthlyLayout) {
+      // Monthly layout builds its own grid, not boxes.
+      return [];
+    }
+
+    if (calendarPeriod && dateRange) {
+      return getBoxesForRange(
+        dateRange,
+        entriesWithIntensityByDate,
+        colorsList,
+        mergedTrackerData,
+        settings.weekStartDay,
+      );
+    }
+
+    return getBoxes(
       currentYear,
       entriesWithIntensity,
       colorsList,
       mergedTrackerData,
       settings,
-    ],
-  );
+    );
+  }, [
+    isMonthlyLayout,
+    calendarPeriod,
+    dateRange,
+    currentYear,
+    entriesWithIntensity,
+    entriesWithIntensityByDate,
+    colorsList,
+    mergedTrackerData,
+    settings,
+  ]);
 
   function updateSettings(patch: Partial<TrackerSettings>) {
     Object.assign(settings, patch);
@@ -161,6 +215,9 @@ export function HeatmapProvider({
         allFilteredEntries,
         boxes,
         dateRange,
+        calendarPeriod,
+        canShiftPeriod,
+        shiftPeriod,
         intensityConfig: trackerData.intensityConfig,
         setCurrentYear,
         setView,
@@ -185,6 +242,11 @@ interface HeatmapContextProps {
   allFilteredEntries: Entry[];
   boxes: Box[];
   dateRange: DateRange | null;
+  /** Set when `layout` is `"month"` or `"week"`; null for every other layout. */
+  calendarPeriod: CalendarPeriod | null;
+  /** True when the header should page through months/weeks instead of years. */
+  canShiftPeriod: boolean;
+  shiftPeriod: (delta: number) => void;
   setCurrentYear: React.Dispatch<React.SetStateAction<number>>;
   setView: React.Dispatch<React.SetStateAction<IHeatmapView>>;
   updateSettings: (patch: Partial<TrackerSettings>) => void;

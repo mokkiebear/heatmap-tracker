@@ -7,6 +7,7 @@ import {
 } from "src/types";
 import { getEntryColor } from "src/utils/colors";
 import {
+  DateRange,
   formatDateToISO8601,
   getDayOfYear,
   getFirstDayOfYear,
@@ -42,6 +43,17 @@ export function mapRange(
 export function getEntriesForYear(entries: Entry[], year: number): Entry[] {
   // An unparseable date yields NaN, which matches no year.
   return entries.filter((e) => getFullYear(e.date) === year);
+}
+
+/** Copies an entry's renderable fields onto its day's box. */
+function applyEntryToBox(box: Box, entry: Entry, colorsList: ColorsList): void {
+  box.hasData = true;
+  box.content = entry.content || undefined;
+  box.emoji = entry.emoji || undefined;
+  box.value = entry.value;
+  box.filePath = entry.filePath || undefined;
+  box.customHref = entry.customHref || undefined;
+  box.backgroundColor = getEntryColor(entry, colorsList);
 }
 
 export function getBoxes(
@@ -92,13 +104,51 @@ export function getBoxes(
     const entry = entriesWithIntensity[getDayOfYear(date)];
 
     if (entry) {
-      box.hasData = true;
-      box.content = entry.content || undefined;
-      box.emoji = entry.emoji || undefined;
-      box.value = entry.value;
-      box.filePath = entry.filePath || undefined;
-      box.customHref = entry.customHref || undefined;
-      box.backgroundColor = getEntryColor(entry, colorsList);
+      applyEntryToBox(box, entry, colorsList);
+    } else {
+      box.hasData = false;
+    }
+
+    boxes.push(box);
+  }
+
+  return boxes;
+}
+
+/**
+ * Boxes for one calendar month or week, laid out row-major in a 7-column grid:
+ * blank leading slots for the days before the range starts, then one box per
+ * day. Keyed by ISO date rather than day-of-year, so a range crossing a year
+ * boundary works.
+ */
+export function getBoxesForRange(
+  range: DateRange,
+  entriesWithIntensityByDate: Record<string, Entry>,
+  colorsList: ColorsList,
+  trackerData: TrackerData,
+  weekStartDay: number,
+): Box[] {
+  const placements = placeDays(range.start, range.end, weekStartDay);
+  const todayDate = getToday();
+  const boxes: Box[] = [];
+
+  for (const { date, position } of placements) {
+    while (boxes.length < position) {
+      boxes.push({ backgroundColor: "transparent", isSpaceBetweenBox: true });
+    }
+
+    const dateKey = formatDateToISO8601(date);
+    const box: Box = { date: dateKey ?? undefined };
+
+    if (isSameDate(date, todayDate)) {
+      box.isToday = true;
+      box.showBorder = trackerData.showCurrentDayBorder;
+    }
+
+    const entry = dateKey ? entriesWithIntensityByDate[dateKey] : undefined;
+
+    if (entry) {
+      applyEntryToBox(box, entry, colorsList);
     } else {
       box.hasData = false;
     }

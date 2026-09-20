@@ -32,8 +32,14 @@ export const TrackerDataSchema = z.object({
    * Layout mode for the heatmap.
    * "default" — traditional week-column grid (GitHub-style)
    * "monthly" — one row per month, days 1–31 as columns
+   * "month" — a single calendar month: weekdays as columns, weeks as rows
+   * "week" — a single calendar week: one row of seven days
+   *
+   * "month" and "week" show the current period by default and are navigated
+   * with the header arrows; an explicit date range (`startDate`/`endDate`,
+   * `daysToShow`, `monthsToShow`) overrides that and pins them to it.
    */
-  layout: z.enum(["default", "monthly"]).optional(),
+  layout: z.enum(["default", "monthly", "month", "week"]).optional(),
   /**
    * First date to display (format: YYYY-MM-DD). Used for partial year views.
    */

@@ -299,3 +299,42 @@ export function resolveDateRange(
 export function getDaysInMonth(year: number, month: number): number {
   return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
 }
+
+/** A single calendar period the user can page through (see `layout`). */
+export type CalendarPeriod = "month" | "week";
+
+/** The whole calendar month or week containing `date`. */
+export function getCalendarPeriodRange(
+  date: Date,
+  period: CalendarPeriod,
+  weekStartDay: number,
+): DateRange {
+  if (period === "week") {
+    assertWeekStartDay(weekStartDay);
+
+    const start = addDays(date, -((date.getUTCDay() - weekStartDay + 7) % 7));
+    return { start, end: addDays(start, 6) };
+  }
+
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth();
+  return {
+    start: new Date(Date.UTC(year, month, 1)),
+    end: new Date(Date.UTC(year, month + 1, 0)),
+  };
+}
+
+/**
+ * A date inside the period `delta` periods away from the one containing
+ * `date`. Month steps land on the 1st on purpose: keeping the day-of-month
+ * would make Jan 31 + 1 month overflow into March.
+ */
+export function shiftCalendarPeriod(
+  date: Date,
+  period: CalendarPeriod,
+  delta: number,
+): Date {
+  return period === "week"
+    ? addDays(date, delta * 7)
+    : new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + delta, 1));
+}

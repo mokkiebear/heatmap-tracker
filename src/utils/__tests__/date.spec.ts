@@ -11,6 +11,8 @@ import {
   getToday,
   getCurrentFullYear,
   parseUTCDate,
+  getCalendarPeriodRange,
+  shiftCalendarPeriod,
 } from "../date";
 
 describe("getShiftedWeekdays", () => {
@@ -569,5 +571,82 @@ describe("resolveDateRange", () => {
     const range = resolveDateRange("2025-01-01", "2025-01-31", NaN, NaN);
     expect(formatDateToISO8601(range!.start)).toBe("2025-01-01");
     expect(formatDateToISO8601(range!.end)).toBe("2025-01-31");
+  });
+});
+
+describe("getCalendarPeriodRange", () => {
+  it("spans the whole month containing the date", () => {
+    const range = getCalendarPeriodRange(
+      new Date(Date.UTC(2024, 1, 17)),
+      "month",
+      1,
+    );
+
+    expect(formatDateToISO8601(range.start)).toBe("2024-02-01");
+    // 2024 is a leap year.
+    expect(formatDateToISO8601(range.end)).toBe("2024-02-29");
+  });
+
+  it("spans the week containing the date, honouring weekStartDay", () => {
+    // 2024-05-15 is a Wednesday.
+    const monday = getCalendarPeriodRange(
+      new Date(Date.UTC(2024, 4, 15)),
+      "week",
+      1,
+    );
+    expect(formatDateToISO8601(monday.start)).toBe("2024-05-13");
+    expect(formatDateToISO8601(monday.end)).toBe("2024-05-19");
+
+    const sunday = getCalendarPeriodRange(
+      new Date(Date.UTC(2024, 4, 15)),
+      "week",
+      0,
+    );
+    expect(formatDateToISO8601(sunday.start)).toBe("2024-05-12");
+    expect(formatDateToISO8601(sunday.end)).toBe("2024-05-18");
+  });
+
+  it("keeps a week range on the week the date starts, at a month boundary", () => {
+    const range = getCalendarPeriodRange(
+      new Date(Date.UTC(2024, 4, 1)),
+      "week",
+      1,
+    );
+
+    expect(formatDateToISO8601(range.start)).toBe("2024-04-29");
+    expect(formatDateToISO8601(range.end)).toBe("2024-05-05");
+  });
+
+  it("rejects an out-of-range weekStartDay for a week", () => {
+    expect(() =>
+      getCalendarPeriodRange(new Date(Date.UTC(2024, 4, 15)), "week", 7),
+    ).toThrow("weekStartDay must be between 0 and 6");
+  });
+});
+
+describe("shiftCalendarPeriod", () => {
+  it("moves by whole weeks", () => {
+    expect(
+      formatDateToISO8601(
+        shiftCalendarPeriod(new Date(Date.UTC(2024, 4, 15)), "week", -2),
+      ),
+    ).toBe("2024-05-01");
+  });
+
+  it("moves by whole months without overflowing a short month", () => {
+    // Jan 31 + 1 month would land in March if the day-of-month were kept.
+    expect(
+      formatDateToISO8601(
+        shiftCalendarPeriod(new Date(Date.UTC(2024, 0, 31)), "month", 1),
+      ),
+    ).toBe("2024-02-01");
+  });
+
+  it("crosses a year boundary", () => {
+    expect(
+      formatDateToISO8601(
+        shiftCalendarPeriod(new Date(Date.UTC(2024, 0, 10)), "month", -1),
+      ),
+    ).toBe("2023-12-01");
   });
 });

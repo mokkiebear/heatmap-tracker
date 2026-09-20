@@ -263,7 +263,7 @@ The authoritative reference for every `trackerData` parameter. Each one links to
 | [`separateMonths`](#separatemonths) | `boolean` | `true` |
 | [`disableFileCreation`](#disablefilecreation) | `boolean` | `false` |
 | [`insights`](#insights) | `array` | `[]` |
-| [`layout`](#layout) | `"default" \| "monthly"` | `"default"` |
+| [`layout`](#layout) | `"default" \| "monthly" \| "month" \| "week"` | `"default"` |
 | [`monthsToShow` / `daysToShow` / `startDate` + `endDate`](#date-range-monthstoshow-daystoshow-startdateenddate) | `number` / `string` | `undefined` |
 
 <br>
@@ -491,9 +491,15 @@ Notes:
 
 ### `layout`
 
-- **Type:** `"default" | "monthly"`
+- **Type:** `"default" | "monthly" | "month" | "week"`
 - **Default:** `"default"`
-- **Description:** Controls the grid arrangement. `"default"` renders the traditional GitHub-style week-column grid. `"monthly"` renders one row per month with days 1–31 as columns — a compact, calendar-style view.
+- **Description:** Controls the grid arrangement.
+  - `"default"` — the traditional GitHub-style week-column grid.
+  - `"monthly"` — one row per month with days 1–31 as columns; a compact, calendar-style year.
+  - `"month"` — a single calendar month: weekdays as columns, weeks as rows. Shows the current month by default; the header arrows page through months.
+  - `"week"` — a single calendar week: one row of seven days. Shows the current week by default; the header arrows page through weeks.
+
+  `"month"` and `"week"` respect the `weekStartDay` plugin setting. Setting a date range (`startDate`/`endDate`, `daysToShow`, `monthsToShow`) pins them to that range and hides the arrows.
 - **Example:** [layout](https://github.com/mokkiebear/heatmap-tracker/blob/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters/12.%20layout.md)
 
 ---
@@ -591,6 +597,12 @@ Toggle <code>separateMonths</code> to add padding between months so month bounda
 <summary><b>Monthly layout</b> — a compact calendar with one row per month</summary>
 <br>
 Set <code>layout: "monthly"</code> to switch from the GitHub-style grid to a calendar-style view with days 1–31 as columns. Combine with <code>monthsToShow</code> to display only recent months.
+</details>
+
+<details>
+<summary><b>Single month or week</b> — a wall-calendar view of the current period</summary>
+<br>
+Set <code>layout: "month"</code> for one calendar month (weekdays as columns, weeks as rows) or <code>layout: "week"</code> for a single row of seven days. Both start on the current period and the header arrows page through it.
 </details>
 
 <details>
@@ -749,6 +761,7 @@ Heatmap Tracker began as a rewrite of the excellent [heatmap-calendar-obsidian](
 | Interactive insert command | ✅ Modal builder | ❌ |
 | Statistics & custom insights | ✅ | ❌ |
 | Monthly (calendar) layout | ✅ | ❌ |
+| Single month / week view | ✅ | ❌ |
 | Flexible date ranges | ✅ Days, months, explicit range | ❌ Full year |
 | Export to Markdown / HTML | ✅ | ❌ |
 | Localization | ✅ 9 languages | ❌ |

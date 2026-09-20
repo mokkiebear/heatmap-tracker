@@ -5,6 +5,8 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Two single-period layouts, `layout: "month"` and `layout: "week"` ([#73](https://github.com/mokkiebear/heatmap-tracker/issues/73)). `"month"` draws one calendar month with weekdays as columns and weeks as rows; `"week"` draws a single row of seven days. Both open on the current period and the header arrows page through it, the way they page through years in the default layout. They honour the `weekStartDay` setting, and setting an explicit date range (`startDate`/`endDate`, `daysToShow`, `monthsToShow`) pins them to that range instead. Available in the insert/edit modal's Layout dropdown too.
 
 ## [2.11.0] - 2026-09-20
 ### Changed
