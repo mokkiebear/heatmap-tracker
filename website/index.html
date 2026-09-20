@@ -83,7 +83,7 @@
         "applicationCategory": "ProductivityApplication",
         "applicationSubCategory": "Obsidian plugin",
         "operatingSystem": "Windows, macOS, Linux, iOS, Android",
-        "softwareVersion": "2.8.0",
+        "softwareVersion": "2.12.0",
         "description": "An Obsidian plugin that turns dated notes into an interactive, GitHub-style heatmap for tracking habits, goals, workouts, mood, sleep, finances and work logs. Data stays local in the vault.",
         "url": "https://mokkiebear.github.io/heatmap-tracker/",
         "downloadUrl": "https://obsidian.md/plugins?id=heatmap-tracker",
@@ -102,7 +102,7 @@
           "Guided setup and edit modal with a live preview",
           "No-code codeblock, plus a dataviewjs escape hatch",
           "Statistics and user-defined insights",
-          "Monthly calendar layout and flexible date ranges",
+          "Monthly calendar layout, single month and week views, flexible date ranges",
           "Export a report to Markdown or self-contained HTML",
           "Custom color palettes and intensity scales",
           "Available in 9 languages",
@@ -214,7 +214,7 @@
       <section class="hero" id="top">
         <div class="shell hero__inner">
           <p class="eyebrow reveal">
-            <span class="dot"></span> Obsidian community plugin · v2.8.0 ·
+            <span class="dot"></span> Obsidian community plugin · v2.12.0 ·
             Apache-2.0
           </p>
           <h1 class="reveal">
@@ -482,11 +482,12 @@
             </article>
             <article class="card reveal">
               <span class="card__icon">🗓️</span>
-              <h3>Monthly calendar layout</h3>
+              <h3>Calendar layouts</h3>
               <p>
-                Switch <code>layout: "monthly"</code> for one row per month with
-                days 1–31 as columns — or keep the classic contribution grid
-                with months visually split.
+                <code>layout: "monthly"</code> for one row per month with days
+                1–31 as columns, or <code>"month"</code> / <code>"week"</code>
+                for a single wall-calendar period you page through — or keep the
+                classic contribution grid with months visually split.
               </p>
             </article>
             <article class="card reveal">
@@ -781,6 +782,11 @@
                 </tr>
                 <tr>
                   <th scope="row">Monthly (calendar) layout</th>
+                  <td class="y">Yes</td>
+                  <td class="n">No</td>
+                </tr>
+                <tr>
+                  <th scope="row">Single month / week view</th>
                   <td class="y">Yes</td>
                   <td class="n">No</td>
                 </tr>

@@ -24,7 +24,8 @@ Source: https://github.com/mokkiebear/heatmap-tracker
 ## Capabilities
 
 - Guided create/edit modal with a live preview and match count; no YAML required.
-- Yearly contribution grid or a monthly calendar layout (`layout: "monthly"`).
+- Yearly contribution grid, a monthly calendar layout (`layout: "monthly"`), or a single
+  calendar month / week (`layout: "month"` / `"week"`) navigated with the header arrows.
 - Flexible ranges: `monthsToShow`, `daysToShow`, or `startDate` + `endDate`.
 - Color palettes in settings, `colorScheme.customColors` per heatmap, `customColor` per entry.
 - Intensity scaling via `intensityConfig.scaleStart` / `scaleEnd`.
