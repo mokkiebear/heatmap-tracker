@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "src/localization/useTranslation";
 import { ColorsList, Entry } from "src/types";
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
 import { useAppContext } from "src/context/app/app.context";

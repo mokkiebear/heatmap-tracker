@@ -1,7 +1,7 @@
 import { IHeatmapView } from "./types";
 import { useHeatmapContext } from "./context/heatmap/heatmap.context";
 import React, { lazy, Suspense, useEffect } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "src/localization/useTranslation";
 
 import { HeatmapHeader } from "./components/HeatmapHeader/HeatmapHeader";
 

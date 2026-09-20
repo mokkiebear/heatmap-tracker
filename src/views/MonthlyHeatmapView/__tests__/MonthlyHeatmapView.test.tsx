@@ -5,8 +5,8 @@ import { AppContext } from "src/context/app/app.context";
 import { Entry } from "src/types";
 import { getToday } from "src/utils/date";
 
-jest.mock("react-i18next", () => ({
-  ...jest.requireActual("react-i18next"),
+jest.mock("src/localization/useTranslation", () => ({
+  ...jest.requireActual("src/localization/useTranslation"),
   useTranslation: jest.fn(() => ({
     t: (key: string) => key,
   })),

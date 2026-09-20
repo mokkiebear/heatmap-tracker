@@ -781,7 +781,7 @@ npm run dev
 | `npm run type-check` | TypeScript, no emit |
 | `npm run format` / `format:check` | Prettier |
 
-**Stack:** TypeScript · Preact · esbuild · Jest · i18next · Zod
+**Stack:** TypeScript · Preact · esbuild · Jest · Zod
 
 **Tip:** `Ctrl+Shift+I` opens devtools inside Obsidian.
 

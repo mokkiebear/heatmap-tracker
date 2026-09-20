@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "src/localization/useTranslation";
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
 import { getShiftedWeekdays } from "src/utils/date";
 

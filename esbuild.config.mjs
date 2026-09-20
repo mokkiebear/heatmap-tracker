@@ -1,6 +1,7 @@
 import esbuild from "esbuild";
 import process from "process";
 import path from "path";
+import fs from "fs";
 import builtins from "builtin-modules";
 import { sassPlugin } from "esbuild-sass-plugin";
 
@@ -36,6 +37,88 @@ const stripUnusedZodLocales = {
   },
 };
 
+/**
+ * zod's JSON-Schema emitter (`core/to-json-schema.js` +
+ * `core/json-schema-processors.js`) is pulled in unconditionally: every schema
+ * constructor in `classic/schemas.js` assigns
+ * `inst._zod.processJSONSchema = processors.<x>Processor`, and `ZodType`
+ * exposes both `toJSONSchema()` and a `~standard.jsonSchema` getter. esbuild
+ * therefore cannot tree-shake it, and it costs ~17 KB minified.
+ *
+ * We never convert a schema to JSON Schema: nothing in `src` calls
+ * `toJSONSchema()` or reads `~standard`. Replacing both modules with stubs
+ * whose exports throw keeps `parse`/`safeParse` byte-identical and turns the
+ * unused path into a loud error instead of a silent wrong result.
+ *
+ * If a future change needs `z.toJSONSchema()`, delete this plugin.
+ */
+const ZOD_JSON_SCHEMA_MODULES = [
+  "node_modules/zod/v4/core/to-json-schema.js",
+  "node_modules/zod/v4/core/json-schema-processors.js",
+];
+
+/** Collect every exported binding name of an ESM file, aliases included. */
+function collectExportNames(source) {
+  const names = new Set();
+
+  for (const match of source.matchAll(
+    /^export\s+(?:async\s+)?(?:const|let|var|function\*?|class)\s+([A-Za-z_$][\w$]*)/gm,
+  )) {
+    names.add(match[1]);
+  }
+
+  for (const match of source.matchAll(/^export\s*\{([^}]*)\}/gm)) {
+    for (const part of match[1].split(",")) {
+      const name = part.trim().split(/\s+as\s+/)[1] ?? part.trim();
+      if (name) {
+        names.add(name);
+      }
+    }
+  }
+
+  names.delete("default");
+  return [...names];
+}
+
+const stripZodJsonSchema = {
+  name: "strip-zod-json-schema",
+  setup(build) {
+    const stubs = new Map();
+
+    for (const modulePath of ZOD_JSON_SCHEMA_MODULES) {
+      const absolute = path.resolve(modulePath);
+      const names = collectExportNames(fs.readFileSync(absolute, "utf8"));
+
+      if (names.length === 0) {
+        throw new Error(
+          `strip-zod-json-schema: no exports found in ${modulePath}; zod's layout changed, update or remove this plugin.`,
+        );
+      }
+
+      stubs.set(
+        absolute,
+        [
+          "const unsupported = () => {",
+          '  throw new Error("heatmap-tracker: zod JSON Schema support is stripped from this bundle (see esbuild.config.mjs).");',
+          "};",
+          ...names.map((name) => `export const ${name} = unsupported;`),
+        ].join("\n"),
+      );
+    }
+
+    build.onLoad(
+      {
+        filter:
+          /zod[\\/]v4[\\/]core[\\/](to-json-schema|json-schema-processors)\.js$/,
+      },
+      (args) => {
+        const contents = stubs.get(args.path);
+        return contents ? { contents, loader: "js" } : null;
+      },
+    );
+  },
+};
+
 // Determine if we're in production mode
 const isProd = process.argv.includes("--production");
 const isDebug = process.argv.includes("--debug");
@@ -61,6 +144,7 @@ const buildOptions = {
   entryPoints: ["./src/main.tsx", "./src/styles.scss"],
   plugins: [
     stripUnusedZodLocales,
+    stripZodJsonSchema,
     sassPlugin({
       type: "css",
       precompile: (source) => {
@@ -76,6 +160,9 @@ const buildOptions = {
   format: "cjs",
   sourcemap: isProd ? false : "inline",
   minify: isProd,
+  // Emit UTF-8 directly: without this esbuild escapes every non-ASCII
+  // character in the bundled translations as \uXXXX, tripling their size.
+  charset: "utf8",
   banner: { js: banner },
   logLevel: "info",
   outdir: "build",

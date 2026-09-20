@@ -1,4 +1,4 @@
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "src/localization/useTranslation";
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
 import { HeatmapTabs } from "../HeatmapTabs/HeatmapTabs";
 import { ChevronLeftIcon } from "../icons/ChevronLeftIcon";

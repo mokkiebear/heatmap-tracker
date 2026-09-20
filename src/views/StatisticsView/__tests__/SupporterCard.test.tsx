@@ -4,8 +4,8 @@ import { HeatmapContext } from "src/context/heatmap/heatmap.context";
 import { TrackerSettings } from "src/types";
 import { SUPPORTER_CARD_MIN_STREAK } from "src/constants/funding";
 
-jest.mock("react-i18next", () => ({
-  ...jest.requireActual("react-i18next"),
+jest.mock("src/localization/useTranslation", () => ({
+  ...jest.requireActual("src/localization/useTranslation"),
   useTranslation: jest.fn(() => ({
     t: (key: string) => key,
   })),

@@ -8,7 +8,7 @@ This guide outlines the standards and best practices for developing the Heatmap 
 - **UI Framework**: [React 19](https://react.dev/) (Functional Components & Hooks)
 - **State Management**: React [Context API](https://react.dev/learn/passing-data-deeply-with-context)
 - **Validation**: [Zod](https://zod.dev/)
-- **Internationalization**: [i18next](https://www.i18next.com/) with `react-i18next`
+- **Internationalization**: an in-repo layer (`src/localization/i18n.ts` + `useTranslation.ts`) — `t("dotted.key", { name })` with an English fallback
 - **Styling**: [SCSS](https://sass-lang.com/) (using `@use` modules)
 - **Testing**: [Jest](https://jestjs.io/) & [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
 - **Build Tool**: [esbuild](https://esbuild.github.io/)

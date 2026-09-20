@@ -9,8 +9,8 @@ jest.mock("src/utils/heatmapBox", () => ({
   handleBoxClick: jest.fn(),
 }));
 
-jest.mock("react-i18next", () => ({
-  ...jest.requireActual("react-i18next"),
+jest.mock("src/localization/useTranslation", () => ({
+  ...jest.requireActual("src/localization/useTranslation"),
   useTranslation: jest.fn(() => ({
     t: (key: string, options?: Record<string, unknown>) =>
       options?.value !== undefined ? `${key}=${options.value}` : key,

@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "src/localization/useTranslation";
 import { getShiftedWeekdays } from "src/utils/date";
 import { CalendarIcon } from "src/components/icons/CalendarIcon";
 import { ChevronLeftIcon } from "src/components/icons/ChevronLeftIcon";

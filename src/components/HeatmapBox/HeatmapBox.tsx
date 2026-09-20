@@ -1,5 +1,5 @@
 import { KeyboardEvent, ReactNode, useMemo } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "src/localization/useTranslation";
 import { Box } from "src/types";
 
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";

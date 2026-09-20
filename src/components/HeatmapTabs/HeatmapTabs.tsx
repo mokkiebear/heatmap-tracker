@@ -1,4 +1,4 @@
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "src/localization/useTranslation";
 import HeatmapTab from "../HeatmapTab/HeatmapTab";
 import { IHeatmapView } from "src/types";
 

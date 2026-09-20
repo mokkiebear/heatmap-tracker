@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "src/localization/useTranslation";
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
 import { HeatmapBox } from "src/components/HeatmapBox/HeatmapBox";
 import { Box } from "src/types";

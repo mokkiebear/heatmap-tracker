@@ -5,6 +5,8 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Changed
+- The bundle drops from 333 KB to 254 KB (-24%). Three changes: `i18next` and `react-i18next` are replaced by a ~1 KB in-repo translation layer using only the features this plugin needs (dot-path lookup, `{{name}}` interpolation, English fallback, re-render on language change); zod's unused JSON-Schema emitter is stubbed out at build time; and esbuild now emits UTF-8 instead of escaping every Cyrillic, Devanagari and Chinese character in the bundled translations as `\uXXXX`. Translations, validation messages and rendering are unchanged.
 
 ## [2.9.1] - 2026-09-20
 ### Changed

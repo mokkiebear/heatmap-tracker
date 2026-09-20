@@ -7,8 +7,8 @@ import {
 } from "src/test-utils";
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
 
-jest.mock("react-i18next", () => ({
-  ...jest.requireActual("react-i18next"),
+jest.mock("src/localization/useTranslation", () => ({
+  ...jest.requireActual("src/localization/useTranslation"),
   useTranslation: jest.fn(() => ({
     t: (key: string) => key,
     i18n: { changeLanguage: jest.fn().mockResolvedValue(undefined) },
