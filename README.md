@@ -49,6 +49,7 @@ Add `steps: 8420` to a daily note and you get a heatmap. Add `mood: 4` and you g
 - [Use cases](#-use-cases)
 - [Codeblock usage](#-codeblock-usage)
 - [Advanced usage (`dataviewjs`)](#-advanced-usage-dataviewjs)
+- [Migrating from Heatmap Calendar](#-migrating-from-heatmap-calendar)
 - [Configuration reference](#-configuration-reference)
 - [Export a report](#-export-a-report)
 - [Features](#-features)
@@ -241,6 +242,24 @@ renderHeatmapTracker(this.container, trackerData);
 
 > [!NOTE]
 > `dataviewjs` requires **Dataview → Settings → Enable JavaScript Queries**. The plugin also works standalone with any JavaScript that can build an `entries` array — Dataview is just the most convenient source.
+
+---
+
+## 🔁 Migrating from Heatmap Calendar
+
+Coming from the unmaintained [heatmap-calendar](https://github.com/Richardsl/heatmap-calendar-obsidian) plugin? There is nothing to migrate:
+
+1. Install Heatmap Tracker.
+2. Disable Heatmap Calendar.
+
+Your existing `renderHeatmapCalendar(...)` blocks keep working — Heatmap Tracker provides that function too and maps `calendarData` onto its own options. Named palettes from the old plugin's settings are read as well, so `colors: "blue"` still resolves.
+
+Two differences worth knowing:
+
+- Per-entry `color` is ignored. It named a whole color ramp, and which shade a day got was only decided after intensity mapping; those days now use the main palette. Use `customColor: "#ff0000"` for a fixed per-day color.
+- `defaultEntryIntensity`, `intensityScaleStart` and `intensityScaleEnd` still work, but the current names are [`intensityConfig.defaultIntensity`, `.scaleStart` and `.scaleEnd`](#intensityconfig).
+
+Rewriting a block as `renderHeatmapTracker(this.container, trackerData)` gets you the rest: statistics, legend, month/week layouts, clickable squares.
 
 ---
 

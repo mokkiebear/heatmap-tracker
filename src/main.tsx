@@ -24,6 +24,11 @@ import { getRenderHeatmapTracker } from "./render";
 import { DEFAULT_SETTINGS } from "./constants/defaultSettings";
 import { HeatmapModal } from "./modals/HeatmapModal";
 import { renderEditButton } from "./utils/editCodeblock";
+import {
+  CalendarData,
+  calendarDataToTrackerData,
+  readLegacyPalettes,
+} from "./utils/heatmapCalendarCompat";
 
 declare global {
   interface Window {
@@ -31,6 +36,11 @@ declare global {
       el: HTMLElement,
       trackerData: TrackerData,
       settings: TrackerSettings,
+    ) => void;
+    /** Drop-in for the unmaintained heatmap-calendar plugin. */
+    renderHeatmapCalendar?: (
+      el: HTMLElement,
+      calendarData: CalendarData,
     ) => void;
   }
 }
@@ -161,6 +171,23 @@ export default class HeatmapTrackerPlugin extends Plugin {
       this.settings,
       () => this.saveSettings(),
     );
+
+    // Old heatmap-calendar codeblocks keep calling this global. Serving it
+    // means existing notes render as-is once the old plugin is disabled.
+    const legacyPalettes = await readLegacyPalettes(this.app);
+
+    window.renderHeatmapCalendar = (el, calendarData) => {
+      window.renderHeatmapTracker?.(
+        el,
+        calendarDataToTrackerData(calendarData) as TrackerData,
+        // The tracker's own palettes win on a name clash; the old plugin's are
+        // only there so `colors: "blue"` still resolves to something.
+        {
+          ...this.settings,
+          palettes: { ...legacyPalettes, ...this.settings.palettes },
+        },
+      );
+    };
   }
 
   private openInsertModal() {
@@ -177,6 +204,9 @@ export default class HeatmapTrackerPlugin extends Plugin {
   onunload() {
     if (window.renderHeatmapTracker) {
       delete window.renderHeatmapTracker;
+    }
+    if (window.renderHeatmapCalendar) {
+      delete window.renderHeatmapCalendar;
     }
   }
 
