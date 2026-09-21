@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+- Drop-in compatibility with the unmaintained [heatmap-calendar](https://github.com/Richardsl/heatmap-calendar-obsidian) plugin: `renderHeatmapCalendar()` is now provided by Heatmap Tracker, so existing `dataviewjs` blocks render as-is once the old plugin is disabled — no note edits needed. Its named palettes are read from its plugin data so `colors: "blue"` keeps resolving. Per-entry `color` is ignored; those days use the main palette.
+
 ## [2.12.0] - 2026-09-20
 ### Added
 - Two single-period layouts, `layout: "month"` and `layout: "week"` ([#73](https://github.com/mokkiebear/heatmap-tracker/issues/73)). `"month"` draws one calendar month with weekdays as columns and weeks as rows; `"week"` draws a single row of seven days. Both open on the current period and the header arrows page through it, the way they page through years in the default layout. They honour the `weekStartDay` setting, and setting an explicit date range (`startDate`/`endDate`, `daysToShow`, `monthsToShow`) pins them to that range instead. Available in the insert/edit modal's Layout dropdown too.
