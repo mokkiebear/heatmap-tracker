@@ -29,7 +29,9 @@ Source: https://github.com/mokkiebear/heatmap-tracker
 - Flexible ranges: `monthsToShow`, `daysToShow`, or `startDate` + `endDate`.
 - Color palettes in settings, `colorScheme.customColors` per heatmap, `customColor` per entry.
 - Intensity scaling via `intensityConfig.scaleStart` / `scaleEnd`.
-- Statistics tab with totals, streaks and user-defined `insights`.
+- Statistics tab with totals, streaks and user-defined `insights`: each insight is
+  `{ name, calculate: ({ yearEntries }) => string }` declared in a `dataviewjs` block;
+  entries expose `date`, `value`, `intensity`, `filePath`.
 - Export tab: a report as Markdown or self-contained HTML, with the grid, a labelled
   legend, a summary line and each day's note content grouped by week.
 - Click a square to open the note behind it, or create it (`disableFileCreation: false`).
@@ -40,6 +42,9 @@ Source: https://github.com/mokkiebear/heatmap-tracker
 - How to build a habit tracker in Obsidian: https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-habit-tracker.html
 - Obsidian heatmaps with Dataview (dataviewjs): https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-heatmap-dataview.html
 - A GitHub-style contribution graph in Obsidian: https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-contribution-graph.html
+- Custom statistics for an Obsidian heatmap (12 copy-paste insights: longest streak,
+  days at goal, most active weekday, weekend vs weekday, year coverage, longest gap,
+  trend, intensity distribution): https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-heatmap-insights.html
 
 ## Docs
 

@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      Custom Statistics for an Obsidian Heatmap: 12 Insights to Copy
+    </title>
+    <meta
+      name="description"
+      content="Add your own statistics to an Obsidian heatmap: longest streak, days at goal, most active weekday, year coverage and more. Twelve copy-paste insights for the Heatmap Tracker plugin."
+    />
+    <link
+      rel="canonical"
+      href="https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-heatmap-insights.html"
+    />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
+    <meta name="theme-color" content="#07070b" />
+    <meta name="author" content="Maksim Rubanau" />
+    <meta
+      name="keywords"
+      content="obsidian heatmap statistics, obsidian custom insights, obsidian streak counter, obsidian habit statistics, heatmap tracker insights, dataviewjs statistics"
+    />
+
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Heatmap Tracker" />
+    <meta
+      property="og:title"
+      content="Custom Statistics for an Obsidian Heatmap: 12 Insights to Copy"
+    />
+    <meta
+      property="og:description"
+      content="Add your own statistics to an Obsidian heatmap: longest streak, days at goal, most active weekday, year coverage and more. Twelve copy-paste insights for the Heatmap Tracker plugin."
+    />
+    <meta
+      property="og:url"
+      content="https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-heatmap-insights.html"
+    />
+    <meta
+      property="og:image"
+      content="https://mokkiebear.github.io/heatmap-tracker/assets/img/og.jpg"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Custom Statistics for an Obsidian Heatmap: 12 Insights to Copy"
+    />
+    <meta
+      name="twitter:description"
+      content="Add your own statistics to an Obsidian heatmap: longest streak, days at goal, most active weekday, year coverage and more. Twelve copy-paste insights for the Heatmap Tracker plugin."
+    />
+    <meta
+      name="twitter:image"
+      content="https://mokkiebear.github.io/heatmap-tracker/assets/img/og.jpg"
+    />
+
+    <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/css/styles.css" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "Custom statistics for your Obsidian heatmap",
+        "description": "Add your own statistics to an Obsidian heatmap: longest streak, days at goal, most active weekday, year coverage and more. Twelve copy-paste insights for the Heatmap Tracker plugin.",
+        "inLanguage": "en",
+        "datePublished": "2026-09-21",
+        "dateModified": "2026-09-21",
+        "mainEntityOfPage": {
+          "@type": "WebPage",
+          "@id": "https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-heatmap-insights.html"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Maksim Rubanau",
+          "url": "https://github.com/mokkiebear"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Heatmap Tracker",
+          "url": "https://mokkiebear.github.io/heatmap-tracker/"
+        },
+        "image": "https://mokkiebear.github.io/heatmap-tracker/assets/img/og.jpg",
+        "about": {
+          "@type": "SoftwareApplication",
+          "name": "Heatmap Tracker",
+          "url": "https://mokkiebear.github.io/heatmap-tracker/"
+        },
+        "proficiencyLevel": "Intermediate"
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is an insight in Heatmap Tracker?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "An insight is a named function you add to trackerData.insights. It receives that year's entries and returns a string, which the plugin renders in the Statistics tab next to the built-in totals and streaks."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Do I need Dataview to use insights?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "You need a dataviewjs block, because an insight is a JavaScript function and a heatmap-tracker codeblock can only hold YAML values. The heatmap itself works without any script."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What data does an insight get?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "One argument, { yearEntries }: the entries for the currently displayed year. Each entry has date (YYYY-MM-DD), value (the number read from your note), intensity (the mapped color level) and filePath."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Why does my insight show nothing or break the heatmap?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "An insight must return a string. Returning a number or undefined shows nothing, and a throw during calculation stops that insight rendering \u2014 guard the empty case, for example by returning \"No data\" when yearEntries is empty, and call toString() or toFixed() on numbers."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can an insight use value or does it have to use intensity?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Both are available. value is the raw number from your note, intensity is the level it was mapped to on the color scale, so totals and averages normally use value while distribution-style insights use intensity."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How many insights can one heatmap have?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "There is no limit; insights is an array and each entry becomes its own line in the Statistics tab. They are recalculated when the heatmap renders and when you switch years."
+            }
+          }
+        ]
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Heatmap Tracker",
+            "item": "https://mokkiebear.github.io/heatmap-tracker/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Custom statistics and insights",
+            "item": "https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-heatmap-insights.html"
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="aurora" aria-hidden="true"></div>
+
+    <header class="nav" id="nav">
+      <div class="shell nav__inner">
+        <a class="brand" href="../" aria-label="Heatmap Tracker home">
+          <img src="../assets/img/logo.svg" alt="" width="28" height="28" />
+          <span>Heatmap&nbsp;Tracker</span>
+        </a>
+        <nav class="nav__links" aria-label="Primary">
+          <a href="../#how">How it works</a>
+          <a href="../#features">Features</a>
+          <a href="../#export">Export</a>
+          <a href="../#usecases">Use cases</a>
+          <a href="../#guides">Guides</a>
+          <a href="../#faq">FAQ</a>
+        </nav>
+        <div class="nav__actions">
+          <button
+            class="icon-btn"
+            id="theme-toggle"
+            type="button"
+            aria-label="Switch color theme"
+          >
+            <span class="icon-btn__sun" aria-hidden="true">☀</span>
+            <span class="icon-btn__moon" aria-hidden="true">☾</span>
+          </button>
+          <a
+            class="btn btn--primary"
+            href="https://obsidian.md/plugins?id=heatmap-tracker"
+            >Install free</a
+          >
+        </div>
+      </div>
+    </header>
+
+    <main id="main" class="doc">
+      <div class="shell shell--narrow">
+        <p class="crumbs">
+          <a href="../">Heatmap Tracker</a> › <span>Custom statistics</span>
+        </p>
+        <h1>Custom statistics for your Obsidian heatmap</h1>
+        <p class="doc__lede">
+          The grid shows you <i>when</i>. An insight answers <i>how much</i>,
+          <i>how often</i> and <i>how long</i> — in the Statistics tab, next to
+          the built-in totals. Twelve you can copy, plus the rules for writing
+          your own.
+        </p>
+
+        <div class="toc">
+          <h2>On this page</h2>
+          <ol>
+            <li><a href="#what">What an insight is</a></li>
+            <li><a href="#totals">Totals and averages</a></li>
+            <li><a href="#streaks">Streaks and goals</a></li>
+            <li><a href="#patterns">Patterns in time</a></li>
+            <li><a href="#progress">Progress and consistency</a></li>
+            <li><a href="#rules">Rules worth knowing</a></li>
+            <li><a href="#faq">FAQ</a></li>
+          </ol>
+        </div>
+
+        <article class="prose">
+          <h2 id="what">What an insight is</h2>
+          <p>
+            A name and a function. The function gets that year's entries and
+            returns a string; the plugin prints it in the
+            <b>Statistics</b> tab under the heatmap. That is the whole API —
+            there is no reporting language to learn, because it is just
+            JavaScript over an array.
+          </p>
+          <p>
+            Insights live in a <code>dataviewjs</code> block rather than the
+            <code>heatmap-tracker</code> codeblock, for the boring reason that
+            YAML cannot hold a function. Everything else about the heatmap works
+            the same way:
+          </p>
+          <div class="code">
+            <div class="code__bar">
+              <span>any note</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy='```dataviewjs&#10;const trackerData = {&#10;  entries: [],&#10;  insights: [&#10;    {&#10;      name: "Days logged",&#10;      calculate: ({ yearEntries }) =&gt; yearEntries.length.toString(),&#10;    },&#10;  ],&#10;};&#10;&#10;for (let page of dv.pages(&#x27;"daily notes"&#x27;).where((p) =&gt; p.steps)) {&#10;  trackerData.entries.push({&#10;    date: page.file.name,&#10;    filePath: page.file.path,&#10;    intensity: page.steps,&#10;  });&#10;}&#10;&#10;renderHeatmapTracker(this.container, trackerData);&#10;```'
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code>```dataviewjs
+const trackerData = {
+  entries: [],
+  insights: [
+    {
+      name: &quot;Days logged&quot;,
+      calculate: ({ yearEntries }) =&gt; yearEntries.length.toString(),
+    },
+  ],
+};
+
+for (let page of dv.pages(&#x27;&quot;daily notes&quot;&#x27;).where((p) =&gt; p.steps)) {
+  trackerData.entries.push({
+    date: page.file.name,
+    filePath: page.file.path,
+    intensity: page.steps,
+  });
+}
+
+renderHeatmapTracker(this.container, trackerData);
+```</code></pre>
+          </div>
+          <p>
+            Each entry in <code>yearEntries</code> carries
+            <code>date</code> (<code>YYYY-MM-DD</code>), <code>value</code> (the
+            number read from your note), <code>intensity</code> (the level it
+            was mapped to on the color scale) and <code>filePath</code>. Every
+            recipe below is one object you drop into that
+            <code>insights</code> array — several at once is fine, each becomes
+            its own line.
+          </p>
+
+          <h2 id="totals">Totals and averages</h2>
+          <p>The numbers you'd reach for a calculator to get.</p>
+
+          <h3>🧮 Total for the year</h3>
+          <p>
+            Total hours slept, pages read, kilometres run — one line, any unit.
+          </p>
+          <div class="code">
+            <div class="code__bar">
+              <span>insights: [ … ]</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy='{&#10;  name: "Total",&#10;  calculate: ({ yearEntries }) =&gt;&#10;    yearEntries&#10;      .reduce((sum, e) =&gt; sum + (e.value || 0), 0)&#10;      .toString(),&#10;}'
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code>{
+  name: &quot;Total&quot;,
+  calculate: ({ yearEntries }) =&gt;
+    yearEntries
+      .reduce((sum, e) =&gt; sum + (e.value || 0), 0)
+      .toString(),
+}</code></pre>
+          </div>
+
+          <h3>📊 Average per logged day</h3>
+          <p>
+            The mean across days that have an entry — blanks don't drag it down.
+          </p>
+          <div class="code">
+            <div class="code__bar">
+              <span>insights: [ … ]</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy='{&#10;  name: "Average per day",&#10;  calculate: ({ yearEntries }) =&gt; {&#10;    if (!yearEntries.length) return "No data";&#10;    const total = yearEntries.reduce((s, e) =&gt; s + (e.value || 0), 0);&#10;    return (total / yearEntries.length).toFixed(2);&#10;  },&#10;}'
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code>{
+  name: &quot;Average per day&quot;,
+  calculate: ({ yearEntries }) =&gt; {
+    if (!yearEntries.length) return &quot;No data&quot;;
+    const total = yearEntries.reduce((s, e) =&gt; s + (e.value || 0), 0);
+    return (total / yearEntries.length).toFixed(2);
+  },
+}</code></pre>
+          </div>
+
+          <h3>🏆 Best day of the year</h3>
+          <p>The single date you scored highest — the one worth remembering.</p>
+          <div class="code">
+            <div class="code__bar">
+              <span>insights: [ … ]</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy='{&#10;  name: "Best day",&#10;  calculate: ({ yearEntries }) =&gt; {&#10;    if (!yearEntries.length) return "No data";&#10;    const best = yearEntries.reduce((max, e) =&gt;&#10;      (e.value || 0) &gt; (max.value || 0) ? e : max);&#10;    return `${best.value} on ${best.date}`;&#10;  },&#10;}'
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code>{
+  name: &quot;Best day&quot;,
+  calculate: ({ yearEntries }) =&gt; {
+    if (!yearEntries.length) return &quot;No data&quot;;
+    const best = yearEntries.reduce((max, e) =&gt;
+      (e.value || 0) &gt; (max.value || 0) ? e : max);
+    return `${best.value} on ${best.date}`;
+  },
+}</code></pre>
+          </div>
+
+          <h2 id="streaks">Streaks and goals</h2>
+          <p>Did you keep it up, and how often did you clear the bar.</p>
+
+          <h3>🔥 Longest streak above a goal</h3>
+          <p>
+            Consecutive logged days that met your target. Change the number,
+            change the goal.
+          </p>
+          <div class="code">
+            <div class="code__bar">
+              <span>insights: [ … ]</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy='{&#10;  name: "Longest streak",&#10;  calculate: ({ yearEntries }) =&gt; {&#10;    const goal = 8000;&#10;    let streak = 0, max = 0;&#10;    yearEntries.forEach((e) =&gt; {&#10;      streak = e.value &gt;= goal ? streak + 1 : 0;&#10;      max = Math.max(max, streak);&#10;    });&#10;    return max.toString();&#10;  },&#10;}'
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code>{
+  name: &quot;Longest streak&quot;,
+  calculate: ({ yearEntries }) =&gt; {
+    const goal = 8000;
+    let streak = 0, max = 0;
+    yearEntries.forEach((e) =&gt; {
+      streak = e.value &gt;= goal ? streak + 1 : 0;
+      max = Math.max(max, streak);
+    });
+    return max.toString();
+  },
+}</code></pre>
+          </div>
+
+          <h3>🎯 Days you hit the goal</h3>
+          <p>
+            How many days cleared the bar — the number most people actually
+            want.
+          </p>
+          <div class="code">
+            <div class="code__bar">
+              <span>insights: [ … ]</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy='{&#10;  name: "Days at goal",&#10;  calculate: ({ yearEntries }) =&gt;&#10;    yearEntries.filter((e) =&gt; e.value &gt;= 8000).length.toString(),&#10;}'
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code>{
+  name: &quot;Days at goal&quot;,
+  calculate: ({ yearEntries }) =&gt;
+    yearEntries.filter((e) =&gt; e.value &gt;= 8000).length.toString(),
+}</code></pre>
+          </div>
+
+          <h3>🕳️ Longest gap</h3>
+          <p>
+            The longest run of days with nothing logged — where the habit broke.
+          </p>
+          <div class="code">
+            <div class="code__bar">
+              <span>insights: [ … ]</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy='{&#10;  name: "Longest gap",&#10;  calculate: ({ yearEntries }) =&gt; {&#10;    const dates = yearEntries&#10;      .map((e) =&gt; new Date(e.date).getTime())&#10;      .sort((a, b) =&gt; a - b);&#10;    let max = 0;&#10;    for (let i = 1; i &lt; dates.length; i++) {&#10;      const gap = (dates[i] - dates[i - 1]) / 86400000 - 1;&#10;      max = Math.max(max, gap);&#10;    }&#10;    return `${max} days`;&#10;  },&#10;}'
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code>{
+  name: &quot;Longest gap&quot;,
+  calculate: ({ yearEntries }) =&gt; {
+    const dates = yearEntries
+      .map((e) =&gt; new Date(e.date).getTime())
+      .sort((a, b) =&gt; a - b);
+    let max = 0;
+    for (let i = 1; i &lt; dates.length; i++) {
+      const gap = (dates[i] - dates[i - 1]) / 86400000 - 1;
+      max = Math.max(max, gap);
+    }
+    return `${max} days`;
+  },
+}</code></pre>
+          </div>
+
+          <h2 id="patterns">Patterns in time</h2>
+          <p>The grid hints at these; an insight states them.</p>
+
+          <h3>📅 Most active weekday</h3>
+          <p>
+            Which day of the week you log most often. Usually not the one you'd
+            guess.
+          </p>
+          <div class="code">
+            <div class="code__bar">
+              <span>insights: [ … ]</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy='{&#10;  name: "Most active weekday",&#10;  calculate: ({ yearEntries }) =&gt; {&#10;    const counts = {};&#10;    if (!yearEntries.length) return "No data";&#10;    yearEntries.forEach((e) =&gt; {&#10;      const day = new Date(e.date)&#10;        .toLocaleDateString("en-US", { weekday: "long" });&#10;      counts[day] = (counts[day] || 0) + 1;&#10;    });&#10;    return Object.entries(counts)&#10;      .reduce((a, b) =&gt; (b[1] &gt; a[1] ? b : a))[0];&#10;  },&#10;}'
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code>{
+  name: &quot;Most active weekday&quot;,
+  calculate: ({ yearEntries }) =&gt; {
+    const counts = {};
+    if (!yearEntries.length) return &quot;No data&quot;;
+    yearEntries.forEach((e) =&gt; {
+      const day = new Date(e.date)
+        .toLocaleDateString(&quot;en-US&quot;, { weekday: &quot;long&quot; });
+      counts[day] = (counts[day] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .reduce((a, b) =&gt; (b[1] &gt; a[1] ? b : a))[0];
+  },
+}</code></pre>
+          </div>
+
+          <h3>🥇 Most active month</h3>
+          <p>
+            The month you showed up most — seasonality you can't see in the grid
+            alone.
+          </p>
+          <div class="code">
+            <div class="code__bar">
+              <span>insights: [ … ]</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy='{&#10;  name: "Most active month",&#10;  calculate: ({ yearEntries }) =&gt; {&#10;    const months = {};&#10;    if (!yearEntries.length) return "No data";&#10;    yearEntries.forEach((e) =&gt; {&#10;      const m = new Date(e.date)&#10;        .toLocaleDateString("en-US", { month: "long" });&#10;      months[m] = (months[m] || 0) + (e.value || 0);&#10;    });&#10;    return Object.entries(months)&#10;      .reduce((a, b) =&gt; (b[1] &gt; a[1] ? b : a))[0];&#10;  },&#10;}'
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code>{
+  name: &quot;Most active month&quot;,
+  calculate: ({ yearEntries }) =&gt; {
+    const months = {};
+    if (!yearEntries.length) return &quot;No data&quot;;
+    yearEntries.forEach((e) =&gt; {
+      const m = new Date(e.date)
+        .toLocaleDateString(&quot;en-US&quot;, { month: &quot;long&quot; });
+      months[m] = (months[m] || 0) + (e.value || 0);
+    });
+    return Object.entries(months)
+      .reduce((a, b) =&gt; (b[1] &gt; a[1] ? b : a))[0];
+  },
+}</code></pre>
+          </div>
+
+          <h3>🏖️ Weekend vs weekday</h3>
+          <p>Whether your habit survives Saturday. Averages, side by side.</p>
+          <div class="code">
+            <div class="code__bar">
+              <span>insights: [ … ]</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy='{&#10;  name: "Weekend vs weekday",&#10;  calculate: ({ yearEntries }) =&gt; {&#10;    const avg = (list) =&gt;&#10;      list.length&#10;        ? list.reduce((s, e) =&gt; s + (e.value || 0), 0) / list.length&#10;        : 0;&#10;    const isWeekend = (e) =&gt; [0, 6].includes(new Date(e.date).getDay());&#10;    const we = avg(yearEntries.filter(isWeekend));&#10;    const wd = avg(yearEntries.filter((e) =&gt; !isWeekend(e)));&#10;    return `${wd.toFixed(1)} weekday · ${we.toFixed(1)} weekend`;&#10;  },&#10;}'
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code>{
+  name: &quot;Weekend vs weekday&quot;,
+  calculate: ({ yearEntries }) =&gt; {
+    const avg = (list) =&gt;
+      list.length
+        ? list.reduce((s, e) =&gt; s + (e.value || 0), 0) / list.length
+        : 0;
+    const isWeekend = (e) =&gt; [0, 6].includes(new Date(e.date).getDay());
+    const we = avg(yearEntries.filter(isWeekend));
+    const wd = avg(yearEntries.filter((e) =&gt; !isWeekend(e)));
+    return `${wd.toFixed(1)} weekday · ${we.toFixed(1)} weekend`;
+  },
+}</code></pre>
+          </div>
+
+          <h2 id="progress">Progress and consistency</h2>
+          <p>Whether this year is going anywhere.</p>
+
+          <h3>📈 Second half vs first</h3>
+          <p>
+            Are you trending up or coasting? Compares the two halves of the
+            year.
+          </p>
+          <div class="code">
+            <div class="code__bar">
+              <span>insights: [ … ]</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy='{&#10;  name: "Trend",&#10;  calculate: ({ yearEntries }) =&gt; {&#10;    const mid = new Date(yearEntries[0]?.date).getFullYear() + "-07-01";&#10;    const avg = (list) =&gt;&#10;      list.length&#10;        ? list.reduce((s, e) =&gt; s + (e.value || 0), 0) / list.length&#10;        : 0;&#10;    const h1 = avg(yearEntries.filter((e) =&gt; e.date &lt; mid));&#10;    const h2 = avg(yearEntries.filter((e) =&gt; e.date &gt;= mid));&#10;    const diff = h1 ? ((h2 - h1) / h1) * 100 : 0;&#10;    return `${diff &gt;= 0 ? "+" : ""}${diff.toFixed(0)}%`;&#10;  },&#10;}'
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code>{
+  name: &quot;Trend&quot;,
+  calculate: ({ yearEntries }) =&gt; {
+    const mid = new Date(yearEntries[0]?.date).getFullYear() + &quot;-07-01&quot;;
+    const avg = (list) =&gt;
+      list.length
+        ? list.reduce((s, e) =&gt; s + (e.value || 0), 0) / list.length
+        : 0;
+    const h1 = avg(yearEntries.filter((e) =&gt; e.date &lt; mid));
+    const h2 = avg(yearEntries.filter((e) =&gt; e.date &gt;= mid));
+    const diff = h1 ? ((h2 - h1) / h1) * 100 : 0;
+    return `${diff &gt;= 0 ? &quot;+&quot; : &quot;&quot;}${diff.toFixed(0)}%`;
+  },
+}</code></pre>
+          </div>
+
+          <h3>🗓️ Coverage of the year</h3>
+          <p>
+            What share of days you actually logged — the honest adherence
+            number.
+          </p>
+          <div class="code">
+            <div class="code__bar">
+              <span>insights: [ … ]</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy='{&#10;  name: "Days logged",&#10;  calculate: ({ yearEntries }) =&gt; {&#10;    if (!yearEntries.length) return "No data";&#10;    const year = new Date(yearEntries[0].date).getFullYear();&#10;    const days = new Date(year, 1, 29).getDate() === 29 ? 366 : 365;&#10;    const pct = (yearEntries.length / days) * 100;&#10;    return `${yearEntries.length} / ${days} (${pct.toFixed(0)}%)`;&#10;  },&#10;}'
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code>{
+  name: &quot;Days logged&quot;,
+  calculate: ({ yearEntries }) =&gt; {
+    if (!yearEntries.length) return &quot;No data&quot;;
+    const year = new Date(yearEntries[0].date).getFullYear();
+    const days = new Date(year, 1, 29).getDate() === 29 ? 366 : 365;
+    const pct = (yearEntries.length / days) * 100;
+    return `${yearEntries.length} / ${days} (${pct.toFixed(0)}%)`;
+  },
+}</code></pre>
+          </div>
+
+          <h3>📉 Intensity distribution</h3>
+          <p>How many days land on each color of your scale, as one line.</p>
+          <div class="code">
+            <div class="code__bar">
+              <span>insights: [ … ]</span
+              ><button
+                class="copy"
+                type="button"
+                data-copy='{&#10;  name: "Distribution",&#10;  calculate: ({ yearEntries }) =&gt; {&#10;    const dist = {};&#10;    yearEntries.forEach((e) =&gt; {&#10;      const i = Number(e.intensity) || 0;&#10;      dist[i] = (dist[i] || 0) + 1;&#10;    });&#10;    return Object.entries(dist)&#10;      .map(([i, count]) =&gt; `L${i}: ${count}`)&#10;      .join(" · ");&#10;  },&#10;}'
+              >
+                Copy
+              </button>
+            </div>
+            <pre><code>{
+  name: &quot;Distribution&quot;,
+  calculate: ({ yearEntries }) =&gt; {
+    const dist = {};
+    yearEntries.forEach((e) =&gt; {
+      const i = Number(e.intensity) || 0;
+      dist[i] = (dist[i] || 0) + 1;
+    });
+    return Object.entries(dist)
+      .map(([i, count]) =&gt; `L${i}: ${count}`)
+      .join(&quot; · &quot;);
+  },
+}</code></pre>
+          </div>
+
+          <h2 id="rules">Rules worth knowing</h2>
+          <ul>
+            <li>
+              <b>Return a string.</b> A number renders as nothing. End with
+              <code>.toString()</code>, <code>.toFixed(1)</code> or a template
+              literal.
+            </li>
+            <li>
+              <b>Handle the empty year.</b> Switch to a year with no data and
+              <code>yearEntries</code> is <code>[]</code> —
+              <code>reduce</code> without an initial value throws there. Return
+              <code>"No data"</code> early.
+            </li>
+            <li>
+              <b
+                ><code>value</code> for totals, <code>intensity</code> for
+                buckets.</b
+              >
+              <code>value</code> is your raw number; <code>intensity</code> is
+              the color level it landed on.
+            </li>
+            <li>
+              <b>Only the displayed year.</b> Paging to another year
+              recalculates every insight against that year's entries — the
+              numbers follow the grid.
+            </li>
+            <li>
+              <b>Missing days are absent, not zero.</b> Entries exist only for
+              days you logged, so an average is over logged days unless you
+              divide by the calendar yourself.
+            </li>
+            <li>
+              <b>Keep it cheap.</b> It runs on every render. A pass or two over
+              a few hundred entries is nothing; anything heavier is felt.
+            </li>
+          </ul>
+
+          <h2 id="faq">FAQ</h2>
+          <h3>What is an insight in Heatmap Tracker?</h3>
+          <p>
+            An insight is a named function you add to trackerData.insights. It
+            receives that year&#x27;s entries and returns a string, which the
+            plugin renders in the Statistics tab next to the built-in totals and
+            streaks.
+          </p>
+          <h3>Do I need Dataview to use insights?</h3>
+          <p>
+            You need a dataviewjs block, because an insight is a JavaScript
+            function and a heatmap-tracker codeblock can only hold YAML values.
+            The heatmap itself works without any script.
+          </p>
+          <h3>What data does an insight get?</h3>
+          <p>
+            One argument, { yearEntries }: the entries for the currently
+            displayed year. Each entry has date (YYYY-MM-DD), value (the number
+            read from your note), intensity (the mapped color level) and
+            filePath.
+          </p>
+          <h3>Why does my insight show nothing or break the heatmap?</h3>
+          <p>
+            An insight must return a string. Returning a number or undefined
+            shows nothing, and a throw during calculation stops that insight
+            rendering — guard the empty case, for example by returning &quot;No
+            data&quot; when yearEntries is empty, and call toString() or
+            toFixed() on numbers.
+          </p>
+          <h3>Can an insight use value or does it have to use intensity?</h3>
+          <p>
+            Both are available. value is the raw number from your note,
+            intensity is the level it was mapped to on the color scale, so
+            totals and averages normally use value while distribution-style
+            insights use intensity.
+          </p>
+          <h3>How many insights can one heatmap have?</h3>
+          <p>
+            There is no limit; insights is an array and each entry becomes its
+            own line in the Statistics tab. They are recalculated when the
+            heatmap renders and when you switch years.
+          </p>
+        </article>
+
+        <section class="doc__cta">
+          <h2>Get the plugin</h2>
+          <p>
+            Heatmap Tracker is a free, open-source Obsidian community plugin.
+            Install it from <b>Settings → Community plugins → Browse</b>, or
+            open the plugin page directly. Every insight above also ships as a
+            note in the
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker/tree/main/EXAMPLE_VAULT/Documentation%20with%20Examples/4.%20Insights"
+              rel="noopener"
+              >example vault</a
+            >.
+          </p>
+          <p>
+            <a
+              class="btn btn--primary"
+              href="https://obsidian.md/plugins?id=heatmap-tracker"
+              >Install Heatmap Tracker</a
+            >
+            <a
+              class="btn btn--ghost"
+              href="https://github.com/mokkiebear/heatmap-tracker#insights"
+              rel="noopener"
+              >Parameter reference</a
+            >
+          </p>
+        </section>
+
+        <nav class="related" aria-label="Related guides">
+          <h2>Keep reading</h2>
+          <a href="obsidian-habit-tracker.html"
+            >Habit tracker<span
+              >Turn daily-note frontmatter into a streak you can see.</span
+            ></a
+          >
+          <a href="obsidian-heatmap-dataview.html"
+            >Dataview heatmaps<span
+              >Build the entries array yourself with dataviewjs.</span
+            ></a
+          >
+          <a href="obsidian-contribution-graph.html"
+            >Contribution graph<span
+              >GitHub's grid, drawn from your own notes.</span
+            ></a
+          >
+        </nav>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="shell footer__inner">
+        <div class="footer__brand">
+          <a class="brand" href="../">
+            <img src="../assets/img/logo.svg" alt="" width="24" height="24" />
+            <span>Heatmap Tracker</span>
+          </a>
+          <p class="muted">
+            An Obsidian plugin by
+            <a href="https://github.com/mokkiebear" rel="noopener"
+              >Maksim Rubanau</a
+            >. Apache-2.0. Obsidian is a trademark of Dynalist Inc.; this
+            project is not affiliated with it.
+          </p>
+        </div>
+        <nav class="footer__cols" aria-label="Footer">
+          <div>
+            <h3>Product</h3>
+            <a href="../#features">Features</a>
+            <a href="../#usecases">Use cases</a>
+            <a href="../#export">Export</a>
+            <a href="../#compare">Comparison</a>
+          </div>
+          <div>
+            <h3>Guides</h3>
+            <a href="obsidian-habit-tracker.html">Habit tracker</a>
+            <a href="obsidian-heatmap-dataview.html">Dataview heatmaps</a>
+            <a href="obsidian-contribution-graph.html">Contribution graph</a>
+            <a href="obsidian-heatmap-insights.html">Custom statistics</a>
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker#readme"
+              rel="noopener"
+              >Full README</a
+            >
+          </div>
+          <div>
+            <h3>Project</h3>
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker"
+              rel="noopener"
+              >GitHub</a
+            >
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker/issues/new/choose"
+              rel="noopener"
+              >Report an issue</a
+            >
+            <a
+              href="https://github.com/mokkiebear/heatmap-tracker/blob/main/CONTRIBUTING.md"
+              rel="noopener"
+              >Contributing</a
+            >
+            <a href="https://www.buymeacoffee.com/mrubanau" rel="noopener"
+              >Support</a
+            >
+          </div>
+        </nav>
+      </div>
+    </footer>
+
+    <script src="../assets/js/main.js" defer></script>
+  </body>
+</html>

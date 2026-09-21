@@ -1313,6 +1313,12 @@ img {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
+@media (min-width: 760px) {
+  .grid--guides {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .guide-card {
   display: block;
   text-decoration: none;
