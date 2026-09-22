@@ -35,6 +35,11 @@ export interface Fixture {
   note: string;
   trackerData: Record<string, unknown>;
   settings?: Partial<TrackerSettings>;
+  /**
+   * Caps the mount's width, for fixtures whose whole point is how the grid
+   * behaves in a pane narrower than the window (phone, sidebar, split view).
+   */
+  maxWidth?: number;
 }
 
 export const fixtures: Fixture[] = [
@@ -58,6 +63,18 @@ export const fixtures: Fixture[] = [
       heatmapTitle: "Monthly layout",
       entries: entries(2024, { skipEvery: 5 }),
     },
+  },
+  {
+    id: "monthly-narrow",
+    title: "Monthly layout, narrow pane",
+    note: "The monthly grid inside a ~300px pane (phone, or a note in the sidebar). Its 31 columns used to be squeezed to ~6px each, which turned the cells into dots and wrapped the two-digit day numbers one digit per line. The columns now have a floor and the grid scrolls sideways, with the month label sticky. Resize the browser or narrow the pane to check it.",
+    trackerData: {
+      year: 2024,
+      layout: "monthly",
+      heatmapTitle: "Monthly (narrow)",
+      entries: entries(2024, { skipEvery: 5 }),
+    },
+    maxWidth: 300,
   },
   {
     id: "separated",

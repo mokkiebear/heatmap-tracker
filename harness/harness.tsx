@@ -32,7 +32,12 @@ if (!root) {
 }
 
 /** A titled section with an empty mount point, appended to the page. */
-function addSection(title: string, note: string, id?: string): HTMLDivElement {
+function addSection(
+  title: string,
+  note: string,
+  id?: string,
+  maxWidth?: number,
+): HTMLDivElement {
   const section = document.createElement("section");
   section.className = "harness-fixture";
   if (id) section.id = `fixture-${id}`;
@@ -46,6 +51,9 @@ function addSection(title: string, note: string, id?: string): HTMLDivElement {
 
   const mount = document.createElement("div");
   mount.className = "harness-mount";
+  // Narrow-pane fixtures: the grid has to see a small container, not a small
+  // window, since that is what a sidebar or split view actually gives it.
+  if (maxWidth) mount.style.maxWidth = `${maxWidth}px`;
 
   section.append(heading, noteEl, mount);
   root!.append(section);
@@ -55,7 +63,12 @@ function addSection(title: string, note: string, id?: string): HTMLDivElement {
 
 for (const fixture of fixtures) {
   renderApp(
-    addSection(fixture.title, fixture.note, fixture.id) as HTMLDivElement,
+    addSection(
+      fixture.title,
+      fixture.note,
+      fixture.id,
+      fixture.maxWidth,
+    ) as HTMLDivElement,
     app,
     { ...harnessSettings, ...fixture.settings },
     fixture.trackerData,
