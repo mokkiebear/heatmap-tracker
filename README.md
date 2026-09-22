@@ -239,6 +239,8 @@ renderHeatmapTracker(this.container, trackerData);
 2. Otherwise, if `trackerData.basePath` is set, it proposes creating/opening `basePath/YYYY-MM-DD.md`.
 3. Otherwise it falls back to your **Daily Notes** settings (folder + format) via the Daily Notes API.
 
+The note opens in the active tab; `Cmd`/`Ctrl` + click opens it in a new one, as elsewhere in Obsidian.
+
 > [!NOTE]
 > `dataviewjs` requires **Dataview → Settings → Enable JavaScript Queries**. The plugin also works standalone with any JavaScript that can build an `entries` array — Dataview is just the most convenient source.
 

@@ -78,7 +78,7 @@ describe("heatmapBox utils", () => {
       );
       expect(mockOpenAndAwait).toHaveBeenCalled();
       expect(mockVault.create).toHaveBeenCalledWith("folder/test.md", "");
-      expect(mockWorkspace.getLeaf).toHaveBeenCalledWith(true);
+      expect(mockWorkspace.getLeaf).toHaveBeenCalledWith(false);
       expect(mockLeaf.openFile).toHaveBeenCalledWith(mockFile);
       expect(result).toBe(true);
     });
@@ -129,6 +129,17 @@ describe("heatmapBox utils", () => {
           "path/to/file.md",
         );
         expect(mockLeaf.openFile).toHaveBeenCalledWith(mockFile);
+      });
+
+      it("should reuse the active tab by default and open a new one on Cmd/Ctrl-click", async () => {
+        const mockFile = new TFile();
+        mockVault.getAbstractFileByPath.mockReturnValue(mockFile);
+
+        await handleBoxClick(boxWithFile, app, {} as any);
+        expect(mockWorkspace.getLeaf).toHaveBeenLastCalledWith(false);
+
+        await handleBoxClick(boxWithFile, app, {} as any, true);
+        expect(mockWorkspace.getLeaf).toHaveBeenLastCalledWith(true);
       });
 
       it("should return if file missing and creation disabled", async () => {

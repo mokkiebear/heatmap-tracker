@@ -23,10 +23,19 @@ import { notify } from "src/utils/notify";
 import { ConfirmModal } from "src/modals/ConfirmModal";
 
 /**
- * Opens a file in a new leaf.
+ * Opens a file, in a new tab only when `newTab` is set.
+ *
+ * Boxes that render as an anchor (`filePath`/`customHref`) are opened by
+ * Obsidian itself, which honours the modifier key: plain click reuses the
+ * active tab, Cmd/Ctrl-click opens a new one. This path exists for the boxes
+ * without a link target, so it follows the same convention.
  */
-export async function openFileInLeaf(app: App, file: TFile): Promise<void> {
-  const leaf = app.workspace.getLeaf(true);
+export async function openFileInLeaf(
+  app: App,
+  file: TFile,
+  newTab = false,
+): Promise<void> {
+  const leaf = app.workspace.getLeaf(newTab);
   await leaf.openFile(file);
 }
 
@@ -42,6 +51,7 @@ export async function createNewFile(
   app: App,
   fileName: string,
   path: string,
+  newTab = false,
 ): Promise<boolean> {
   const shouldCreate = await new ConfirmModal(
     app,
@@ -56,7 +66,7 @@ export async function createNewFile(
     const createdFile = await app.vault.create(path, "");
 
     if (createdFile) {
-      await openFileInLeaf(app, createdFile);
+      await openFileInLeaf(app, createdFile, newTab);
     }
   } catch (error) {
     // `vault.create` rejects when the parent folder doesn't exist or the path
@@ -76,11 +86,12 @@ async function handleFileOpen(
   filePath: string,
   date: moment.Moment,
   trackerData: TrackerData,
+  newTab: boolean,
 ): Promise<boolean> {
   const abstract = app.vault.getAbstractFileByPath(filePath);
 
   if (abstract && abstract instanceof TFile) {
-    await openFileInLeaf(app, abstract);
+    await openFileInLeaf(app, abstract, newTab);
     return true;
   }
 
@@ -88,7 +99,7 @@ async function handleFileOpen(
     return true; // Handled by doing nothing
   }
 
-  return await createNewFile(app, date.format("YYYY-MM-DD"), filePath);
+  return await createNewFile(app, date.format("YYYY-MM-DD"), filePath, newTab);
 }
 
 /**
@@ -103,11 +114,18 @@ async function tryOpenExplicitFile(
   app: App,
   box: Box,
   trackerData: TrackerData,
+  newTab: boolean,
 ): Promise<boolean> {
   if (!box?.filePath) {
     return false;
   }
-  await handleFileOpen(app, box.filePath, moment(box.date), trackerData);
+  await handleFileOpen(
+    app,
+    box.filePath,
+    moment(box.date),
+    trackerData,
+    newTab,
+  );
   return true;
 }
 
@@ -123,6 +141,7 @@ async function tryOpenBasePathFile(
   app: App,
   date: moment.Moment,
   trackerData: TrackerData,
+  newTab: boolean,
 ): Promise<boolean> {
   if (!trackerData?.basePath) {
     return false;
@@ -133,7 +152,7 @@ async function tryOpenBasePathFile(
     normalizedBase ? normalizedBase + "/" : ""
   }${date.format("YYYY-MM-DD")}.md`;
 
-  await handleFileOpen(app, expectedPath, date, trackerData);
+  await handleFileOpen(app, expectedPath, date, trackerData, newTab);
   return true;
 }
 
@@ -149,13 +168,14 @@ async function tryOpenDailyNote(
   app: App,
   date: moment.Moment,
   trackerData: TrackerData,
+  newTab: boolean,
 ): Promise<boolean> {
   try {
     const allDailyNotes = getAllDailyNotes();
     const existing = getDailyNote(date, allDailyNotes);
 
     if (existing) {
-      await openFileInLeaf(app, existing);
+      await openFileInLeaf(app, existing, newTab);
       return true;
     }
 
@@ -181,7 +201,7 @@ async function tryOpenDailyNote(
     const created = await createDailyNote(date);
     if (created) {
       // @ts-ignore Obsidian API at runtime supports openFile(TFile)
-      await openFileInLeaf(app, created);
+      await openFileInLeaf(app, created, newTab);
     }
 
     return true;
@@ -203,12 +223,13 @@ async function tryOpenFallbackFile(
   app: App,
   date: moment.Moment,
   trackerData: TrackerData,
+  newTab: boolean,
 ): Promise<void> {
   const fileName = `${date.format("YYYY-MM-DD")}.md`;
   const file = app.vault.getFiles().find((f) => f.name === fileName);
 
   if (file) {
-    await openFileInLeaf(app, file);
+    await openFileInLeaf(app, file, newTab);
     return;
   }
 
@@ -216,7 +237,7 @@ async function tryOpenFallbackFile(
     return;
   }
 
-  await createNewFile(app, fileName, fileName);
+  await createNewFile(app, fileName, fileName, newTab);
   notify(
     `* Heatmap Tracker *\nWe tried to create/open a Daily Note, but something went wrong.\nTry to use:\n- 'filePath' for entry (page.file.path)\n- 'basePath' for trackerData object\n- 'customHref' to set a custom link\n- use 'daily notes' Obsidian's plugin`,
     5000,
@@ -234,11 +255,13 @@ async function tryOpenFallbackFile(
  * @param box - The box data.
  * @param app - The Obsidian App instance.
  * @param trackerData - The tracker settings.
+ * @param newTab - Open in a new tab (Cmd/Ctrl-click) instead of reusing the active one.
  */
 export async function handleBoxClick(
   box: Box,
   app: App,
   trackerData: TrackerData,
+  newTab = false,
 ) {
   if (!box?.date) {
     return;
@@ -257,22 +280,22 @@ export async function handleBoxClick(
 
   try {
     // 1) If box has an explicit filePath, try to open that exact file
-    if (await tryOpenExplicitFile(app, box, trackerData)) {
+    if (await tryOpenExplicitFile(app, box, trackerData, newTab)) {
       return;
     }
 
     // 2) If trackerData has a basePath, suggest creating there using the date-based filename
-    if (await tryOpenBasePathFile(app, date, trackerData)) {
+    if (await tryOpenBasePathFile(app, date, trackerData, newTab)) {
       return;
     }
 
     // 3) Fallback to Daily Notes API (uses its folder/format)
-    if (await tryOpenDailyNote(app, date, trackerData)) {
+    if (await tryOpenDailyNote(app, date, trackerData, newTab)) {
       return;
     }
 
     // 4) Final fallback
-    await tryOpenFallbackFile(app, date, trackerData);
+    await tryOpenFallbackFile(app, date, trackerData, newTab);
     // A rejected promise from a click handler is invisible: the box would just
     // appear to do nothing.
   } catch (error) {

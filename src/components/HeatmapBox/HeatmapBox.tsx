@@ -1,4 +1,4 @@
-import { KeyboardEvent, ReactNode, useMemo } from "react";
+import { KeyboardEvent, MouseEvent, ReactNode, useMemo } from "react";
 import { useTranslation } from "src/localization/useTranslation";
 import { Box } from "src/types";
 
@@ -80,14 +80,19 @@ export function HeatmapBox({ box }: HeatmapBoxProps) {
       : `${box.date}, ${t("box.noData")}`;
   }, [box.date, box.value, t]);
 
-  function onBoxClick() {
+  function onBoxClick(event: MouseEvent<HTMLDivElement> | KeyboardEvent) {
     if (linkTarget) {
       return;
     }
 
+    // Same convention as Obsidian's own links (and as the anchor boxes, which
+    // Obsidian opens itself): plain click reuses the active tab, Cmd/Ctrl-click
+    // opens a new one.
+    const newTab = event.metaKey || event.ctrlKey;
+
     // handleBoxClick catches its own failures and notifies the user, so there
     // is nothing left to handle here.
-    void handleBoxClick(box, app, trackerData);
+    void handleBoxClick(box, app, trackerData, newTab);
   }
 
   function onBoxKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -97,7 +102,7 @@ export function HeatmapBox({ box }: HeatmapBoxProps) {
 
     // Space scrolls the note otherwise.
     event.preventDefault();
-    onBoxClick();
+    onBoxClick(event);
   }
 
   // When the box links somewhere, the anchor is the real control: giving the

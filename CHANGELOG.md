@@ -5,6 +5,9 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Changed
+- Clicking a square now opens the note in the active tab, with `Cmd`/`Ctrl` + click for a new one ([#113](https://github.com/mokkiebear/heatmap-tracker/issues/113)). It always forced a new tab before, which broke back/forward navigation. Squares that carry a `filePath` or `customHref` already behaved this way — Obsidian handles those links itself.
+
 ### Added
 - A fourth website guide, [Custom statistics for your Obsidian heatmap](https://mokkiebear.github.io/heatmap-tracker/guides/obsidian-heatmap-insights.html): twelve copy-paste `insights` (longest streak, days at goal, most active weekday, weekend vs weekday, year coverage, longest gap, trend, intensity distribution), the `{ yearEntries }` API, and the rules for writing your own. Linked from the landing page, the other guides, `sitemap.xml` and `llms.txt`.
 
