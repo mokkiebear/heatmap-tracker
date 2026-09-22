@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.13.2] - 2026-09-22
+
 ### Fixed
 - The monthly layout is usable in a narrow pane again (phone, sidebar, split view). Its 31 columns had no minimum width, so below ~400px the cells shrank to a few pixels — a row of dots — and the two-digit day numbers above them wrapped one digit per line. Columns now have a floor and the grid scrolls sideways instead, with the month label staying pinned to the left. Nothing changes at desktop width, where the cells still stretch to fill the pane.
 
