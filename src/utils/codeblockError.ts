@@ -71,7 +71,7 @@ function append<K extends keyof HTMLElementTagNameMap>(
   tag: K,
   options: { cls?: string; text?: string; href?: string } = {},
 ): HTMLElementTagNameMap[K] {
-  const element = document.createElement(tag);
+  const element = parent.createEl(tag);
 
   if (options.cls) element.className = options.cls;
   if (options.text) element.textContent = options.text;
@@ -79,7 +79,6 @@ function append<K extends keyof HTMLElementTagNameMap>(
     element.href = options.href;
   }
 
-  parent.appendChild(element);
   return element;
 }
 

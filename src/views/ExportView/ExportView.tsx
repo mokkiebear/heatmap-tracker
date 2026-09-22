@@ -13,6 +13,7 @@ import {
 } from "src/utils/date";
 import { openFileInLeaf } from "src/utils/heatmapBox";
 import { trimSlashes } from "src/utils/path";
+import { asyncHandler } from "src/utils/asyncHandler";
 import { formatGeneratedAt } from "src/utils/report/dateLabels";
 import { readNoteBodies } from "src/utils/report/noteBody";
 import {
@@ -758,11 +759,11 @@ function ExportView() {
             <button
               className="mod-cta"
               disabled={isLoading}
-              onClick={handleSaveMarkdown}
+              onClick={asyncHandler(handleSaveMarkdown)}
             >
               {t("report.saveMarkdown")}
             </button>
-            <button disabled={isLoading} onClick={handleSaveHtml}>
+            <button disabled={isLoading} onClick={asyncHandler(handleSaveHtml)}>
               {t("report.saveHtml")}
             </button>
             <label className="heatmap-export__folder-label">

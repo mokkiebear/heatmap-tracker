@@ -9,6 +9,7 @@ import {
 
 import { HeatmapModal } from "src/modals/HeatmapModal";
 import { TrackerSettings } from "src/types";
+import { asyncHandler } from "src/utils/asyncHandler";
 
 /**
  * Replaces the body of the codeblock this element was rendered from.
@@ -67,7 +68,7 @@ export function renderEditButton(
     new HeatmapModal(
       app,
       settings,
-      async (result) => {
+      asyncHandler(async (result: Record<string, unknown>) => {
         const written = await writeCodeblockBody(
           app,
           ctx,
@@ -79,7 +80,7 @@ export function renderEditButton(
             "Heatmap Tracker: could not locate this codeblock to update it.",
           );
         }
-      },
+      }),
       params,
     ).open();
   });

@@ -2,10 +2,10 @@ import { ZodError } from "zod";
 import { TrackerDataSchema } from "./trackerData.schema";
 import { TrackerData } from "src/types";
 
-// простой "левенштейн" для подсказок по опечаткам
+// Levenshtein distance, used to suggest the intended key on a typo.
 function levenshtein(a: string, b: string): number {
   const dp: number[][] = Array.from({ length: a.length + 1 }, () =>
-    Array(b.length + 1).fill(0),
+    Array.from<number>({ length: b.length + 1 }).fill(0),
   );
 
   for (let i = 0; i <= a.length; i++) dp[i][0] = i;

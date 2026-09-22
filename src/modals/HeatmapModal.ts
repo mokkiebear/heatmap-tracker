@@ -110,10 +110,11 @@ class ChipList {
     dropdown.addOption("", "Add...");
 
     const values = this.options.getValues();
-    this.options
+    for (const suggestion of this.options
       .getSuggestions()
-      .filter((s) => !values.includes(s))
-      .forEach((s) => dropdown.addOption(s, s));
+      .filter((s) => !values.includes(s))) {
+      dropdown.addOption(suggestion, suggestion);
+    }
     dropdown.setValue("");
   }
 

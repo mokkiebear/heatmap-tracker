@@ -24,6 +24,7 @@ import { getRenderHeatmapTracker } from "./render";
 import { DEFAULT_SETTINGS } from "./constants/defaultSettings";
 import { HeatmapModal } from "./modals/HeatmapModal";
 import { renderEditButton } from "./utils/editCodeblock";
+import { asyncHandler } from "./utils/asyncHandler";
 
 declare global {
   interface Window {
@@ -53,13 +54,16 @@ export default class HeatmapTrackerPlugin extends Plugin {
 
     this.addCommand({
       id: "insert-heatmap-tracker",
-      name: "Insert Heatmap Tracker",
+      // No "Heatmap Tracker" in the name: Obsidian already shows the plugin
+      // name next to the command. The id keeps its historical value — changing
+      // it would silently drop users' existing hotkey bindings.
+      name: "Insert heatmap",
       editorCallback: () => this.openInsertModal(),
     });
 
     // The modal is the primary way to use the plugin, so it gets a one-click
     // entry point rather than only living behind the command palette.
-    this.addRibbonIcon("calendar-days", "Insert Heatmap Tracker", () => {
+    this.addRibbonIcon("calendar-days", "Insert heatmap", () => {
       if (!this.app.workspace.getActiveViewOfType(MarkdownView)) {
         new Notice("Open a note in edit mode to insert a heatmap.");
         return;
@@ -77,10 +81,13 @@ export default class HeatmapTrackerPlugin extends Plugin {
         // Every failure below used to end in console.warn, which left the
         // reader looking at an empty space with no way to tell a broken
         // codeblock from a vault with no data in it yet.
-        let params: any;
+        // The codeblock carries `TrackerParams` (which drive the Dataview
+        // query) plus any `TrackerData` field the user set; the rest of
+        // `TrackerData` is filled in by `mergeTrackerData` downstream.
+        let params: TrackerParams & Record<string, unknown>;
 
         try {
-          params = parseYaml(source) as TrackerParams;
+          params = parseYaml(source) as TrackerParams & Record<string, unknown>;
         } catch (e) {
           renderCodeblockIssue(el, {
             kind: "invalid-yaml",
@@ -126,10 +133,10 @@ export default class HeatmapTrackerPlugin extends Plugin {
           );
 
           // Append codeblock parameters to TrackerData object
-          const trackerData: TrackerData = {
+          const trackerData = {
             entries,
             ...params,
-          };
+          } as unknown as TrackerData;
 
           if (window.renderHeatmapTracker) {
             // Append codeblock parameters to TrackerSettings object
@@ -159,7 +166,7 @@ export default class HeatmapTrackerPlugin extends Plugin {
     window.renderHeatmapTracker = getRenderHeatmapTracker(
       this.app,
       this.settings,
-      () => this.saveSettings(),
+      asyncHandler(() => this.saveSettings()),
     );
   }
 

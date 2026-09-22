@@ -106,8 +106,10 @@ function mergeIntoDay(existing: Entry | undefined, entry: Entry): Entry {
   return {
     ...existing,
     intensity: (existing.intensity || 0) + (entry.intensity || 0),
+    // Two strings are joined; an HTMLElement can't be concatenated without
+    // stringifying it to "[object HTMLDivElement]", so the first one wins.
     content:
-      existing.content && entry.content
+      typeof existing.content === "string" && typeof entry.content === "string"
         ? `${existing.content}\n${entry.content}`
         : existing.content || entry.content,
     // Only one glyph fits in a box, so the first one set for the day wins —

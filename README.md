@@ -85,7 +85,7 @@ Heatmap Tracker uses [**Dataview**](https://blacksmithgu.github.io/obsidian-data
 
 Install [BRAT](https://github.com/TfTHacker/obsidian42-brat), then run **BRAT: Add a beta plugin for testing** and enter `mokkiebear/heatmap-tracker`.
 
-**Requirements:** Obsidian 0.1.0+, desktop and mobile, Dataview plugin.
+**Requirements:** Obsidian 1.4.0+, desktop and mobile, Dataview plugin.
 
 ---
 

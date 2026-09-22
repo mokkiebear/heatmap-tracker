@@ -32,7 +32,7 @@ export function renderApp(
   );
 
   try {
-    trackerData = validateTrackerData(trackerData) as TrackerData;
+    trackerData = validateTrackerData(trackerData);
   } catch (e) {
     notify((e as Error).message, 0);
   }

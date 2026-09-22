@@ -95,21 +95,45 @@ function pageHasAnyTag(page: Record<string, Literal>, tags: string[]): boolean {
   return tags.some((tag) => pageTags.includes(normalizeTag(tag)));
 }
 
+/**
+ * Dataview values are not all strings: a link or a date is an object. Those
+ * define a useful `toString()`, but a plain object does not — stringifying it
+ * yields "[object Object]", which would then match any filter containing
+ * "object". Such values simply don't compare.
+ */
+function toComparable(value: unknown): string | undefined {
+  if (value === undefined || value === null) return "";
+
+  if (typeof value === "object") {
+    // Comparing the object's own `toString` against the inherited one avoids
+    // ever *calling* the inherited one, which is what produces the useless
+    // "[object Object]".
+    const { toString } = value as { toString: () => string };
+    if (toString === Object.prototype.toString) return undefined;
+    return toString.call(value);
+  }
+
+  // Objects returned above, so what's left is a primitive and stringifies to
+  // something meaningful. The rule can't narrow `unknown` down to that.
+  // eslint-disable-next-line @typescript-eslint/no-base-to-string -- narrowed to a primitive by the guards above.
+  return String(value);
+}
+
 function matchesFilter(value: unknown, filter: FilterCondition): boolean {
   switch (filter.operator) {
     case "notEmpty":
       if (Array.isArray(value)) return value.length > 0;
       return value !== undefined && value !== null && value !== "";
     case "equals":
-      return String(value ?? "") === (filter.value ?? "");
+      return toComparable(value) === (filter.value ?? "");
     case "contains": {
       const needle = (filter.value ?? "").toLowerCase();
       if (Array.isArray(value)) {
-        return value.some((v) => String(v).toLowerCase().includes(needle));
+        return value.some((v) =>
+          (toComparable(v) ?? "").toLowerCase().includes(needle),
+        );
       }
-      return String(value ?? "")
-        .toLowerCase()
-        .includes(needle);
+      return (toComparable(value) ?? "").toLowerCase().includes(needle);
     }
     default:
       return true;

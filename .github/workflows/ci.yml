@@ -36,6 +36,12 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # The rules Obsidian's community-directory review runs against a release.
+      # Errors fail the build; warnings (deprecated settings API, sentence-case
+      # nits) are reported but tolerated.
+      - name: Lint (Obsidian plugin guidelines)
+        run: npm run lint:obsidian
+
       - name: Format check
         run: npm run format:check
 

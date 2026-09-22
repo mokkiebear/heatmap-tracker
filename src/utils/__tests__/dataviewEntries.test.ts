@@ -290,6 +290,23 @@ describe("buildEntriesFromDataview", () => {
       ]);
     });
 
+    it("does not match a plain object against a filter (no '[object Object]')", () => {
+      // Dataview hands back objects for some frontmatter shapes. Stringifying
+      // one yields "[object Object]", which used to match any filter whose
+      // value was a substring of it — "object", "ob", "ject".
+      const dv = makeDv([
+        makePage("2026-01-01", { exercise: 10, meta: { nested: true } }),
+        makePage("2026-01-02", { exercise: 5, meta: "object" }),
+      ]);
+
+      const entries = buildEntriesFromDataview(dv as any, {
+        property: "exercise",
+        filters: [{ property: "meta", operator: "contains", value: "object" }],
+      });
+
+      expect(entries.map((e) => e.date)).toEqual(["2026-01-02"]);
+    });
+
     it("supports 'notEmpty'", () => {
       const dv = makeDv([
         makePage("2026-01-01", { exercise: 10, notes: "hi" }),

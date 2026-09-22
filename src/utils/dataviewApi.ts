@@ -75,11 +75,13 @@ export async function resolveDataviewApi(
       offref?: (ref: unknown) => void;
     };
 
-    const timer = setTimeout(finish, timeoutMs);
+    // `window.` prefix: plugin code can run inside a popout window, whose
+    // globals are a different realm than the main window's.
+    const timer = window.setTimeout(finish, timeoutMs);
     let ref: unknown;
 
     function finish() {
-      clearTimeout(timer);
+      window.clearTimeout(timer);
       if (ref) cache.offref?.(ref);
       resolve();
     }

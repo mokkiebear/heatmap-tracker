@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Fixed
+- A filter (`filters:`) no longer matches a frontmatter value that Dataview hands back as a plain object. Such a value used to be stringified to `[object Object]`, so `contains: "object"` matched every note that had the key at all.
+- Merging two entries for the same day no longer concatenates an `HTMLElement` `content` into the string `"[object HTMLDivElement]"`; the first element wins and only two strings are joined.
+- Async button handlers in the settings tab, the edit-codeblock pencil and the Export view now report failures with a Notice instead of a silent unhandled rejection — a failed save used to look like a button that did nothing.
+- Timers use `window.setTimeout`/`window.clearTimeout`, so waiting for Dataview works in a popout window.
+
+### Changed
+- `minAppVersion` is now `1.4.0`, which is the truth: the plugin calls `Vault.process`, `Vault.createFolder`, `CachedMetadata.frontmatterPosition` and `ButtonComponent.setDisabled`, all newer than the `1.0.0` the manifest claimed. On an older Obsidian these failed at runtime rather than being caught at install time.
+- The command and ribbon entry are named "Insert heatmap" rather than "Insert Heatmap Tracker" — Obsidian already shows the plugin name next to a command. The command *id* is unchanged, so existing hotkeys keep working.
+- Release assets carry GitHub build-provenance attestations, verifiable with `gh attestation verify main.js -R mokkiebear/heatmap-tracker`.
+
+### Internal
+- `npm run lint:obsidian` runs `eslint-plugin-obsidianmd`, the rule set behind the community directory's automated review, and it runs in CI so a release can't regress on it.
 
 ## [2.12.1] - 2026-09-22
 ### Changed

@@ -5,9 +5,13 @@ on:
     tags:
       - "*"
 
-# `gh release create` needs write access to contents; nothing else is granted.
+# `gh release create` needs write access to contents; `attestations: write` and
+# `id-token: write` let the build sign the released files so anyone can verify
+# they came from this workflow (`gh attestation verify main.js -R mokkiebear/heatmap-tracker`).
 permissions:
   contents: write
+  attestations: write
+  id-token: write
 
 jobs:
   build:
@@ -45,6 +49,14 @@ jobs:
           fi
 
           cat RELEASE_NOTES.md
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: |
+            build/main.js
+            build/manifest.json
+            build/styles.css
 
       - name: Create release
         env:

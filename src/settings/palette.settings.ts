@@ -3,6 +3,7 @@ import i18n from "src/localization/i18n";
 import HeatmapTracker from "src/main";
 import HeatmapTrackerSettingsTab from "src/settings";
 import { ColorsList } from "src/types";
+import { asyncHandler } from "src/utils/asyncHandler";
 
 export class PaletteSettings {
   plugin: HeatmapTracker;
@@ -37,8 +38,9 @@ export class PaletteSettings {
 
       setIcon(deleteColorButton, "trash");
 
-      deleteColorButton.addEventListener("click", () =>
-        this.deletePalette(paletteName),
+      deleteColorButton.addEventListener(
+        "click",
+        asyncHandler(() => this.deletePalette(paletteName)),
       );
     }
   }
@@ -76,16 +78,19 @@ export class PaletteSettings {
       colorPreview.style.backgroundColor = addColorInput.value;
     });
 
-    addColorButton.addEventListener("click", async () => {
-      this.plugin.settings.palettes[paletteName] = [
-        ...paletteColors,
-        colorPreview.style.backgroundColor,
-      ];
+    addColorButton.addEventListener(
+      "click",
+      asyncHandler(async () => {
+        this.plugin.settings.palettes[paletteName] = [
+          ...paletteColors,
+          colorPreview.style.backgroundColor,
+        ];
 
-      await this.plugin.saveSettings();
+        await this.plugin.saveSettings();
 
-      this.settings.display();
-    });
+        this.settings.display();
+      }),
+    );
   }
 
   private renderAddNewPaletteSection(parent: HTMLElement) {
@@ -112,15 +117,18 @@ export class PaletteSettings {
       text: i18n.t("settings.addNewPalette"),
     });
 
-    addColorButton.addEventListener("click", async () => {
-      if (newPaletteInput.value) {
-        this.plugin.settings.palettes[newPaletteInput.value] = [];
+    addColorButton.addEventListener(
+      "click",
+      asyncHandler(async () => {
+        if (newPaletteInput.value) {
+          this.plugin.settings.palettes[newPaletteInput.value] = [];
 
-        await this.plugin.saveSettings();
+          await this.plugin.saveSettings();
 
-        this.settings.display();
-      }
-    });
+          this.settings.display();
+        }
+      }),
+    );
   }
 
   private displayColorHelp(parent: HTMLElement) {
@@ -151,9 +159,7 @@ export class PaletteSettings {
       cls: "heatmap-tracker-settings-palettes__palette-colors",
     });
 
-    for (const colorIndex in paletteColors) {
-      const color = paletteColors[colorIndex];
-
+    for (const [colorIndex, color] of paletteColors.entries()) {
       const paletteColor = colorsContainer.createDiv({
         cls: "heatmap-tracker-settings-palettes__palette-color",
       });
@@ -197,13 +203,16 @@ export class PaletteSettings {
           saveButton.disabled = newColor === color;
         });
 
-        saveButton.addEventListener("click", async () => {
-          paletteColors[colorIndex] = colorPreview.style.backgroundColor;
-          this.plugin.settings.palettes[paletteName] = paletteColors;
+        saveButton.addEventListener(
+          "click",
+          asyncHandler(async () => {
+            paletteColors[colorIndex] = colorPreview.style.backgroundColor;
+            this.plugin.settings.palettes[paletteName] = paletteColors;
 
-          await this.plugin.saveSettings();
-          this.settings.display();
-        });
+            await this.plugin.saveSettings();
+            this.settings.display();
+          }),
+        );
 
         const removeColorButton = paletteColor.createEl("button", {
           cls: "clickable-icon heatmap-tracker-settings-palettes__delete-color",
@@ -211,13 +220,16 @@ export class PaletteSettings {
         });
         setIcon(removeColorButton, "x");
 
-        removeColorButton.addEventListener("click", async () => {
-          paletteColors.splice(Number(colorIndex), 1);
-          this.plugin.settings.palettes[paletteName] = paletteColors;
+        removeColorButton.addEventListener(
+          "click",
+          asyncHandler(async () => {
+            paletteColors.splice(Number(colorIndex), 1);
+            this.plugin.settings.palettes[paletteName] = paletteColors;
 
-          await this.plugin.saveSettings();
-          this.settings.display();
-        });
+            await this.plugin.saveSettings();
+            this.settings.display();
+          }),
+        );
       }
     }
 
