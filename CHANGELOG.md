@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.13.1] - 2026-09-22
+
 ### Changed
 - Internal only, no behavior change: the three largest files were split along what they actually do. `ExportView` (792 lines) is now a view plus `useExportOptions`/`useReportPreview`/`exportRange`/`exportLegendDefaults`/`ExportOptionsForm`; `HeatmapModal` (978) keeps only the modal shell, with each form section in `src/modals/heatmapModal/`; `LegendModal` (620) keeps the shell, with row rendering, drag-reordering and list logic in `src/modals/legendModal/`. Export options live in a single `ExportOptions` object, so a new option can no longer be persisted without also being watched for saving.
 
