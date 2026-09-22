@@ -5,6 +5,8 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+## [2.12.1] - 2026-09-22
 ### Changed
 - Clicking a square now opens the note in the active tab, with `Cmd`/`Ctrl` + click for a new one ([#113](https://github.com/mokkiebear/heatmap-tracker/issues/113)). It always forced a new tab before, which broke back/forward navigation. Squares that carry a `filePath` or `customHref` already behaved this way — Obsidian handles those links itself.
 
