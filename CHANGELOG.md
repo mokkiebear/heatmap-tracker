@@ -5,6 +5,8 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+## [2.13.0] - 2026-09-22
 ### Fixed
 - A filter (`filters:`) no longer matches a frontmatter value that Dataview hands back as a plain object. Such a value used to be stringified to `[object Object]`, so `contains: "object"` matched every note that had the key at all.
 - Merging two entries for the same day no longer concatenates an `HTMLElement` `content` into the string `"[object HTMLDivElement]"`; the first element wins and only two strings are joined.
