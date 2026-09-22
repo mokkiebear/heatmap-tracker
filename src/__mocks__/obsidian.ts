@@ -333,6 +333,9 @@ const elementHelpers: Record<string, unknown> = {
   setText(this: HTMLElement, text: string) {
     this.textContent = text;
   },
+  appendText(this: HTMLElement, text: string) {
+    this.appendChild(document.createTextNode(text));
+  },
 };
 
 if (typeof HTMLElement !== "undefined") {

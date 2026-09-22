@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Changed
+- Internal only, no behavior change: the three largest files were split along what they actually do. `ExportView` (792 lines) is now a view plus `useExportOptions`/`useReportPreview`/`exportRange`/`exportLegendDefaults`/`ExportOptionsForm`; `HeatmapModal` (978) keeps only the modal shell, with each form section in `src/modals/heatmapModal/`; `LegendModal` (620) keeps the shell, with row rendering, drag-reordering and list logic in `src/modals/legendModal/`. Export options live in a single `ExportOptions` object, so a new option can no longer be persisted without also being watched for saving.
+
+### Fixed
+- The test/harness Obsidian mock implements `Element.appendText`, so the legend modal's footnote renders in the render harness instead of throwing.
+
 ## [2.13.0] - 2026-09-22
 ### Fixed
 - A filter (`filters:`) no longer matches a frontmatter value that Dataview hands back as a plain object. Such a value used to be stringified to `[object Object]`, so `contains: "object"` matched every note that had the key at all.

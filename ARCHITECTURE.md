@@ -31,7 +31,9 @@ Three ways a heatmap gets rendered, all converging on `renderApp`
    function, called directly by the user's own script with a hand-built
    `trackerData` object. This is the "advanced usage" path in the README.
 3. **"Insert Heatmap Tracker" command** — `src/modals/HeatmapModal.ts` builds
-   a `trackerData`-shaped object from form input, live-previews it by calling
+   a `trackerData`-shaped object from form input (the modal file is only the
+   shell: fields live in `src/modals/heatmapModal/*`, form→config mapping in
+   `src/modals/heatmapModal.utils.ts`), live-previews it by calling
    `renderApp` directly, then on submit hands the result back to
    `src/main.tsx`'s command callback, which stringifies it into a
    `heatmap-tracker` codeblock and inserts it into the note (which then goes
@@ -94,6 +96,14 @@ src/views/*  +  src/components/*
   add it to the context instead so every view sees the same values.
 - **Add a new view/tab:** add it to `IHeatmapView` in `src/types.ts`, a
   component under `src/views/`, and a case in the `switch` in `src/App.tsx`.
+  A view that grows past markup + handlers splits sideways into its own
+  folder (`src/views/ExportView/` is the worked example: `ExportView.tsx`
+  renders, `useExportOptions.ts` holds state, `useReportPreview.ts` derives,
+  `exportRange.ts`/`exportLegendDefaults.ts` are pure and unit-tested).
+- **Add an option to the export tab:** one field in `ExportOptions`
+  (`src/views/ExportView/useExportOptions.ts`) — it is both the persisted
+  shape and the save effect's dependency, so an option can't be
+  saved-but-not-watched — plus a control in `ExportOptionsForm.tsx`.
 - **Add a plugin-wide setting:** `TrackerSettings` in `src/types.ts`,
   `DEFAULT_SETTINGS` in `src/constants/defaultSettings.ts`, and a control in
   `src/settings.ts` (or `src/settings/palette.settings.ts` for palettes).

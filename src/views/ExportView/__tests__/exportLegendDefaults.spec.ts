@@ -1,7 +1,10 @@
 import { ColorsList, Entry } from "src/types";
 import { ReportModel } from "src/utils/report/reportModel";
 import { EMPTY_CELL_COLOR } from "src/utils/report/heatmapHtml";
-import { buildDefaultLegendEntries, buildRefreshBaseline } from "../ExportView";
+import {
+  buildDefaultLegendEntries,
+  buildRefreshBaseline,
+} from "../exportLegendDefaults";
 
 const colorsList: ColorsList = ["#c6e48b", "#7bc96f", "#239a3b", "#196127"];
 

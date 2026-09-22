@@ -1,211 +1,27 @@
-import { App, Modal, Setting, setIcon } from "obsidian";
-import { EMPTY_CELL_COLOR } from "../utils/report/heatmapHtml";
+import { App, Modal, Setting } from "obsidian";
+import { LegendEntry } from "src/utils/report/legend";
+import { normalizeColor } from "src/utils/report/legendMatch";
+import { RowDragController } from "./legendModal/RowDragController";
 import {
-  LegendEntry,
-  LegendVisibility,
-  getLegendVisibility,
-  nextLegendVisibility,
-  setLegendVisibility,
-} from "../utils/report/legend";
-import { normalizeColor } from "../utils/report/legendMatch";
+  LegendRowContext,
+  renderEntryRow,
+  renderGradientGroupRow,
+} from "./legendModal/legendRows";
+import {
+  LegendDisplayMode,
+  mergeLegendWithDefaults,
+  reorderLegendEntries,
+} from "./legendModal/legendEntries";
 
-function isBlankColor(color: string): boolean {
-  return color.trim().toLowerCase() === EMPTY_CELL_COLOR.trim().toLowerCase();
-}
-
-const VISIBILITY_ICON: Record<LegendVisibility, string> = {
-  shown: "eye",
-  summaryHidden: "eye-off",
-  hidden: "eye-closed",
-};
-
-const VISIBILITY_TITLE: Record<LegendVisibility, string> = {
-  shown: "Shown in legend and summary - click to hide from summary",
-  summaryHidden: "Shown in legend only, not summary - click to hide entirely",
-  hidden: "Hidden entirely - click to show again",
-};
-
-/** The shared visibility if every entry agrees, otherwise "shown" as a neutral starting point for the next click. */
-export function aggregateVisibility(entries: LegendEntry[]): LegendVisibility {
-  const visibilities = entries.map(getLegendVisibility);
-  const first = visibilities[0] ?? "shown";
-  return visibilities.every((v) => v === first) ? first : "shown";
-}
-
-export type LegendDisplayMode = "separate" | "gradient";
-
-/**
- * Merges `entries` with a default baseline, preserving their customizations
- * and relative order — appending brand-new colors and dropping ones the
- * baseline no longer has. This is the "Refresh" button's whole job.
- *
- * `baseline` is every color used ANYWHERE in the calendar, not just the
- * export's current range (`ExportView.buildRefreshBaseline`), so a color only
- * drops out once it no longer appears at all.
- */
-export function mergeLegendWithDefaults(
-  entries: LegendEntry[],
-  defaults: LegendEntry[],
-): LegendEntry[] {
-  const isInDefaults = (color: string) =>
-    defaults.some((d) => normalizeColor(d.color) === normalizeColor(color));
-  const kept = entries.filter((entry) => isInDefaults(entry.color));
-  const keptColors = new Set(kept.map((entry) => normalizeColor(entry.color)));
-  const added = defaults.filter(
-    (d) => !keptColors.has(normalizeColor(d.color)),
-  );
-  return [...kept, ...added];
-}
-
-/**
- * `entries` whose color is in `colorsList` (the intensity palette), in the
- * palette's own low-to-high order rather than `entries`' possibly
- * drag-reordered one. Exactly the set gradient mode squashes into one row;
- * anything else (a per-day custom color, the blank color) keeps its own row.
- */
-export function paletteEntriesInOrder(
-  entries: LegendEntry[],
-  colorsList: string[],
-): LegendEntry[] {
-  return colorsList
-    .map((color) =>
-      entries.find(
-        (entry) => normalizeColor(entry.color) === normalizeColor(color),
-      ),
-    )
-    .filter((entry): entry is LegendEntry => entry !== undefined);
-}
-
-/**
- * Moves `dragged` (one entry for a normal row, or every palette-color entry
- * at once for the gradient group row) to sit immediately before the first
- * entry of `target` that isn't itself part of `dragged` — matching the
- * drop-target highlight's own documented behavior ("dropping lands the
- * dragged row(s) just before this one"). A no-op (returns `entries`
- * unchanged) when `dragged` and `target` overlap at all (dropped on itself).
- * Works by entry identity, not index, so it applies equally whether one row
- * or an entire contiguous block is moving.
- */
-export function reorderLegendEntries(
-  entries: LegendEntry[],
-  dragged: LegendEntry[],
-  target: LegendEntry[],
-): LegendEntry[] {
-  const draggedSet = new Set(dragged);
-  if (target.some((entry) => draggedSet.has(entry))) return entries;
-
-  const rest = entries.filter((entry) => !draggedSet.has(entry));
-  const anchor = target.find((entry) => rest.includes(entry));
-  const insertIndex = anchor ? rest.indexOf(anchor) : rest.length;
-
-  return [
-    ...rest.slice(0, insertIndex),
-    ...dragged,
-    ...rest.slice(insertIndex),
-  ];
-}
-
-/**
- * Per-palette-color weight and fixed value, opened from the gear on the
- * gradient-mode squashed row (which has room for one shared label only).
- * A weight of 0 already excludes a color, so there is no separate toggle.
- * Mutates the parent modal's entry objects in place — closing is saving.
- */
-class GradientWeightsModal extends Modal {
-  private listEl: HTMLElement | null = null;
-
-  constructor(
-    app: App,
-    private entries: LegendEntry[],
-  ) {
-    super(app);
-  }
-
-  onOpen() {
-    const { contentEl } = this;
-    contentEl.empty();
-    this.modalEl.addClass("heatmap-legend-modal");
-    this.setTitle("Palette color settings");
-
-    contentEl.createEl("p", {
-      cls: "heatmap-legend-modal__hint heatmap-legend-modal__hint--italic",
-      text: "For each color in the palette, you can optionally set a fixed value per day and specify how much it's weighted towards the shared day count.",
-    });
-
-    this.listEl = contentEl.createDiv({ cls: "heatmap-legend-modal__list" });
-    this.renderRows();
-
-    new Setting(contentEl).addButton((btn) =>
-      btn
-        .setButtonText("Done")
-        .setCta()
-        .onClick(() => this.close()),
-    );
-  }
-
-  onClose() {
-    this.contentEl.empty();
-  }
-
-  private renderRows() {
-    const container = this.listEl;
-    if (!container) return;
-    container.empty();
-
-    this.entries.forEach((entry) => {
-      const row = container.createDiv({ cls: "heatmap-legend-modal__row" });
-      const visibility = getLegendVisibility(entry);
-      row.toggleClass("is-excluded", visibility === "summaryHidden");
-      row.toggleClass("is-hidden", visibility === "hidden");
-
-      const swatch = row.createDiv({ cls: "heatmap-legend-modal__swatch" });
-      swatch.style.backgroundColor = entry.color;
-
-      row.createSpan({
-        cls: "heatmap-legend-modal__color-text",
-        text: entry.color,
-      });
-
-      const valueOverrideInput = row.createEl("input", {
-        cls: "heatmap-legend-modal__value-input",
-        attr: {
-          type: "number",
-          step: "any",
-          placeholder: "value",
-          "aria-label":
-            "Fixed value for this color, overriding its actual logged value",
-        },
-        value:
-          entry.valueOverride !== undefined ? String(entry.valueOverride) : "",
-      });
-      valueOverrideInput.addEventListener("input", () => {
-        const trimmed = valueOverrideInput.value.trim();
-        const parsed = Number(trimmed);
-        entry.valueOverride =
-          trimmed === "" || Number.isNaN(parsed) ? undefined : parsed;
-      });
-
-      const weightInput = row.createEl("input", {
-        cls: "heatmap-legend-modal__weight-input",
-        attr: {
-          type: "number",
-          step: "any",
-          min: "0",
-          placeholder: "weight",
-          "aria-label":
-            "Day-count weight (e.g. 0.5 for a half day, or 0 to exclude entirely)",
-        },
-        value: entry.countWeight !== undefined ? String(entry.countWeight) : "",
-      });
-      weightInput.addEventListener("input", () => {
-        const trimmed = weightInput.value.trim();
-        const parsed = Number(trimmed);
-        entry.countWeight =
-          trimmed === "" || Number.isNaN(parsed) ? undefined : parsed;
-      });
-    });
-  }
-}
+// Re-exported so existing importers (and tests) keep one entry point for the
+// legend editor's pure helpers.
+export {
+  LegendDisplayMode,
+  aggregateVisibility,
+  mergeLegendWithDefaults,
+  paletteEntriesInOrder,
+  reorderLegendEntries,
+} from "./legendModal/legendEntries";
 
 /**
  * Popup editor for the report's {color, label} legend, driving both the legend
@@ -228,30 +44,33 @@ class GradientWeightsModal extends Modal {
  * strip, a shared label, a gear opening `GradientWeightsModal`, and a group
  * eye button. That row drags as one block. Colors outside the palette (and
  * the blank color) always keep their own row in both modes.
+ *
+ * Row markup lives in `./legendModal/legendRows.ts`, the pure list logic in
+ * `./legendModal/legendEntries.ts`.
  */
 export class LegendModal extends Modal {
   private entries: LegendEntry[];
-  private baseline: LegendEntry[];
-  private colorsList: string[];
-  private legendMode: LegendDisplayMode;
-  private gradientLabel: string;
-  private onSave: (
-    entries: LegendEntry[],
-    legendMode: LegendDisplayMode,
-    gradientLabel: string,
-  ) => void;
   private listEl: HTMLElement | null = null;
-  /** The entries currently being dragged - a single entry for a normal row, or every palette-color entry at once for the gradient group row. */
-  private dragPayload: LegendEntry[] | null = null;
+  private drag = new RowDragController((dragged, target) => {
+    this.entries = reorderLegendEntries(this.entries, dragged, target);
+    this.renderRows();
+  });
 
   constructor(
     app: App,
     initialEntries: LegendEntry[],
-    baseline: LegendEntry[],
-    colorsList: string[],
-    initialLegendMode: LegendDisplayMode,
-    initialGradientLabel: string,
-    onSave: (
+    /**
+     * Every color used ANYWHERE in the whole calendar, not just within the
+     * export's currently selected date range (see `buildRefreshBaseline`) -
+     * shared by "Refresh" (merge it in, keeping existing customizations) and
+     * "Reset" (discard everything and clone it fresh), so neither one shows
+     * a narrower set of colors than the other depending on which is clicked.
+     */
+    private baseline: LegendEntry[],
+    private colorsList: string[],
+    private legendMode: LegendDisplayMode,
+    private gradientLabel: string,
+    private onSave: (
       entries: LegendEntry[],
       legendMode: LegendDisplayMode,
       gradientLabel: string,
@@ -259,22 +78,6 @@ export class LegendModal extends Modal {
   ) {
     super(app);
     this.entries = initialEntries.map((entry) => ({ ...entry }));
-    // Every color used ANYWHERE in the whole calendar, not just within the
-    // export's currently selected date range (see
-    // `ExportView.buildRefreshBaseline`) - shared by "Refresh" (merge it in,
-    // keeping existing customizations) and "Reset" (discard everything and
-    // clone it fresh), so neither one shows a narrower set of colors than
-    // the other depending on which is clicked.
-    this.baseline = baseline;
-    this.colorsList = colorsList;
-    this.legendMode = initialLegendMode;
-    this.gradientLabel = initialGradientLabel;
-    this.onSave = onSave;
-  }
-
-  /** Normalized set of the configured intensity palette's own colors. */
-  private paletteColorSet(): Set<string> {
-    return new Set(this.colorsList.map(normalizeColor));
   }
 
   onOpen() {
@@ -302,6 +105,27 @@ export class LegendModal extends Modal {
       "Optionally set fixed values to make every day in that category use the same value.",
     );
 
+    this.renderButtonRow(contentEl);
+
+    new Setting(contentEl).addButton((btn) =>
+      btn
+        .setButtonText("Done")
+        .setCta()
+        .onClick(() => {
+          // Every row is already a real, meaningful color slot (auto-
+          // populated by the caller) - there's no "untouched Add row" junk
+          // to filter out anymore, so entries are saved exactly as edited.
+          this.onSave(this.entries, this.legendMode, this.gradientLabel);
+          this.close();
+        }),
+    );
+  }
+
+  onClose() {
+    this.contentEl.empty();
+  }
+
+  private renderButtonRow(contentEl: HTMLElement) {
     const buttonRow = contentEl.createDiv({
       cls: "heatmap-legend-modal__button-row",
     });
@@ -319,7 +143,6 @@ export class LegendModal extends Modal {
       text: "Single gradient row",
     });
     modeSelect.value = this.legendMode;
-
     modeSelect.addEventListener("change", () => {
       this.legendMode = modeSelect.value as LegendDisplayMode;
       this.renderRows();
@@ -346,23 +169,20 @@ export class LegendModal extends Modal {
       this.entries = this.baseline.map((entry) => ({ ...entry }));
       this.renderRows();
     });
-
-    new Setting(contentEl).addButton((btn) =>
-      btn
-        .setButtonText("Done")
-        .setCta()
-        .onClick(() => {
-          // Every row is already a real, meaningful color slot (auto-
-          // populated by the caller) - there's no "untouched Add row" junk
-          // to filter out anymore, so entries are saved exactly as edited.
-          this.onSave(this.entries, this.legendMode, this.gradientLabel);
-          this.close();
-        }),
-    );
   }
 
-  onClose() {
-    this.contentEl.empty();
+  private get rowContext(): LegendRowContext {
+    return {
+      app: this.app,
+      entries: this.entries,
+      colorsList: this.colorsList,
+      drag: this.drag,
+      rerender: () => this.renderRows(),
+      getGradientLabel: () => this.gradientLabel,
+      setGradientLabel: (value) => {
+        this.gradientLabel = value;
+      },
+    };
   }
 
   private renderRows() {
@@ -378,8 +198,10 @@ export class LegendModal extends Modal {
       return;
     }
 
+    const ctx = this.rowContext;
+
     if (this.legendMode !== "gradient") {
-      this.entries.forEach((entry) => this.renderEntryRow(container, entry));
+      this.entries.forEach((entry) => renderEntryRow(ctx, container, entry));
       return;
     }
 
@@ -387,7 +209,7 @@ export class LegendModal extends Modal {
     // in `this.entries` (at the position of the first palette-color entry
     // encountered) rather than always first - that's what makes it draggable
     // to a genuinely different position, not just visually fixed up front.
-    const paletteColors = this.paletteColorSet();
+    const paletteColors = new Set(this.colorsList.map(normalizeColor));
     const paletteBlock = this.entries.filter((entry) =>
       paletteColors.has(normalizeColor(entry.color)),
     );
@@ -396,225 +218,12 @@ export class LegendModal extends Modal {
     this.entries.forEach((entry) => {
       if (paletteColors.has(normalizeColor(entry.color))) {
         if (!groupRendered) {
-          this.renderGradientGroupRow(container, paletteBlock);
+          renderGradientGroupRow(ctx, container, paletteBlock);
           groupRendered = true;
         }
         return;
       }
-      this.renderEntryRow(container, entry);
-    });
-  }
-
-  /**
-   * Wires up drag-to-reorder for `row`, whose "identity" for reordering
-   * purposes is `payload` (one entry for a normal row; every palette-color
-   * entry at once for the gradient group row - see `reorderLegendEntries`).
-   * Returns an `arm()` callback to wire to the row's own grip handle's
-   * `mousedown` - a drag is only actually allowed to start if the initiating
-   * mousedown was on that handle, so clicking/selecting text in the label or
-   * number inputs elsewhere in the row can't accidentally start reordering.
-   */
-  private wireDraggable(row: HTMLElement, payload: LegendEntry[]): () => void {
-    row.setAttribute("draggable", "true");
-    let dragArmed = false;
-
-    row.addEventListener("dragstart", (evt) => {
-      if (!dragArmed) {
-        evt.preventDefault();
-        return;
-      }
-      this.dragPayload = payload;
-      row.addClass("is-dragging");
-      evt.dataTransfer?.setData("text/plain", "1");
-      if (evt.dataTransfer) evt.dataTransfer.effectAllowed = "move";
-    });
-    row.addEventListener("dragend", () => {
-      dragArmed = false;
-      this.dragPayload = null;
-      row.removeClass("is-dragging");
-    });
-    row.addEventListener("dragenter", (evt) => {
-      if (!this.dragPayload || this.dragPayload === payload) return;
-      evt.preventDefault();
-      row.addClass("is-drag-over");
-    });
-    row.addEventListener("dragleave", (evt) => {
-      // dragenter/dragleave fire on every nested-element boundary crossing
-      // within the row too, not just when actually leaving it - only clear
-      // the drop-target highlight once the pointer has genuinely left.
-      const related = evt.relatedTarget as Node | null;
-      if (related && row.contains(related)) return;
-      row.removeClass("is-drag-over");
-    });
-    row.addEventListener("dragover", (evt) => {
-      evt.preventDefault();
-      if (evt.dataTransfer) evt.dataTransfer.dropEffect = "move";
-    });
-    row.addEventListener("drop", (evt) => {
-      evt.preventDefault();
-      row.removeClass("is-drag-over");
-      this.handleDrop(payload);
-    });
-
-    return () => {
-      dragArmed = true;
-    };
-  }
-
-  private handleDrop(targetPayload: LegendEntry[]) {
-    if (!this.dragPayload) return;
-    this.entries = reorderLegendEntries(
-      this.entries,
-      this.dragPayload,
-      targetPayload,
-    );
-    this.dragPayload = null;
-    this.renderRows();
-  }
-
-  /**
-   * The gradient-mode-only squashed row standing in for every palette-color
-   * entry at once: a mini swatch strip (no HEX — it's several colors, not
-   * one) instead of the usual single swatch, the shared label input, a gear
-   * icon opening `GradientWeightsModal` for per-color weight/value, and a
-   * group eye button that bulk-applies to every palette color at once.
-   * Draggable via its own handle just like any other row - dropping it moves
-   * `paletteBlock` (every palette-color entry, in `this.entries`' own current
-   * relative order - not recomputed to intensity order) as one contiguous
-   * block (see `reorderLegendEntries`). The swatch strip itself, and the
-   * weights popup's own ordering, still always follow the palette's true
-   * low-to-high intensity order (`paletteEntriesInOrder`) regardless of
-   * where `paletteBlock` currently sits or how its members are internally
-   * ordered - that's a display/data-entry concern, unrelated to this row's
-   * position among the others.
-   */
-  private renderGradientGroupRow(
-    container: HTMLElement,
-    paletteBlock: LegendEntry[],
-  ) {
-    const intensityOrder = paletteEntriesInOrder(this.entries, this.colorsList);
-    const groupVisibility = aggregateVisibility(intensityOrder);
-
-    const row = container.createDiv({ cls: "heatmap-legend-modal__row" });
-    row.toggleClass("is-excluded", groupVisibility === "summaryHidden");
-    row.toggleClass("is-hidden", groupVisibility === "hidden");
-    const arm = this.wireDraggable(row, paletteBlock);
-
-    const handle = row.createDiv({ cls: "heatmap-legend-modal__handle" });
-    setIcon(handle, "grip-vertical");
-    handle.addEventListener("mousedown", arm);
-
-    const strip = row.createDiv({
-      cls: "heatmap-legend-modal__gradient-strip",
-    });
-    intensityOrder.forEach((entry) => {
-      const swatch = strip.createDiv({
-        cls: "heatmap-legend-modal__gradient-strip-swatch",
-      });
-      swatch.style.backgroundColor = entry.color;
-    });
-
-    const labelInput = row.createEl("input", {
-      cls: "heatmap-legend-modal__label-input",
-      attr: { type: "text", placeholder: "Shared label (e.g. Activity)" },
-      value: this.gradientLabel,
-    });
-    labelInput.addEventListener("input", () => {
-      this.gradientLabel = labelInput.value;
-    });
-
-    const gearBtn = row.createEl("button", {
-      cls: "heatmap-legend-modal__gear-button clickable-icon",
-      attr: {
-        "aria-label":
-          "Set each palette color's day-count weight and fixed value",
-      },
-    });
-    setIcon(gearBtn, "settings");
-    gearBtn.addEventListener("click", () => {
-      new GradientWeightsModal(this.app, intensityOrder).open();
-    });
-
-    // Bulk-applies to every palette color at once - the gear icon above
-    // still lets each color's weight/value be set independently.
-    const groupIncludeToggle = row.createEl("button", {
-      cls: "heatmap-legend-modal__include-toggle clickable-icon",
-      attr: {
-        "aria-label": `${VISIBILITY_TITLE[groupVisibility]} (applies to every palette color)`,
-      },
-    });
-    setIcon(groupIncludeToggle, VISIBILITY_ICON[groupVisibility]);
-    groupIncludeToggle.addEventListener("click", () => {
-      const next = nextLegendVisibility(groupVisibility);
-      intensityOrder.forEach((entry) => setLegendVisibility(entry, next));
-      this.renderRows();
-    });
-  }
-
-  private renderEntryRow(container: HTMLElement, entry: LegendEntry) {
-    const row = container.createDiv({ cls: "heatmap-legend-modal__row" });
-    const visibility = getLegendVisibility(entry);
-    row.toggleClass("is-excluded", visibility === "summaryHidden");
-    row.toggleClass("is-hidden", visibility === "hidden");
-    const arm = this.wireDraggable(row, [entry]);
-
-    const handle = row.createDiv({ cls: "heatmap-legend-modal__handle" });
-    setIcon(handle, "grip-vertical");
-    handle.addEventListener("mousedown", arm);
-
-    const swatch = row.createDiv({ cls: "heatmap-legend-modal__swatch" });
-    swatch.style.backgroundColor = entry.color;
-
-    // Colors are sourced automatically from the calendar's real palette
-    // (see the class doc comment) - never editable, so shown as plain text
-    // next to the swatch rather than a (disabled-looking) input box.
-    const blank = isBlankColor(entry.color);
-    row.createSpan({
-      cls: "heatmap-legend-modal__color-text",
-      text: blank ? "Blank" : entry.color,
-    });
-
-    const labelInput = row.createEl("input", {
-      cls: "heatmap-legend-modal__label-input",
-      attr: { type: "text", placeholder: "Label (e.g. Workday)" },
-      value: entry.label,
-    });
-    labelInput.addEventListener("input", () => {
-      entry.label = labelInput.value;
-    });
-
-    const valueOverrideInput = row.createEl("input", {
-      cls: "heatmap-legend-modal__value-input",
-      attr: {
-        type: "number",
-        step: "any",
-        placeholder: "value",
-        "aria-label": "To set fixed value (overriding actual values)",
-      },
-      value:
-        entry.valueOverride !== undefined ? String(entry.valueOverride) : "",
-    });
-    valueOverrideInput.addEventListener("input", () => {
-      const trimmed = valueOverrideInput.value.trim();
-      const parsed = Number(trimmed);
-      entry.valueOverride =
-        trimmed === "" || Number.isNaN(parsed) ? undefined : parsed;
-    });
-
-    // Day-count weight only ever applies to palette colors being combined
-    // in gradient mode - this row is only ever rendered for a color that
-    // ISN'T in the palette (palette colors are squashed into the gradient
-    // group row instead - see `renderGradientGroupRow`/`GradientWeightsModal`),
-    // so there's nothing to weight here.
-
-    const includeToggle = row.createEl("button", {
-      cls: "heatmap-legend-modal__include-toggle clickable-icon",
-      attr: { "aria-label": VISIBILITY_TITLE[visibility] },
-    });
-    setIcon(includeToggle, VISIBILITY_ICON[visibility]);
-    includeToggle.addEventListener("click", () => {
-      setLegendVisibility(entry, nextLegendVisibility(visibility));
-      this.renderRows();
+      renderEntryRow(ctx, container, entry);
     });
   }
 }
