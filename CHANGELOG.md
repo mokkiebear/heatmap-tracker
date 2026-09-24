@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.14.2] - 2026-09-24
+
 ### Fixed
 - The first two month labels no longer overlap on a range that starts mid-month ([#118](https://github.com/mokkiebear/heatmap-tracker/issues/118)). `daysToShow: 365` starts partway through a month, leaving a stub of a few days whose label was drawn one column before the next month's — "Sep" and "Oct" printed on top of each other in the top-left corner. A label is wider than the box column it sits in, so the stub is now dropped and the first full month owns the space.
 
