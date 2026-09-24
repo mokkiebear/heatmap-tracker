@@ -46,11 +46,11 @@ export const fixtures: Fixture[] = [
   {
     id: "aggregation-sum",
     title: "Aggregation: sum (the default)",
-    note: "Doc example from EXAMPLE_VAULT/…/9. intensityConfig.md. Jan 1 rated 8 twice, Jan 3 rated 8 once, Jan 4 rated 4 twice. Summed, Jan 3 (8) is indistinguishable from Jan 4 (8) even though it was the better day.",
+    note: "Doc example from EXAMPLE_VAULT/…/9. intensityConfig.md. Jan 1 rated 8 twice, Jan 3 rated 8 once, Jan 4 rated 4 twice. Same scale as the average fixture below — only `aggregation` differs. Summed, Jan 3 (8) ties with Jan 4 (8) even though it was the better day.",
     trackerData: {
       year: 2025,
       heatmapTitle: "Summed (the default)",
-      intensityConfig: { scaleStart: 1, scaleEnd: 20 },
+      intensityConfig: { scaleStart: 1, scaleEnd: 10 },
       entries: [
         { date: "2025-01-01", intensity: 8 },
         { date: "2025-01-01", intensity: 8 },

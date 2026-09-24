@@ -66,35 +66,32 @@ const docEntries = [
 
 describe("EXAMPLE_VAULT aggregation examples", () => {
   it("scores Jan 3 the way the doc's prose claims", () => {
-    const summed = fillEntriesWithIntensity(
-      docEntries,
-      { ...DEFAULT_TRACKER_DATA.intensityConfig, scaleStart: 1, scaleEnd: 20 },
-      colors,
-    );
+    // Identical config except `aggregation` — if the two blocks differed on
+    // the scale too, the example would prove nothing about averaging.
+    const scale = {
+      ...DEFAULT_TRACKER_DATA.intensityConfig,
+      scaleStart: 1,
+      scaleEnd: 10,
+    };
+    const summed = fillEntriesWithIntensity(docEntries, scale, colors);
     const averaged = fillEntriesWithIntensity(
       docEntries,
-      {
-        ...DEFAULT_TRACKER_DATA.intensityConfig,
-        scaleStart: 1,
-        scaleEnd: 10,
-        aggregation: "average",
-      },
+      { ...scale, aggregation: "average" },
       colors,
     );
 
     // Keys are day-of-year: Jan 1 is 1, Jan 3 is 3.
-    // "Summed, that day looks like a 4": Jan 3's lone 8 out of 20 sits on the
-    // same colour step as Jan 4, which was rated 5 twice.
+    // Summed, Jan 3's lone 8 ties with Jan 4, which was rated 4 twice.
     expect(summed[3].value).toBe(8);
     expect(summed[4].value).toBe(8);
     expect(summed[3].intensity).toBe(summed[4].intensity);
 
-    // "Averaged, it is the 8 it actually was": same step as Jan 1 (8 twice),
-    // and no longer indistinguishable from Jan 4.
+    // Averaged, Jan 3 matches Jan 1 (a genuine 8) and outranks Jan 4 (a 4).
     expect(averaged[3].value).toBe(8);
     expect(averaged[1].value).toBe(8);
+    expect(averaged[4].value).toBe(4);
     expect(averaged[3].intensity).toBe(averaged[1].intensity);
-    expect(averaged[3].intensity).not.toBe(averaged[4].intensity);
+    expect(averaged[3].intensity!).toBeGreaterThan(averaged[4].intensity!);
   });
 
   it("keeps the properties the heatmap-tracker block names", () => {
