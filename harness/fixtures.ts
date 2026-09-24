@@ -44,6 +44,44 @@ export interface Fixture {
 
 export const fixtures: Fixture[] = [
   {
+    id: "aggregation-sum",
+    title: "Aggregation: sum (the default)",
+    note: "Doc example from EXAMPLE_VAULT/…/9. intensityConfig.md. Jan 1 rated 8 twice, Jan 3 rated 8 once, Jan 4 rated 4 twice. Summed, Jan 3 (8) is indistinguishable from Jan 4 (8) even though it was the better day.",
+    trackerData: {
+      year: 2025,
+      heatmapTitle: "Summed (the default)",
+      intensityConfig: { scaleStart: 1, scaleEnd: 20 },
+      entries: [
+        { date: "2025-01-01", intensity: 8 },
+        { date: "2025-01-01", intensity: 8 },
+        { date: "2025-01-02", intensity: 2 },
+        { date: "2025-01-02", intensity: 2 },
+        { date: "2025-01-03", intensity: 8 },
+        { date: "2025-01-04", intensity: 4 },
+        { date: "2025-01-04", intensity: 4 },
+      ],
+    },
+  },
+  {
+    id: "aggregation-average",
+    title: "Aggregation: average",
+    note: "The same readings with aggregation: average. Jan 3 now matches Jan 1 (both an 8) and is visibly darker than Jan 4 (a 4).",
+    trackerData: {
+      year: 2025,
+      heatmapTitle: "Averaged",
+      intensityConfig: { scaleStart: 1, scaleEnd: 10, aggregation: "average" },
+      entries: [
+        { date: "2025-01-01", intensity: 8 },
+        { date: "2025-01-01", intensity: 8 },
+        { date: "2025-01-02", intensity: 2 },
+        { date: "2025-01-02", intensity: 2 },
+        { date: "2025-01-03", intensity: 8 },
+        { date: "2025-01-04", intensity: 4 },
+        { date: "2025-01-04", intensity: 4 },
+      ],
+    },
+  },
+  {
     id: "year",
     title: "Year grid (default layout)",
     note: "The common case: one year, dense entries, default palette.",
