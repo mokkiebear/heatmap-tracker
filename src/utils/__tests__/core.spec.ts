@@ -89,6 +89,7 @@ describe("mergeTrackerData", () => {
         scaleStart: undefined,
         showOutOfRange: true,
         excludeFalsy: undefined,
+        aggregation: "sum",
       },
       insights: [],
       basePath: undefined,

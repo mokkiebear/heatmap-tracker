@@ -19,7 +19,7 @@ export function renderEssentialsSection(
   new Setting(contentEl)
     .setName("Properties to track")
     .setDesc(
-      "Frontmatter key(s) to read from your notes (e.g. 'exercise: 10' or 'reading: true'). Add more than one to sum their values on the same heatmap.",
+      "Frontmatter key(s) to read from your notes (e.g. 'exercise: 10' or 'reading: true'). Add more than one to combine their values on the same heatmap — summed, or averaged if \"Combine values by\" is set to Average.",
     );
 
   const propertyChipList = new ChipList(contentEl, {

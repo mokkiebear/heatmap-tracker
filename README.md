@@ -435,7 +435,8 @@ Notes:
   scaleEnd: undefined,
   defaultIntensity: 4,
   showOutOfRange: true,
-  excludeFalsy: undefined
+  excludeFalsy: undefined,
+  aggregation: "sum"
 }
 ```
 
@@ -447,6 +448,23 @@ Notes:
 | `defaultIntensity` | Intensity assigned to entries that don't specify one. |
 | `showOutOfRange` | Whether entries outside the scale are still shown (clamped) or hidden. |
 | `excludeFalsy` | When `true`, entries with falsy intensity (`0`, `undefined`, `null`, `false`) are excluded and don't break streaks. |
+| `aggregation` | How a day is scored when several values feed into it — several tracked properties, or several entries on the same date. `"sum"` (default) adds them; `"average"` divides by how many values were actually present. |
+
+**`aggregation: "average"`** is for days scored on a rating rather than a total. Tracking `hunger-morning` and `hunger-evening`, each 1–10, a day with only a morning entry of `6` sums to 6 out of a possible 20 and renders almost empty; averaged, it scores 6 — the same shade as a day where both readings were 6. Only the values that exist count towards the divisor, so a missing entry doesn't drag the day down:
+
+````markdown
+```heatmap-tracker
+property:
+  - hunger-morning
+  - hunger-evening
+intensityConfig:
+  aggregation: average
+  scaleStart: 1
+  scaleEnd: 10
+```
+````
+
+Keep the default `"sum"` for anything cumulative (minutes practised, pages read, steps) — there, two entries on one day genuinely are more than one.
 
 - **Example:** [intensityConfig](https://github.com/mokkiebear/heatmap-tracker/blob/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters/9.%20intensityConfig.md)
 

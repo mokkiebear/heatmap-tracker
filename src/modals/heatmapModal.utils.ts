@@ -20,7 +20,7 @@ export interface FilterConditionFormState {
 export interface HeatmapModalFormState {
   heatmapTitle: string;
   heatmapSubtitle: string;
-  /** Frontmatter keys to track. More than one aggregates (sums) their intensities. */
+  /** Frontmatter keys to track. More than one combines per `aggregation`. */
   properties: string[];
   path: string;
   /** Only include pages with at least one of these tags. */
@@ -46,6 +46,8 @@ export interface HeatmapModalFormState {
   scaleEnd: string;
   defaultIntensity: string;
   showOutOfRange: boolean;
+  /** How several values for one day combine: summed (default) or averaged. */
+  aggregation: "sum" | "average";
   hideTabs: boolean;
   hideYear: boolean;
   hideTitle: boolean;
@@ -80,6 +82,7 @@ export function createInitialFormState(): HeatmapModalFormState {
     scaleEnd: "",
     defaultIntensity: "",
     showOutOfRange: true,
+    aggregation: "sum",
     hideTabs: false,
     hideYear: false,
     hideTitle: false,
@@ -181,6 +184,8 @@ export function formStateFromConfig(
       asString(intensity.defaultIntensity) ?? state.defaultIntensity,
     showOutOfRange: asBool(intensity.showOutOfRange) ?? state.showOutOfRange,
     excludeFalsy: asBool(intensity.excludeFalsy) ?? state.excludeFalsy,
+    aggregation:
+      intensity.aggregation === "average" ? "average" : state.aggregation,
     hideTabs: asBool(ui.hideTabs) ?? state.hideTabs,
     hideYear: asBool(ui.hideYear) ?? state.hideYear,
     hideTitle: asBool(ui.hideTitle) ?? state.hideTitle,
@@ -332,6 +337,8 @@ function buildIntensityConfig(state: HeatmapModalFormState) {
     // `true` is the default, only send the key when it deviates from it.
     showOutOfRange: state.showOutOfRange ? undefined : false,
     excludeFalsy: state.excludeFalsy || undefined,
+    // "sum" is the default, only send the key when it deviates from it.
+    aggregation: state.aggregation === "average" ? "average" : undefined,
   };
 }
 

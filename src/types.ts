@@ -138,4 +138,11 @@ export interface TrackerParams {
   tags?: string[];
   /** Additional frontmatter conditions a page must satisfy (all must match). */
   filters?: FilterCondition[];
+  /**
+   * The user's `intensityConfig`, as written in the codeblock — partial, since
+   * every field is optional there. Only `aggregation` is read at query time
+   * (it decides how several tracked properties on one page combine); the rest
+   * is filled in by `mergeTrackerData` further down.
+   */
+  intensityConfig?: Partial<IntensityConfig>;
 }

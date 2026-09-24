@@ -108,6 +108,7 @@ export class HeatmapPreviewPanel {
         property: properties.length === 1 ? properties[0] : properties,
         tags: buildTags(state),
         filters: buildFilters(state),
+        aggregation: state.aggregation,
       });
     } catch (e) {
       console.warn("Heatmap Tracker: failed to build preview entries", e);

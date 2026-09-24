@@ -181,7 +181,7 @@
       "heatmapTitle": "Title shown above the heatmap.",
       "heatmapSubtitle": "Smaller line under the title, for a description.",
       "colorScheme": "Colors to use: a `paletteName` from the plugin settings, or your own `customColors` array.",
-      "intensityConfig": "Maps your values onto color steps: `scaleStart`, `scaleEnd`, `defaultIntensity`, `showOutOfRange`, `excludeFalsy`.",
+      "intensityConfig": "Maps your values onto color steps: `scaleStart`, `scaleEnd`, `defaultIntensity`, `showOutOfRange`, `excludeFalsy`, `aggregation` (`sum` or `average`).",
       "layout": "`default` for the GitHub-style year grid, `monthly` for one row per month, `month` for a single calendar month, `week` for a single week.",
       "separateMonths": "Adds a gap between months in the year grid.",
       "showCurrentDayBorder": "Outlines today's box.",

@@ -11,6 +11,7 @@ export const DEFAULT_TRACKER_DATA: TrackerData = {
     defaultIntensity: 4,
     showOutOfRange: true,
     excludeFalsy: undefined,
+    aggregation: "sum",
   },
   colorScheme: {
     paletteName: "default",

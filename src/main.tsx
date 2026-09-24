@@ -128,6 +128,9 @@ export default class HeatmapTrackerPlugin extends Plugin {
               property: params.property,
               tags: params.tags,
               filters: params.filters,
+              // Several tracked properties in one note combine the same way
+              // several entries on one day do — see `fillEntriesByKey`.
+              aggregation: params.intensityConfig?.aggregation,
             },
             (page) => el.createSpan(`[](${page.file.name})`),
           );

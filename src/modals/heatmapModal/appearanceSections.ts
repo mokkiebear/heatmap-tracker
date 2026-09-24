@@ -270,6 +270,21 @@ export function renderIntensitySection(
     "Exclude zero/falsy values",
     "If enabled, 0 or blank values will be ignored and won't break streaks.",
   );
+
+  new Setting(contentEl)
+    .setName("Combine values by")
+    .setDesc(
+      "How a day is scored when several values feed into it — several tracked properties, or several entries on the same date. Average scores a day on the values it actually has, so a missing evening entry doesn't darken the box.",
+    )
+    .addDropdown((dropdown) => {
+      dropdown.addOption("sum", "Sum");
+      dropdown.addOption("average", "Average");
+      dropdown.setValue(host.state.aggregation);
+      dropdown.onChange((value) => {
+        host.state.aggregation = value as "sum" | "average";
+        host.refresh();
+      });
+    });
 }
 
 /** Which chrome elements are visible, and the default tab. */

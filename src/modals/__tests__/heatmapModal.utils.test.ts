@@ -289,6 +289,19 @@ describe("buildHeatmapConfig", () => {
     });
   });
 
+  it("omits aggregation when it is the default, and round-trips average", () => {
+    const summed = buildHeatmapConfig(makeState({ properties: ["p"] }));
+    expect(summed.intensityConfig).toBeUndefined();
+
+    const averaged = buildHeatmapConfig(
+      makeState({ properties: ["p"], aggregation: "average" }),
+    );
+    expect(averaged.intensityConfig).toEqual({ aggregation: "average" });
+
+    expect(formStateFromConfig(averaged).aggregation).toBe("average");
+    expect(formStateFromConfig({}).aggregation).toBe("sum");
+  });
+
   it("builds the ui object only from toggled-on fields", () => {
     const config = buildHeatmapConfig(
       makeState({

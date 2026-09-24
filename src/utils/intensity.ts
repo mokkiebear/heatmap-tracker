@@ -96,7 +96,8 @@ export function getIntensitiesInfo(
 
 /**
  * Merges an entry into whatever is already recorded for its day: intensities
- * add up, content is joined by newlines.
+ * add up, content is joined by newlines. `average` divides the sum afterwards
+ * (see `fillEntriesByKey`), so merging always sums here.
  */
 function mergeIntoDay(existing: Entry | undefined, entry: Entry): Entry {
   if (!existing) {
@@ -120,8 +121,9 @@ function mergeIntoDay(existing: Entry | undefined, entry: Entry): Entry {
 }
 
 /**
- * Groups entries by day, sums their intensities, joins their content, and maps
- * each day's total onto a colour intensity level (1..N).
+ * Groups entries by day, combines their intensities (summed, or averaged when
+ * `intensityConfig.aggregation` is `"average"`), joins their content, and maps
+ * each day's result onto a colour intensity level (1..N).
  *
  * `getKey` decides both how a day is identified and which dates count: it
  * returns `null` for an entry whose date can't be used, which drops the entry
@@ -134,6 +136,8 @@ function fillEntriesByKey(
   getKey: (date: string) => string | number | null,
 ): Record<string, Entry> {
   const aggregated: Record<string, Entry> = {};
+  /** How many entries actually contributed a number to each day. */
+  const contributions: Record<string, number> = {};
 
   for (const entry of entries) {
     if (intensityConfig.excludeFalsy && !entry.intensity) {
@@ -146,6 +150,23 @@ function fillEntriesByKey(
     }
 
     aggregated[key] = mergeIntoDay(aggregated[key], entry);
+    if (Number.isFinite(entry.intensity)) {
+      contributions[key] = (contributions[key] ?? 0) + 1;
+    }
+  }
+
+  // Averaging happens before the scale is derived, so the colour ramp spans the
+  // averaged values rather than the (larger) sums they came from.
+  if (intensityConfig.aggregation === "average") {
+    for (const [key, count] of Object.entries(contributions)) {
+      const entry = aggregated[key];
+      if (count > 1 && Number.isFinite(entry.intensity)) {
+        aggregated[key] = {
+          ...entry,
+          intensity: (entry.intensity ?? 0) / count,
+        };
+      }
+    }
   }
 
   const intensities = getEntriesIntensities(Object.values(aggregated));

@@ -14,12 +14,18 @@ const moment = obsidianMoment as unknown as typeof Moment;
 export interface DataviewEntriesParams {
   /** Folder to search in. Falsy/undefined means the whole vault. */
   path?: string;
-  /** Frontmatter key(s) to track. Multiple keys have their intensities summed. */
+  /** Frontmatter key(s) to track. Multiple keys are combined per `aggregation`. */
   property: string | string[];
   /** Only include pages with at least one of these tags (e.g. "#journal" or "journal"). */
   tags?: string[];
   /** Additional frontmatter conditions a page must satisfy (all must match). */
   filters?: FilterCondition[];
+  /**
+   * How several tracked properties on one page combine: "sum" (default) adds
+   * them, "average" divides by how many of them the page actually sets — so a
+   * note with only `hunger-morning: 6` scores 6, not 6 out of a possible 20.
+   */
+  aggregation?: "sum" | "average";
 }
 
 /**
@@ -189,10 +195,18 @@ export function buildEntriesFromDataview(
   const entries: Entry[] = [];
 
   for (const page of pages) {
-    const intensity = properties.reduce(
-      (sum: number, property: string) => sum + parseIntensity(page[property]),
+    // Only the properties this page actually sets count towards the average:
+    // an unset key is a missing reading, not a zero.
+    const present = properties.filter((p) => page[p] !== undefined);
+    const sum = present.reduce(
+      (total: number, property: string) =>
+        total + parseIntensity(page[property]),
       0,
     );
+    const intensity =
+      params.aggregation === "average" && present.length > 1
+        ? sum / present.length
+        : sum;
 
     entries.push({
       date: normalizeDailyNoteFileName(page.file.name),
