@@ -506,7 +506,11 @@ describe("getCurrentFullYear", () => {
 describe("resolveDateRange", () => {
   beforeEach(() => {
     jest.useFakeTimers();
-    jest.setSystemTime(new Date("2025-06-15T12:00:00Z"));
+    // Local noon, not "2025-06-15T12:00:00Z": `resolveDateRange` reads today
+    // off the local getters, so a UTC instant lands on Jun 16 east of UTC+12
+    // and on Jun 14 west of UTC-12. The local-args constructor is Jun 15
+    // everywhere.
+    jest.setSystemTime(new Date(2025, 5, 15, 12, 0, 0));
   });
 
   afterEach(() => {
