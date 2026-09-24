@@ -54,6 +54,39 @@ describe("HeatmapTrackerView date ranges (#118)", () => {
     expect(monthLabels(container)).toEqual(["Nov", "Dec", "Jan", "Feb"]);
   });
 
+  it("drops a leading month stub whose label would collide with the next", () => {
+    // A 365-day range starts mid-month, leaving a few days of that month in
+    // the first column or two — not enough room for a label before the next
+    // month's. This is #118's follow-up: "Sep" and "Oct" drew on top of
+    // each other in the upper-left corner.
+    const { container } = renderWithHeatmap(<HeatmapTrackerView />, {
+      trackerData: {
+        layout: "default",
+        startDate: "2025-09-29",
+        endDate: "2026-09-24",
+      },
+    });
+
+    const labels = monthLabels(container);
+
+    expect(labels[0]).toBe("Oct");
+    // Every surviving label still has room: a full month spans 4+ columns.
+    expect(labels).toEqual([
+      "Oct",
+      "Nov",
+      "Dec",
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+    ]);
+  });
+
   it("still labels January through December for a full year", () => {
     const { container } = renderWithHeatmap(<HeatmapTrackerView />, {
       trackerData: { layout: "default", year: 2024 },
