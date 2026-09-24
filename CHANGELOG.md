@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Fixed
+- The heatmap editor hides the `Year` field while a date range is set ([#118](https://github.com/mokkiebear/heatmap-tracker/issues/118)). The field's own description said it was ignored when a range was set, but it stayed visible and editable, so the dialog showed both "Last N days: 365" and "Year: 2026" and invited you to change a value that did nothing.
+
 ## [2.14.0] - 2026-09-24
 
 ### Added

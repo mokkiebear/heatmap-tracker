@@ -221,6 +221,7 @@ jest.mock("obsidian", () => {
 
     settingEl: HTMLElement;
     controlEl: HTMLElement;
+    name = "";
     texts: MockTextComponent[] = [];
     toggles: MockToggleComponent[] = [];
     dropdowns: MockDropdownComponent[] = [];
@@ -235,7 +236,8 @@ jest.mock("obsidian", () => {
       MockSetting.instances.push(this);
     }
 
-    setName() {
+    setName(name?: string) {
+      this.name = name ?? "";
       return this;
     }
     setDesc() {
@@ -517,6 +519,26 @@ describe("HeatmapModal", () => {
     const config = onSubmit.mock.calls[0][0];
     expect(config.startDate).toBe("2026-01-01");
     expect(config.endDate).toBe("2026-01-31");
+  });
+
+  it("hides the Year field while a date range is set", () => {
+    const yearSettingEl = () =>
+      liveSettings().find((s: any) => s.name === "Year")?.settingEl;
+
+    // Default is full-year, where `year` is the thing that picks the dates.
+    expect(yearSettingEl()?.classList.contains("is-hidden")).toBe(false);
+
+    const dateRangeDropdown = allDropdowns().find((d: any) =>
+      Array.from(d.selectEl.options).some((o: any) => o.value === "custom"),
+    );
+
+    // A range pins its own dates, so the ignored field goes away...
+    dateRangeDropdown.trigger("days");
+    expect(yearSettingEl()?.classList.contains("is-hidden")).toBe(true);
+
+    // ...and comes back when the range is cleared.
+    dateRangeDropdown.trigger("full-year");
+    expect(yearSettingEl()?.classList.contains("is-hidden")).toBe(false);
   });
 
   it("closes the modal on submit", () => {

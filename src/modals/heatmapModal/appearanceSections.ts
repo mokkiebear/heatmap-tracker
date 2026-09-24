@@ -47,6 +47,7 @@ export function renderLayoutSection(
       dropdown.onChange((value) => {
         host.state.dateRangeMode = value as DateRangeMode;
         renderDateRangeFields();
+        updateYearVisibility();
         host.refresh();
       });
     });
@@ -102,7 +103,7 @@ export function renderLayoutSection(
 
   renderDateRangeFields();
 
-  new Setting(contentEl)
+  const yearSettingEl = new Setting(contentEl)
     .setName("Year")
     .setDesc("Year shown by default. Ignored if a date range is set above.")
     .addText((text) => {
@@ -112,7 +113,18 @@ export function renderLayoutSection(
         host.state.year = Number(value);
         host.refresh();
       });
-    });
+    }).settingEl;
+
+  function updateYearVisibility() {
+    // A date range pins its own dates, so `year` does nothing — don't show a
+    // field the heatmap will ignore.
+    yearSettingEl.toggleClass(
+      "is-hidden",
+      host.state.dateRangeMode !== "full-year",
+    );
+  }
+
+  updateYearVisibility();
 
   const separateMonthsSettingEl = addToggleSetting(
     host,
