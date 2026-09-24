@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.14.0] - 2026-09-24
+
 ### Added
 - `intensityConfig.aggregation: "sum" | "average"` ([#117](https://github.com/mokkiebear/heatmap-tracker/issues/117)). A day whose value comes from several numbers — several tracked properties, or several entries on the same date — was always scored on their sum, which penalises a day with a missing reading: tracking a rating twice a day, a day you only logged once scored half of what it should. With `aggregation: average` the day is scored on the values it actually has — only the values present count towards the divisor. The default stays `"sum"`, which is what cumulative trackers (minutes, pages, steps) want.
 
