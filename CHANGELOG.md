@@ -6,11 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+- `intensityConfig.aggregation: "sum" | "average"` ([#117](https://github.com/mokkiebear/heatmap-tracker/issues/117)). A day whose value comes from several numbers — several tracked properties, or several entries on the same date — was always scored on their sum, which penalises a day with a missing reading: tracking a rating twice a day, a day you only logged once scored half of what it should. With `aggregation: average` the day is scored on the values it actually has — only the values present count towards the divisor. The default stays `"sum"`, which is what cumulative trackers (minutes, pages, steps) want.
+
 ### Fixed
 - The default week-column layout honours a date range ([#118](https://github.com/mokkiebear/heatmap-tracker/issues/118)). `daysToShow`, `startDate`/`endDate` and `monthsToShow` only affected `layout: "monthly"` and the calendar layouts; the GitHub-style grid ignored them and always drew January–December of the selected year, including future days. It now starts on the range's first day and ends on its last, so `daysToShow: 365` gives a rolling year ending on the current week. The month labels above the grid are derived from the days actually shown instead of being a fixed Jan…Dec strip, so they stay over the weeks they name and read correctly for a range that starts mid-month or crosses a year boundary.
-
-### Added
-- `intensityConfig.aggregation: "sum" | "average"` ([#117](https://github.com/mokkiebear/heatmap-tracker/issues/117)). A day whose value comes from several numbers — several tracked properties, or several entries on the same date — was always scored on their sum, which penalises a day with a missing reading: tracking `hunger-morning` and `hunger-evening` out of 10 each, a morning-only `6` rendered as 6 out of a possible 20. With `aggregation: average` the day is scored on the values it actually has, so that day scores 6. Only the values present count towards the divisor. The default stays `"sum"`, which is what cumulative trackers (minutes, pages, steps) want.
+- Intensity scaling for a date range no longer ignores entries outside the current calendar year, so colours stay stable when a range crosses a year boundary.
 
 ## [2.13.2] - 2026-09-22
 
