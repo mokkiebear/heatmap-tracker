@@ -1,26 +1,16 @@
-@use "./shared";
-
 /* Week Numbers */
 .heatmap-tracker-week-nums {
   display: grid;
   grid-auto-flow: column;
-  grid-template-columns: repeat(
-    shared.$week-columns,
-    var(--heatmap-tracker-box-size)
-  );
+  /* One cell per week column of the boxes grid, sized and gapped identically,
+     so the numbers stay over the weeks they label whatever the range. */
+  grid-auto-columns: var(--heatmap-tracker-box-size);
   margin: 4px 0 2px;
   /* Columns match the boxes grid; rows never gap, there is only one. */
   gap: 0 var(--heatmap-tracker-box-gap);
   justify-items: center;
   font-size: 0.8em;
   color: var(--text-muted);
-
-  &.separate-months {
-    grid-template-columns: repeat(
-      shared.$week-columns-separated,
-      var(--heatmap-tracker-box-size)
-    );
-  }
 
   div {
     width: var(--heatmap-tracker-box-size);

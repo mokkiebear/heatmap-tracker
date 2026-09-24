@@ -116,10 +116,14 @@ export function getBoxes(
 }
 
 /**
- * Boxes for one calendar month or week, laid out row-major in a 7-column grid:
- * blank leading slots for the days before the range starts, then one box per
- * day. Keyed by ISO date rather than day-of-year, so a range crossing a year
- * boundary works.
+ * Boxes for an arbitrary date range: blank leading slots for the days before
+ * the range starts, then one box per day. Keyed by ISO date rather than
+ * day-of-year, so a range crossing a year boundary works.
+ *
+ * Used by the calendar layouts (`month`/`week`, laid out row-major) and by the
+ * default week-column grid whenever a date range is configured.
+ * `separateMonths` only makes sense for the latter — inserting a week-wide gap
+ * would break the fixed 7-column calendar grid.
  */
 export function getBoxesForRange(
   range: DateRange,
@@ -127,8 +131,14 @@ export function getBoxesForRange(
   colorsList: ColorsList,
   trackerData: TrackerData,
   weekStartDay: number,
+  separateMonths = false,
 ): Box[] {
-  const placements = placeDays(range.start, range.end, weekStartDay);
+  const placements = placeDays(
+    range.start,
+    range.end,
+    weekStartDay,
+    separateMonths,
+  );
   const todayDate = getToday();
   const boxes: Box[] = [];
 

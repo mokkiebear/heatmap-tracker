@@ -186,7 +186,7 @@
       "separateMonths": "Adds a gap between months in the year grid.",
       "showCurrentDayBorder": "Outlines today's box.",
       "monthsToShow": "Show the current month plus N previous ones. Wins over the options below.",
-      "daysToShow": "Show the last N days from today. Wins over `startDate`/`endDate`.",
+      "daysToShow": "Show the last N days from today, in any layout. Wins over `startDate`/`endDate`.",
       "startDate": "First day to display (YYYY-MM-DD).",
       "endDate": "Last day to display (YYYY-MM-DD).",
       "basePath": "Folder used when a box is clicked and a note has to be found or created.",

@@ -508,10 +508,10 @@ Notes:
 
 ### Date range: `monthsToShow`, `daysToShow`, `startDate`/`endDate`
 
-These four parameters narrow which dates are displayed instead of the full `year`. Only one wins when several are set — they resolve in this order (highest priority first):
+These four parameters narrow which dates are displayed instead of the full `year`. They apply to every layout, including the default week-column grid — which then starts at the range's first day and ends at its last, rather than drawing the whole calendar year. Only one wins when several are set — they resolve in this order (highest priority first):
 
 1. **`monthsToShow`** (`number`, default `undefined`) — current month plus the N previous months. `monthsToShow: 3` displays 4 rows (current month + 3 prior). Best paired with `layout: "monthly"`.
-2. **`daysToShow`** (`number`, default `undefined`) — the last N days ending today.
+2. **`daysToShow`** (`number`, default `undefined`) — the last N days ending today. `daysToShow: 365` with the default layout gives a rolling year ending on the current week, GitHub-style.
 3. **`startDate`** + **`endDate`** (`string`, `YYYY-MM-DD`, default `undefined`) — an explicit range. Both must be set, and `startDate` must not be after `endDate`.
 
 If none are set, the heatmap shows the full `year`.

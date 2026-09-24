@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Fixed
+- The default week-column layout honours a date range ([#118](https://github.com/mokkiebear/heatmap-tracker/issues/118)). `daysToShow`, `startDate`/`endDate` and `monthsToShow` only affected `layout: "monthly"` and the calendar layouts; the GitHub-style grid ignored them and always drew January–December of the selected year, including future days. It now starts on the range's first day and ends on its last, so `daysToShow: 365` gives a rolling year ending on the current week. The month labels above the grid are derived from the days actually shown instead of being a fixed Jan…Dec strip, so they stay over the weeks they name and read correctly for a range that starts mid-month or crosses a year boundary.
+
 ## [2.13.2] - 2026-09-22
 
 ### Fixed

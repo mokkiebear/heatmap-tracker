@@ -1,10 +1,19 @@
 /* Months */
 .heatmap-tracker-months {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
+  /* Cells match the boxes grid below (same width, same gap): each label is
+     placed in the column holding that month's first day via `grid-column-start`,
+     so it sits over the weeks it names whatever the range. */
+  grid-auto-columns: var(--heatmap-tracker-box-size);
+  grid-auto-rows: var(--heatmap-tracker-months-height);
   grid-column: 1;
   margin: 2px 0 4px;
-  gap: 0.3em;
-  justify-items: center;
+  column-gap: var(--heatmap-tracker-box-gap);
   line-height: var(--heatmap-tracker-months-height);
+
+  div {
+    /* A label is wider than one box column; let it overflow into the following
+       ones rather than widening the track and desyncing from the grid. */
+    white-space: nowrap;
+  }
 }

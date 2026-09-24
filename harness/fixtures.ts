@@ -138,6 +138,39 @@ export const fixtures: Fixture[] = [
     },
   },
   {
+    id: "default-range",
+    title: "Default layout, explicit date range",
+    note: 'layout: "default" with a date range (issue #118). The week-column grid used to ignore the range and draw the whole calendar year, including future days; only layout: "monthly" honoured it. The grid must start on 2024-08-15, end on 2025-02-10, and its month labels must read Aug…Feb, positioned over the weeks they name — not a fixed Jan…Dec strip.',
+    trackerData: {
+      layout: "default",
+      heatmapTitle: "Aug 2024 – Feb 2025",
+      startDate: "2024-08-15",
+      endDate: "2025-02-10",
+      entries: [
+        ...entries(2024, { skipEvery: 3 }),
+        ...entries(2025, { skipEvery: 3 }),
+      ],
+    },
+    settings: { showWeekNums: true },
+  },
+  {
+    id: "default-range-separated",
+    title: "Default layout, date range + separate months",
+    note: "The same range with separateMonths and week numbers on: the month labels, the gap columns and the week numbers all have to stay aligned with each other.",
+    trackerData: {
+      layout: "default",
+      heatmapTitle: "Aug 2024 – Feb 2025 (separated)",
+      startDate: "2024-08-15",
+      endDate: "2025-02-10",
+      separateMonths: true,
+      entries: [
+        ...entries(2024, { skipEvery: 3 }),
+        ...entries(2025, { skipEvery: 3 }),
+      ],
+    },
+    settings: { showWeekNums: true },
+  },
+  {
     id: "empty",
     title: "No entries",
     note: "The empty state. Must render a grid, not a blank div or a crash.",

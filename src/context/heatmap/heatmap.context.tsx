@@ -110,16 +110,16 @@ export function HeatmapProvider({
     });
   }, [trackerData.entries, trackerData.intensityConfig?.excludeFalsy]);
 
-  // Date-keyed layouts scale their intensities over every entry, not just one
-  // calendar year, so paging to an adjacent month doesn't recolor the data.
-  const usesDateKeyedBoxes = calendarPeriod !== null || isMonthlyLayout;
+  // Boxes for a date range are keyed by ISO date: the range can cross a year
+  // boundary, where day-of-year keys would collide.
+  const usesDateKeyedBoxes =
+    calendarPeriod !== null || isMonthlyLayout || explicitDateRange !== null;
 
+  // Stays year-scoped even when the grid shows a range: this is what the
+  // statistics view counts as "this year", and the full-year grid keys off it.
   const currentYearEntries = useMemo(
-    () =>
-      usesDateKeyedBoxes && dateRange
-        ? allFilteredEntries
-        : getEntriesForYear(allFilteredEntries, currentYear),
-    [allFilteredEntries, currentYear, usesDateKeyedBoxes, dateRange],
+    () => getEntriesForYear(allFilteredEntries, currentYear),
+    [allFilteredEntries, currentYear],
   );
 
   const mergedTrackerData: TrackerData = useMemo(() => {
@@ -148,14 +148,14 @@ export function HeatmapProvider({
     () =>
       usesDateKeyedBoxes
         ? fillEntriesWithIntensityByDate(
-            currentYearEntries,
+            allFilteredEntries,
             mergedTrackerData.intensityConfig,
             colorsList,
           )
         : {},
     [
       usesDateKeyedBoxes,
-      currentYearEntries,
+      allFilteredEntries,
       mergedTrackerData.intensityConfig,
       colorsList,
     ],
@@ -167,13 +167,16 @@ export function HeatmapProvider({
       return [];
     }
 
-    if (calendarPeriod && dateRange) {
+    if (dateRange) {
       return getBoxesForRange(
         dateRange,
         entriesWithIntensityByDate,
         colorsList,
         mergedTrackerData,
         settings.weekStartDay,
+        // The calendar layouts are a fixed 7-column grid; only the default
+        // week-column grid can absorb the gap columns.
+        calendarPeriod ? false : mergedTrackerData.separateMonths,
       );
     }
 
