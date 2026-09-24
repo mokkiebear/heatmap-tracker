@@ -9,7 +9,7 @@ This example tracks whether you exercised or not. It uses a simple boolean check
 
 ```dataviewjs
 const trackerData = {
-    year: 2024,
+    year: 2025,
     entries: [],
     heatmapTitle: "🏋️ Exercise Tracker",
     heatmapSubtitle: "Did I exercise today?",

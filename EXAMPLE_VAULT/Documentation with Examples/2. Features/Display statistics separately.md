@@ -2,7 +2,7 @@ Since `1.19.2` use `ui` and `defaultView` to display statistics separately. Exam
 ```dataviewjs
 
 var trackerData = {
-    year: 2024, // optional, remove this line to autoswitch year
+    year: 2025, // optional, remove this line to autoswitch year
     entries: [],
     heatmapTitle: "👣 Steps Tracker 👣"
 }
@@ -25,7 +25,7 @@ renderHeatmapTracker(this.container, trackerData)
 ```dataviewjs
 
 var trackerData = {
-    year: 2024, // optional, remove this line to autoswitch year
+    year: 2025, // optional, remove this line to autoswitch year
     entries: [],
     heatmapTitle: "👣 Steps Tracker 👣",
     ui: {

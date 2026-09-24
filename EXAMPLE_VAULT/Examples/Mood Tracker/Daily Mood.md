@@ -9,7 +9,7 @@ This example tracks your daily mood on a scale of 1 to 5.
 
 ```dataviewjs
 const trackerData = {
-    year: 2024,
+    year: 2025,
     entries: [],
     heatmapTitle: "😊 Daily Mood",
     heatmapSubtitle: "1: 😢, 2: 😕, 3: 😐, 4: 🙂, 5: 🤩",

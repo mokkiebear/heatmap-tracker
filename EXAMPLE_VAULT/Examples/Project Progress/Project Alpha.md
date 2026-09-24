@@ -9,7 +9,7 @@ This example tracks the progress of a project as a percentage (0-100).
 
 ```dataviewjs
 const trackerData = {
-    year: 2024,
+    year: 2025,
     entries: [],
     heatmapTitle: "🚀 Project Alpha Progress",
     heatmapSubtitle: "Daily progress percentage",

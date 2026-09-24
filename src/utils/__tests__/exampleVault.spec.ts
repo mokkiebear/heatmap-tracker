@@ -108,14 +108,21 @@ describe("EXAMPLE_VAULT aggregation examples", () => {
       );
     }
 
+    // The multi-property example only demonstrates anything if some notes log
+    // just one of the two — that partial day is what averaging rescues.
+    const partial = pages.filter(
+      (p) => p.exercise !== undefined && p.learning === undefined,
+    );
+    expect(partial.length).toBeGreaterThan(20);
+
     const averaged = buildEntriesFromDataview(fakeDataview(pages), {
       property,
       aggregation: "average",
     });
     expect(averaged.length).toBeGreaterThan(50);
 
-    // The vault spans 2023–2025, so the day-of-year-keyed variant would
-    // collapse three years onto ~365 keys.
+    // The vault spans two years, so the day-of-year-keyed variant would
+    // collapse them onto ~365 keys.
     const filled = fillEntriesWithIntensityByDate(
       averaged.map((e) => ({ date: e.date, intensity: e.intensity })),
       { ...DEFAULT_TRACKER_DATA.intensityConfig, aggregation: "average" },

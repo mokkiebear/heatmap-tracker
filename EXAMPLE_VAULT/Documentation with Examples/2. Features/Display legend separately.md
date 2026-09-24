@@ -4,7 +4,7 @@ Since `1.19.2` use `ui` and `defaultView` to display legend separately. Example:
 ```dataviewjs
 
 var trackerData = {
-    year: 2024, // optional, remove this line to autoswitch year
+    year: 2025, // optional, remove this line to autoswitch year
     entries: [],
     heatmapTitle: "👣 Steps Tracker 👣",
     ui: {
