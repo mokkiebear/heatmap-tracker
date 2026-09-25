@@ -50,7 +50,7 @@
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "ts-jest": "^29.4.12",
-    "typescript": "5.8.3"
+    "typescript": "7.0.2"
   },
   "dependencies": {
     "preact": "^10.29.8",
