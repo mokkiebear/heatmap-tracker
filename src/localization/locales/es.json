@@ -73,7 +73,15 @@
   },
   "header": {
     "previousYear": "Año anterior",
-    "nextYear": "Siguiente año"
+    "nextYear": "Siguiente año",
+    "previous": {
+      "month": "Mes anterior",
+      "week": "Semana anterior"
+    },
+    "next": {
+      "month": "Siguiente mes",
+      "week": "Siguiente semana"
+    }
   },
   "weekDisplayMode": {
     "all": "Todo",
@@ -97,5 +105,96 @@
   "box": {
     "value": "valor: {{value}}",
     "noData": "sin datos"
+  },
+  "report": {
+    "defaultTitle": "Informe de registro de trabajo",
+    "startDate": "Fecha de inicio",
+    "endDate": "Fecha de fin",
+    "invalidRange": "La fecha de inicio no debe ser posterior a la fecha de fin.",
+    "loading": "Cargando el contenido de las notas…",
+    "summary": "{{days}} día(s) registrado(s) · total {{valueLabel}} {{value}}",
+    "saveMarkdown": "Guardar como Markdown",
+    "saveHtml": "Guardar como HTML",
+    "preview": "Vista previa del informe",
+    "savedMarkdown": "Informe guardado: {{path}}",
+    "savedHtml": "Informe guardado: {{path}}",
+    "orientation": "Disposición",
+    "orientationColumns": "Semanas como columnas",
+    "orientationRows": "Semanas como filas",
+    "weekStartDay": "La semana comienza el",
+    "showWeekStartDate": "Mostrar fecha de inicio de la semana",
+    "splitByMonth": "Dividir por mes",
+    "showMonthLabels": "Mostrar mes",
+    "skipWeekends": "Ocultar fines de semana",
+    "hideSummary": "Ocultar resumen",
+    "hideTotalValue": "Ocultar valor total",
+    "hideAllValues": "Ocultar todos los valores",
+    "valueLabel": "Etiqueta del valor",
+    "valueLabelPlaceholder": "valor",
+    "editLegend": "Editar leyenda",
+    "exportFolder": "en",
+    "exportFolderPlaceholder": "(raíz del almacén)",
+    "presetAllLoggedData": "Registrado",
+    "presetLastYear": "Último año",
+    "presetYearToDate": "Año actual",
+    "presetLastMonth": "Último mes",
+    "presetMonthToDate": "Mes actual",
+    "bandHint": "se muestra en {{count}} bandas"
+  },
+  "errors": {
+    "dataviewMissing": {
+      "title": "Se requiere Dataview",
+      "body": "Heatmap Tracker lee sus notas a través del plugin Dataview. Instale y active Dataview, y luego vuelva a abrir esta nota.",
+      "action": "Abrir Dataview en Obsidian"
+    },
+    "missingProperty": {
+      "title": "No hay propiedad configurada",
+      "body": "Indique al mapa de calor qué propiedad del frontmatter debe leer, por ejemplo:"
+    },
+    "invalidYaml": {
+      "title": "No se pudo leer este bloque de código",
+      "body": "El contenido no es YAML válido. Revise la indentación y que cada opción esté escrita como `name: value`, por ejemplo:"
+    },
+    "unexpected": {
+      "title": "Heatmap Tracker no pudo generar este mapa de calor",
+      "body": "Algo salió mal al leer sus notas. Los detalles a continuación son útiles al informar el problema."
+    },
+    "noMatches": {
+      "title": "Todavía no hay notas coincidentes",
+      "body": "Nada dentro de \"{{path}}\" tiene una propiedad \"{{property}}\". Agréguela a una nota con fecha y los cuadros se irán rellenando.",
+      "bodyNoPath": "Ninguna nota tiene todavía una propiedad \"{{property}}\". Agréguela a una nota con fecha y los cuadros se irán rellenando."
+    }
+  },
+  "docs": {
+    "intro": "Un resumen rápido de lo que puede incluir en un bloque de código de mapa de calor. Los tipos completos, los valores predeterminados y los ejemplos listos para copiar están en el README y en el almacén de ejemplo — enlaces al final.",
+    "modalTip": "Recomendado: ejecute el comando **Insert Heatmap Tracker** (o haga clic en el icono de la cinta) para crear un mapa de calor mediante un formulario con vista previa en vivo, y use el botón del lápiz en cualquier mapa de calor para editarlo más tarde — sin necesidad de YAML.",
+    "quickStart": "El mapa de calor funcional más simple",
+    "quickStartNote": "Lee la propiedad `steps` de todas las notas de su almacén y colorea cada día según su valor. Todo lo demás es opcional.",
+    "parameters": "Parámetros de trackerData",
+    "moreTitle": "Documentación completa",
+    "linkReference": "Referencia de configuración (README)",
+    "linkExamples": "Almacén de ejemplo — una nota por parámetro",
+    "linkWebsite": "Sitio web y guías",
+    "params": {
+      "entries": "Los días que se dibujarán. Cada entrada necesita una `date`; `intensity`, `value`, `customColor`, `emoji`, `content` y `filePath` son opcionales.",
+      "year": "Qué año mostrar. Por defecto, el año actual.",
+      "heatmapTitle": "Título que se muestra sobre el mapa de calor.",
+      "heatmapSubtitle": "Línea más pequeña bajo el título, para una descripción.",
+      "colorScheme": "Colores que se usarán: un `paletteName` de la configuración del plugin, o su propio arreglo `customColors`.",
+      "intensityConfig": "Asigna sus valores a los pasos de color: `scaleStart`, `scaleEnd`, `defaultIntensity`, `showOutOfRange`, `excludeFalsy`, `aggregation` (`sum` o `average`).",
+      "layout": "`default` para la cuadrícula anual estilo GitHub, `monthly` para una fila por mes, `month` para un solo mes de calendario, `week` para una sola semana.",
+      "separateMonths": "Añade un espacio entre los meses en la cuadrícula anual.",
+      "showCurrentDayBorder": "Resalta el cuadro de hoy con un borde.",
+      "monthsToShow": "Muestra el mes actual más los N anteriores. Tiene prioridad sobre las opciones siguientes.",
+      "daysToShow": "Muestra los últimos N días desde hoy, en cualquier disposición. Tiene prioridad sobre `startDate`/`endDate`.",
+      "startDate": "Primer día que se muestra (YYYY-MM-DD).",
+      "endDate": "Último día que se muestra (YYYY-MM-DD).",
+      "basePath": "Carpeta que se usa cuando se hace clic en un cuadro y hay que buscar o crear una nota.",
+      "disableFileCreation": "Nunca crear una nota al hacer clic en un cuadro vacío.",
+      "insights": "Sus propias líneas de resumen, cada una con un `name` y una función `calculate` sobre las entradas del año.",
+      "tags": "Contar solo las notas que tengan al menos una de estas etiquetas.",
+      "filters": "Condiciones adicionales del frontmatter que debe cumplir una nota: `property`, `operator` (equals / contains / notEmpty), `value`.",
+      "ui": "Interruptores de la interfaz: `hideTabs`, `hideYear`, `hideTitle`, `hideSubtitle`, `showWeekNums`, `defaultView`."
+    }
   }
 }

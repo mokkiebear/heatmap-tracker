@@ -73,7 +73,15 @@
   },
   "header": {
     "previousYear": "Poprzedni Rok",
-    "nextYear": "Następny Rok"
+    "nextYear": "Następny Rok",
+    "previous": {
+      "month": "Poprzedni miesiąc",
+      "week": "Poprzedni tydzień"
+    },
+    "next": {
+      "month": "Następny miesiąc",
+      "week": "Następny tydzień"
+    }
   },
   "weekDisplayMode": {
     "even": "Parzyste",
@@ -97,5 +105,96 @@
   "box": {
     "value": "wartość: {{value}}",
     "noData": "brak danych"
+  },
+  "report": {
+    "defaultTitle": "Raport dziennika pracy",
+    "startDate": "Data początkowa",
+    "endDate": "Data końcowa",
+    "invalidRange": "Data początkowa nie może być późniejsza niż data końcowa.",
+    "loading": "Wczytywanie treści notatek…",
+    "summary": "Zapisane dni: {{days}} · łącznie {{valueLabel}} {{value}}",
+    "saveMarkdown": "Zapisz jako Markdown",
+    "saveHtml": "Zapisz jako HTML",
+    "preview": "Podgląd raportu",
+    "savedMarkdown": "Zapisano raport: {{path}}",
+    "savedHtml": "Zapisano raport: {{path}}",
+    "orientation": "Układ",
+    "orientationColumns": "Tygodnie jako kolumny",
+    "orientationRows": "Tygodnie jako wiersze",
+    "weekStartDay": "Początek tygodnia",
+    "showWeekStartDate": "Pokaż datę początku tygodnia",
+    "splitByMonth": "Podziel na miesiące",
+    "showMonthLabels": "Pokaż miesiąc",
+    "skipWeekends": "Ukryj weekendy",
+    "hideSummary": "Ukryj podsumowanie",
+    "hideTotalValue": "Ukryj wartość łączną",
+    "hideAllValues": "Ukryj wszystkie wartości",
+    "valueLabel": "Etykieta wartości",
+    "valueLabelPlaceholder": "wartość",
+    "editLegend": "Edytuj legendę",
+    "exportFolder": "w",
+    "exportFolderPlaceholder": "(katalog główny skarbca)",
+    "presetAllLoggedData": "Zapisane",
+    "presetLastYear": "Ostatni rok",
+    "presetYearToDate": "Od pocz. roku",
+    "presetLastMonth": "Ostatni miesiąc",
+    "presetMonthToDate": "Od pocz. mies.",
+    "bandHint": "renderowane jako {{count}} przedziałów"
+  },
+  "errors": {
+    "dataviewMissing": {
+      "title": "Wymagany jest Dataview",
+      "body": "Heatmap Tracker odczytuje Twoje notatki przez wtyczkę Dataview. Zainstaluj i włącz Dataview, a następnie otwórz tę notatkę ponownie.",
+      "action": "Otwórz Dataview w Obsidian"
+    },
+    "missingProperty": {
+      "title": "Nie ustawiono właściwości",
+      "body": "Wskaż mapie cieplnej, którą właściwość frontmatter ma odczytywać, na przykład:"
+    },
+    "invalidYaml": {
+      "title": "Nie udało się odczytać tego bloku kodu",
+      "body": "Zawartość nie jest poprawnym YAML. Sprawdź wcięcia oraz to, czy każda opcja jest zapisana jako `name: value`, na przykład:"
+    },
+    "unexpected": {
+      "title": "Heatmap Tracker nie mógł zbudować tej mapy cieplnej",
+      "body": "Coś poszło nie tak podczas odczytu Twoich notatek. Szczegóły poniżej pomogą przy zgłaszaniu problemu."
+    },
+    "noMatches": {
+      "title": "Żadna notatka jeszcze nie pasuje",
+      "body": "Nic w \"{{path}}\" nie ma właściwości \"{{property}}\". Dodaj ją do notatki z datą, a kwadraty się wypełnią.",
+      "bodyNoPath": "Żadna notatka nie ma jeszcze właściwości \"{{property}}\". Dodaj ją do notatki z datą, a kwadraty się wypełnią."
+    }
+  },
+  "docs": {
+    "intro": "Krótki przegląd tego, co możesz umieścić w bloku kodu mapy cieplnej. Pełne typy, wartości domyślne i gotowe do skopiowania przykłady znajdziesz w README oraz w przykładowym skarbcu — linki na dole.",
+    "modalTip": "Zalecane: uruchom polecenie **Insert Heatmap Tracker** (lub kliknij ikonę na wstążce), aby utworzyć mapę cieplną przez formularz z podglądem na żywo, a przyciskiem ołówka na dowolnej mapie cieplnej edytuj ją później — bez pisania YAML.",
+    "quickStart": "Najprostsza działająca mapa cieplna",
+    "quickStartNote": "Odczytuje właściwość `steps` z każdej notatki w skarbcu i koloruje każdy dzień według jej wartości. Wszystko poniżej jest opcjonalne.",
+    "parameters": "Parametry trackerData",
+    "moreTitle": "Pełna dokumentacja",
+    "linkReference": "Opis konfiguracji (README)",
+    "linkExamples": "Przykładowy skarbiec — jedna notatka na parametr",
+    "linkWebsite": "Strona i poradniki",
+    "params": {
+      "entries": "Dni do narysowania. Każdy wpis wymaga `date`; `intensity`, `value`, `customColor`, `emoji`, `content` i `filePath` są opcjonalne.",
+      "year": "Który rok pokazać. Domyślnie bieżący.",
+      "heatmapTitle": "Tytuł wyświetlany nad mapą cieplną.",
+      "heatmapSubtitle": "Mniejszy wiersz pod tytułem, na opis.",
+      "colorScheme": "Kolory do użycia: `paletteName` z ustawień wtyczki lub własna tablica `customColors`.",
+      "intensityConfig": "Odwzorowuje Twoje wartości na stopnie kolorów: `scaleStart`, `scaleEnd`, `defaultIntensity`, `showOutOfRange`, `excludeFalsy`, `aggregation` (`sum` lub `average`).",
+      "layout": "`default` dla rocznej siatki w stylu GitHuba, `monthly` dla jednego wiersza na miesiąc, `month` dla pojedynczego miesiąca kalendarzowego, `week` dla pojedynczego tygodnia.",
+      "separateMonths": "Dodaje odstęp między miesiącami w rocznej siatce.",
+      "showCurrentDayBorder": "Obramowuje pole dzisiejszego dnia.",
+      "monthsToShow": "Pokazuje bieżący miesiąc oraz N poprzednich. Ma pierwszeństwo przed poniższymi opcjami.",
+      "daysToShow": "Pokazuje ostatnie N dni od dzisiaj, w dowolnym układzie. Ma pierwszeństwo przed `startDate`/`endDate`.",
+      "startDate": "Pierwszy wyświetlany dzień (YYYY-MM-DD).",
+      "endDate": "Ostatni wyświetlany dzień (YYYY-MM-DD).",
+      "basePath": "Folder używany, gdy po kliknięciu pola trzeba odnaleźć lub utworzyć notatkę.",
+      "disableFileCreation": "Nigdy nie twórz notatki po kliknięciu pustego pola.",
+      "insights": "Twoje własne wiersze podsumowania, każdy z `name` i funkcją `calculate` działającą na wpisach z danego roku.",
+      "tags": "Licz tylko notatki mające co najmniej jeden z tych tagów.",
+      "filters": "Dodatkowe warunki frontmatter, które notatka musi spełnić: `property`, `operator` (equals / contains / notEmpty), `value`.",
+      "ui": "Przełączniki elementów interfejsu: `hideTabs`, `hideYear`, `hideTitle`, `hideSubtitle`, `showWeekNums`, `defaultView`."
+    }
   }
 }

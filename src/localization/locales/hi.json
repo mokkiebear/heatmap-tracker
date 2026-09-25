@@ -73,7 +73,15 @@
   },
   "header": {
     "previousYear": "पिछला वर्ष",
-    "nextYear": "अगला वर्ष"
+    "nextYear": "अगला वर्ष",
+    "previous": {
+      "month": "पिछला महीना",
+      "week": "पिछला सप्ताह"
+    },
+    "next": {
+      "month": "अगला महीना",
+      "week": "अगला सप्ताह"
+    }
   },
   "weekDisplayMode": {
     "all": "सभी",
@@ -97,5 +105,96 @@
   "box": {
     "value": "मान: {{value}}",
     "noData": "कोई डेटा नहीं"
+  },
+  "report": {
+    "defaultTitle": "कार्य लॉग रिपोर्ट",
+    "startDate": "प्रारंभ तिथि",
+    "endDate": "समाप्ति तिथि",
+    "invalidRange": "प्रारंभ तिथि समाप्ति तिथि के बाद नहीं होनी चाहिए।",
+    "loading": "नोट की सामग्री लोड हो रही है…",
+    "summary": "{{days}} दिन दर्ज · कुल {{valueLabel}} {{value}}",
+    "saveMarkdown": "Markdown के रूप में सहेजें",
+    "saveHtml": "HTML के रूप में सहेजें",
+    "preview": "रिपोर्ट पूर्वावलोकन",
+    "savedMarkdown": "रिपोर्ट सहेजी गई: {{path}}",
+    "savedHtml": "रिपोर्ट सहेजी गई: {{path}}",
+    "orientation": "लेआउट",
+    "orientationColumns": "सप्ताह कॉलम के रूप में",
+    "orientationRows": "सप्ताह पंक्तियों के रूप में",
+    "weekStartDay": "सप्ताह की शुरुआत",
+    "showWeekStartDate": "सप्ताह की प्रारंभ तिथि दिखाएं",
+    "splitByMonth": "महीने के अनुसार बांटें",
+    "showMonthLabels": "महीना दिखाएं",
+    "skipWeekends": "सप्ताहांत छिपाएं",
+    "hideSummary": "सारांश छिपाएं",
+    "hideTotalValue": "कुल मान छिपाएं",
+    "hideAllValues": "सभी मान छिपाएं",
+    "valueLabel": "मान लेबल",
+    "valueLabelPlaceholder": "मान",
+    "editLegend": "दंतकथा संपादित करें",
+    "exportFolder": "में",
+    "exportFolderPlaceholder": "(वॉल्ट रूट)",
+    "presetAllLoggedData": "दर्ज",
+    "presetLastYear": "पिछला वर्ष",
+    "presetYearToDate": "YTD",
+    "presetLastMonth": "पिछला महीना",
+    "presetMonthToDate": "MTD",
+    "bandHint": "{{count}} बैंड के रूप में दिखाया गया"
+  },
+  "errors": {
+    "dataviewMissing": {
+      "title": "Dataview आवश्यक है",
+      "body": "Heatmap Tracker आपके नोट्स को Dataview प्लगइन के माध्यम से पढ़ता है। Dataview इंस्टॉल करके सक्षम करें, फिर यह नोट दोबारा खोलें।",
+      "action": "Obsidian में Dataview खोलें"
+    },
+    "missingProperty": {
+      "title": "कोई प्रॉपर्टी सेट नहीं है",
+      "body": "हीटमैप को बताएं कि कौन सी frontmatter प्रॉपर्टी पढ़नी है, उदाहरण के लिए:"
+    },
+    "invalidYaml": {
+      "title": "यह कोडब्लॉक पढ़ा नहीं जा सका",
+      "body": "सामग्री मान्य YAML नहीं है। इंडेंटेशन जांचें और यह भी कि हर विकल्प `name: value` के रूप में लिखा गया हो, उदाहरण के लिए:"
+    },
+    "unexpected": {
+      "title": "Heatmap Tracker यह हीटमैप नहीं बना सका",
+      "body": "आपके नोट्स पढ़ते समय कुछ गलत हो गया। नीचे दिए गए विवरण समस्या की रिपोर्ट करते समय मदद करते हैं।"
+    },
+    "noMatches": {
+      "title": "अभी तक कोई नोट मेल नहीं खाया",
+      "body": "\"{{path}}\" के अंतर्गत किसी में भी \"{{property}}\" प्रॉपर्टी नहीं है। इसे किसी तिथि वाले नोट में जोड़ें और वर्ग भरने लगेंगे।",
+      "bodyNoPath": "अभी तक किसी नोट में \"{{property}}\" प्रॉपर्टी नहीं है। इसे किसी तिथि वाले नोट में जोड़ें और वर्ग भरने लगेंगे।"
+    }
+  },
+  "docs": {
+    "intro": "हीटमैप कोडब्लॉक में आप क्या डाल सकते हैं, इसका एक त्वरित नक्शा। पूरे प्रकार, डिफ़ॉल्ट और कॉपी-पेस्ट करने योग्य उदाहरण README और उदाहरण वॉल्ट में हैं — लिंक नीचे दिए गए हैं।",
+    "modalTip": "अनुशंसित: **Insert Heatmap Tracker** कमांड चलाएं (या रिबन आइकन पर क्लिक करें) ताकि लाइव पूर्वावलोकन वाले फ़ॉर्म के ज़रिए हीटमैप बनाया जा सके, और बाद में संपादित करने के लिए किसी भी हीटमैप पर पेंसिल बटन का उपयोग करें — कोई YAML ज़रूरी नहीं।",
+    "quickStart": "सबसे छोटा काम करने वाला हीटमैप",
+    "quickStartNote": "आपके वॉल्ट के हर नोट से `steps` प्रॉपर्टी पढ़ता है और हर दिन को उसके मान के अनुसार रंगता है। नीचे दिया गया सब कुछ वैकल्पिक है।",
+    "parameters": "trackerData पैरामीटर",
+    "moreTitle": "पूरा प्रलेखन",
+    "linkReference": "कॉन्फ़िगरेशन संदर्भ (README)",
+    "linkExamples": "उदाहरण वॉल्ट — हर पैरामीटर के लिए एक नोट",
+    "linkWebsite": "वेबसाइट और गाइड",
+    "params": {
+      "entries": "दिखाए जाने वाले दिन। हर प्रविष्टि के लिए `date` ज़रूरी है; `intensity`, `value`, `customColor`, `emoji`, `content` और `filePath` वैकल्पिक हैं।",
+      "year": "कौन सा वर्ष दिखाना है। डिफ़ॉल्ट रूप से वर्तमान वर्ष।",
+      "heatmapTitle": "हीटमैप के ऊपर दिखाया जाने वाला शीर्षक।",
+      "heatmapSubtitle": "शीर्षक के नीचे छोटी पंक्ति, विवरण के लिए।",
+      "colorScheme": "उपयोग किए जाने वाले रंग: प्लगइन सेटिंग्स से कोई `paletteName`, या आपका अपना `customColors` ऐरे।",
+      "intensityConfig": "आपके मानों को रंग चरणों पर मैप करता है: `scaleStart`, `scaleEnd`, `defaultIntensity`, `showOutOfRange`, `excludeFalsy`, `aggregation` (`sum` या `average`)।",
+      "layout": "GitHub-शैली के वार्षिक ग्रिड के लिए `default`, हर महीने की एक पंक्ति के लिए `monthly`, एकल कैलेंडर माह के लिए `month`, एकल सप्ताह के लिए `week`।",
+      "separateMonths": "वार्षिक ग्रिड में महीनों के बीच अंतर जोड़ता है।",
+      "showCurrentDayBorder": "आज के बॉक्स की रूपरेखा बनाता है।",
+      "monthsToShow": "वर्तमान महीना और उससे पिछले N महीने दिखाएं। नीचे दिए गए विकल्पों पर प्राथमिकता रखता है।",
+      "daysToShow": "किसी भी लेआउट में आज से पिछले N दिन दिखाएं। `startDate`/`endDate` पर प्राथमिकता रखता है।",
+      "startDate": "दिखाया जाने वाला पहला दिन (YYYY-MM-DD)।",
+      "endDate": "दिखाया जाने वाला आखिरी दिन (YYYY-MM-DD)।",
+      "basePath": "वह फ़ोल्डर जो बॉक्स पर क्लिक करने पर नोट खोजने या बनाने के लिए उपयोग होता है।",
+      "disableFileCreation": "खाली बॉक्स पर क्लिक करने पर कभी नोट न बनाएं।",
+      "insights": "आपकी अपनी सारांश पंक्तियाँ, हर एक में एक `name` और वर्ष की प्रविष्टियों पर चलने वाला एक `calculate` फ़ंक्शन।",
+      "tags": "केवल उन्हीं नोट्स को गिनें जिनमें इनमें से कम से कम एक टैग हो।",
+      "filters": "अतिरिक्त frontmatter शर्तें जो नोट को पूरी करनी चाहिए: `property`, `operator` (equals / contains / notEmpty), `value`।",
+      "ui": "इंटरफ़ेस के लिए टॉगल: `hideTabs`, `hideYear`, `hideTitle`, `hideSubtitle`, `showWeekNums`, `defaultView`।"
+    }
   }
 }

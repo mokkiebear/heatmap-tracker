@@ -73,7 +73,15 @@
   },
   "header": {
     "previousYear": "Année précédente",
-    "nextYear": "Année suivante"
+    "nextYear": "Année suivante",
+    "previous": {
+      "month": "Mois précédent",
+      "week": "Semaine précédente"
+    },
+    "next": {
+      "month": "Mois suivant",
+      "week": "Semaine suivante"
+    }
   },
   "weekDisplayMode": {
     "all": "Tous",
@@ -97,5 +105,96 @@
   "box": {
     "value": "valeur : {{value}}",
     "noData": "aucune donnée"
+  },
+  "report": {
+    "defaultTitle": "Rapport de suivi",
+    "startDate": "Date de début",
+    "endDate": "Date de fin",
+    "invalidRange": "La date de début ne doit pas être postérieure à la date de fin.",
+    "loading": "Chargement du contenu des notes…",
+    "summary": "{{days}} jour(s) enregistré(s) · total {{valueLabel}} {{value}}",
+    "saveMarkdown": "Enregistrer en Markdown",
+    "saveHtml": "Enregistrer en HTML",
+    "preview": "Aperçu du rapport",
+    "savedMarkdown": "Rapport enregistré : {{path}}",
+    "savedHtml": "Rapport enregistré : {{path}}",
+    "orientation": "Disposition",
+    "orientationColumns": "Semaines en colonnes",
+    "orientationRows": "Semaines en lignes",
+    "weekStartDay": "La semaine commence le",
+    "showWeekStartDate": "Afficher la date de début de semaine",
+    "splitByMonth": "Séparer par mois",
+    "showMonthLabels": "Afficher le mois",
+    "skipWeekends": "Masquer les week-ends",
+    "hideSummary": "Masquer le résumé",
+    "hideTotalValue": "Masquer la valeur totale",
+    "hideAllValues": "Masquer toutes les valeurs",
+    "valueLabel": "Libellé de la valeur",
+    "valueLabelPlaceholder": "valeur",
+    "editLegend": "Modifier la légende",
+    "exportFolder": "dans",
+    "exportFolderPlaceholder": "(racine du coffre)",
+    "presetAllLoggedData": "Suivi",
+    "presetLastYear": "Année dernière",
+    "presetYearToDate": "Cette année",
+    "presetLastMonth": "Mois dernier",
+    "presetMonthToDate": "Ce mois",
+    "bandHint": "rendu en {{count}} paliers"
+  },
+  "errors": {
+    "dataviewMissing": {
+      "title": "Dataview est requis",
+      "body": "Heatmap Tracker lit vos notes via le plugin Dataview. Installez et activez Dataview, puis rouvrez cette note.",
+      "action": "Ouvrir Dataview dans Obsidian"
+    },
+    "missingProperty": {
+      "title": "Aucune propriété définie",
+      "body": "Indiquez à la carte thermique quelle propriété frontmatter lire, par exemple :"
+    },
+    "invalidYaml": {
+      "title": "Ce bloc de code n’a pas pu être lu",
+      "body": "Le contenu n’est pas du YAML valide. Vérifiez l’indentation et que chaque option est écrite sous la forme `name: value`, par exemple :"
+    },
+    "unexpected": {
+      "title": "Heatmap Tracker n’a pas pu construire cette carte thermique",
+      "body": "Un problème est survenu lors de la lecture de vos notes. Les détails ci-dessous sont utiles pour signaler le problème."
+    },
+    "noMatches": {
+      "title": "Aucune note ne correspond pour l’instant",
+      "body": "Rien sous \"{{path}}\" ne possède de propriété \"{{property}}\". Ajoutez-la à une note datée et les cases se rempliront.",
+      "bodyNoPath": "Aucune note ne possède encore de propriété \"{{property}}\". Ajoutez-la à une note datée et les cases se rempliront."
+    }
+  },
+  "docs": {
+    "intro": "Un aperçu rapide de ce que vous pouvez mettre dans un bloc de code heatmap. Les types complets, les valeurs par défaut et des exemples à copier-coller se trouvent dans le README et le coffre d’exemples — liens en bas.",
+    "modalTip": "Recommandé : lancez la commande **Insert Heatmap Tracker** (ou cliquez sur l’icône du ruban) pour créer une carte thermique via un formulaire avec aperçu en direct, et utilisez le bouton crayon sur n’importe quelle carte thermique pour la modifier ensuite — aucun YAML requis.",
+    "quickStart": "La carte thermique fonctionnelle la plus simple",
+    "quickStartNote": "Lit la propriété `steps` de chaque note de votre coffre et colore chaque jour selon sa valeur. Tout ce qui suit est facultatif.",
+    "parameters": "Paramètres de trackerData",
+    "moreTitle": "Documentation complète",
+    "linkReference": "Référence de configuration (README)",
+    "linkExamples": "Coffre d’exemples — une note par paramètre",
+    "linkWebsite": "Site web et guides",
+    "params": {
+      "entries": "Les jours à dessiner. Chaque entrée nécessite une `date` ; `intensity`, `value`, `customColor`, `emoji`, `content` et `filePath` sont facultatifs.",
+      "year": "L’année à afficher. Par défaut, l’année en cours.",
+      "heatmapTitle": "Titre affiché au-dessus de la carte thermique.",
+      "heatmapSubtitle": "Ligne plus petite sous le titre, pour une description.",
+      "colorScheme": "Couleurs à utiliser : un `paletteName` issu des paramètres du plugin, ou votre propre tableau `customColors`.",
+      "intensityConfig": "Associe vos valeurs aux paliers de couleur : `scaleStart`, `scaleEnd`, `defaultIntensity`, `showOutOfRange`, `excludeFalsy`, `aggregation` (`sum` ou `average`).",
+      "layout": "`default` pour la grille annuelle façon GitHub, `monthly` pour une ligne par mois, `month` pour un seul mois calendaire, `week` pour une seule semaine.",
+      "separateMonths": "Ajoute un espace entre les mois dans la grille annuelle.",
+      "showCurrentDayBorder": "Encadre la case du jour.",
+      "monthsToShow": "Affiche le mois en cours plus les N précédents. Prioritaire sur les options ci-dessous.",
+      "daysToShow": "Affiche les N derniers jours à partir d’aujourd’hui, dans n’importe quelle disposition. Prioritaire sur `startDate`/`endDate`.",
+      "startDate": "Premier jour à afficher (YYYY-MM-DD).",
+      "endDate": "Dernier jour à afficher (YYYY-MM-DD).",
+      "basePath": "Dossier utilisé lorsqu’une case est cliquée et qu’une note doit être trouvée ou créée.",
+      "disableFileCreation": "Ne jamais créer de note lorsqu’une case vide est cliquée.",
+      "insights": "Vos propres lignes de résumé, chacune avec un `name` et une fonction `calculate` appliquée aux entrées de l’année.",
+      "tags": "Ne compter que les notes portant au moins une de ces étiquettes.",
+      "filters": "Conditions frontmatter supplémentaires qu’une note doit satisfaire : `property`, `operator` (equals / contains / notEmpty), `value`.",
+      "ui": "Options d’affichage de l’interface : `hideTabs`, `hideYear`, `hideTitle`, `hideSubtitle`, `showWeekNums`, `defaultView`."
+    }
   }
 }

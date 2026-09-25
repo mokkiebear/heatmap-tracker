@@ -73,7 +73,15 @@
   },
   "header": {
     "previousYear": "上一年",
-    "nextYear": "下一年"
+    "nextYear": "下一年",
+    "previous": {
+      "month": "上个月",
+      "week": "上一周"
+    },
+    "next": {
+      "month": "下个月",
+      "week": "下一周"
+    }
   },
   "weekDisplayMode": {
     "even": "偶数",
@@ -97,5 +105,96 @@
   "box": {
     "value": "数值：{{value}}",
     "noData": "无数据"
+  },
+  "report": {
+    "defaultTitle": "工作日志报告",
+    "startDate": "开始日期",
+    "endDate": "结束日期",
+    "invalidRange": "开始日期不能晚于结束日期。",
+    "loading": "正在加载笔记内容…",
+    "summary": "已记录 {{days}} 天 · 共计 {{valueLabel}} {{value}}",
+    "saveMarkdown": "保存为 Markdown",
+    "saveHtml": "保存为 HTML",
+    "preview": "报告预览",
+    "savedMarkdown": "报告已保存：{{path}}",
+    "savedHtml": "报告已保存：{{path}}",
+    "orientation": "布局",
+    "orientationColumns": "周为列",
+    "orientationRows": "周为行",
+    "weekStartDay": "周起始日",
+    "showWeekStartDate": "显示周起始日期",
+    "splitByMonth": "按月分隔",
+    "showMonthLabels": "显示月份",
+    "skipWeekends": "隐藏周末",
+    "hideSummary": "隐藏摘要",
+    "hideTotalValue": "隐藏合计数值",
+    "hideAllValues": "隐藏所有数值",
+    "valueLabel": "数值标签",
+    "valueLabelPlaceholder": "数值",
+    "editLegend": "编辑图例",
+    "exportFolder": "至",
+    "exportFolderPlaceholder": "（库根目录）",
+    "presetAllLoggedData": "已记录",
+    "presetLastYear": "去年",
+    "presetYearToDate": "年初至今",
+    "presetLastMonth": "上月",
+    "presetMonthToDate": "月初至今",
+    "bandHint": "渲染为 {{count}} 个色带"
+  },
+  "errors": {
+    "dataviewMissing": {
+      "title": "需要 Dataview",
+      "body": "Heatmap Tracker 通过 Dataview 插件读取你的笔记。请安装并启用 Dataview，然后重新打开此笔记。",
+      "action": "在 Obsidian 中打开 Dataview"
+    },
+    "missingProperty": {
+      "title": "未设置属性",
+      "body": "请告诉热力图要读取哪个 frontmatter 属性，例如："
+    },
+    "invalidYaml": {
+      "title": "无法读取此代码块",
+      "body": "内容不是有效的 YAML。请检查缩进，并确保每个选项都写成 `name: value` 的形式，例如："
+    },
+    "unexpected": {
+      "title": "Heatmap Tracker 无法生成此热力图",
+      "body": "读取你的笔记时出现了问题。下面的详细信息有助于反馈该问题。"
+    },
+    "noMatches": {
+      "title": "尚无匹配的笔记",
+      "body": "\"{{path}}\" 下没有任何笔记包含 \"{{property}}\" 属性。把它加到一篇带日期的笔记中，方块就会填充。",
+      "bodyNoPath": "目前没有笔记包含 \"{{property}}\" 属性。把它加到一篇带日期的笔记中，方块就会填充。"
+    }
+  },
+  "docs": {
+    "intro": "这里快速列出你可以在热力图代码块中使用的内容。完整的类型、默认值和可复制粘贴的示例请见 README 和示例库 —— 链接在底部。",
+    "modalTip": "推荐：运行 **Insert Heatmap Tracker** 命令（或点击侧边栏图标），通过带实时预览的表单创建热力图；之后可用任意热力图上的铅笔按钮进行编辑 —— 无需编写 YAML。",
+    "quickStart": "最简可用热力图",
+    "quickStartNote": "读取库中每篇笔记的 `steps` 属性，并按其数值为每一天着色。以下内容均为可选。",
+    "parameters": "trackerData 参数",
+    "moreTitle": "完整文档",
+    "linkReference": "配置参考（README）",
+    "linkExamples": "示例库 —— 每个参数一篇笔记",
+    "linkWebsite": "网站与指南",
+    "params": {
+      "entries": "要绘制的日期。每个条目需要 `date`；`intensity`、`value`、`customColor`、`emoji`、`content` 和 `filePath` 为可选。",
+      "year": "显示哪一年。默认为当前年份。",
+      "heatmapTitle": "显示在热力图上方的标题。",
+      "heatmapSubtitle": "标题下方的小字行，用于描述。",
+      "colorScheme": "使用的颜色：插件设置中的 `paletteName`，或你自己的 `customColors` 数组。",
+      "intensityConfig": "将你的数值映射到颜色档位：`scaleStart`、`scaleEnd`、`defaultIntensity`、`showOutOfRange`、`excludeFalsy`、`aggregation`（`sum` 或 `average`）。",
+      "layout": "`default` 为 GitHub 风格的年度网格，`monthly` 为每月一行，`month` 为单个日历月，`week` 为单周。",
+      "separateMonths": "在年度网格中的月份之间添加间隔。",
+      "showCurrentDayBorder": "为今天的方块添加边框。",
+      "monthsToShow": "显示当前月份以及之前的 N 个月。优先于下面的选项。",
+      "daysToShow": "在任意布局中显示从今天起的最近 N 天。优先于 `startDate`/`endDate`。",
+      "startDate": "显示的第一天（YYYY-MM-DD）。",
+      "endDate": "显示的最后一天（YYYY-MM-DD）。",
+      "basePath": "点击方块需要查找或创建笔记时使用的文件夹。",
+      "disableFileCreation": "点击空方块时不创建笔记。",
+      "insights": "你自定义的摘要行，每行包含一个 `name` 和一个对该年条目进行计算的 `calculate` 函数。",
+      "tags": "仅统计带有其中至少一个标签的笔记。",
+      "filters": "笔记必须满足的额外 frontmatter 条件：`property`、`operator`（equals / contains / notEmpty）、`value`。",
+      "ui": "界面元素开关：`hideTabs`、`hideYear`、`hideTitle`、`hideSubtitle`、`showWeekNums`、`defaultView`。"
+    }
   }
 }

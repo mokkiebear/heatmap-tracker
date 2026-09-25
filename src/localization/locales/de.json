@@ -73,7 +73,15 @@
   },
   "header": {
     "previousYear": "Vorheriges Jahr",
-    "nextYear": "Nächstes Jahr"
+    "nextYear": "Nächstes Jahr",
+    "previous": {
+      "month": "Vorheriger Monat",
+      "week": "Vorherige Woche"
+    },
+    "next": {
+      "month": "Nächster Monat",
+      "week": "Nächste Woche"
+    }
   },
   "weekDisplayMode": {
     "all": "Alle",
@@ -97,5 +105,96 @@
   "box": {
     "value": "Wert: {{value}}",
     "noData": "keine Daten"
+  },
+  "report": {
+    "defaultTitle": "Arbeitsprotokoll-Bericht",
+    "startDate": "Startdatum",
+    "endDate": "Enddatum",
+    "invalidRange": "Das Startdatum darf nicht nach dem Enddatum liegen.",
+    "loading": "Notizinhalte werden geladen…",
+    "summary": "{{days}} Tag(e) erfasst · insgesamt {{valueLabel}} {{value}}",
+    "saveMarkdown": "Als Markdown speichern",
+    "saveHtml": "Als HTML speichern",
+    "preview": "Berichtsvorschau",
+    "savedMarkdown": "Bericht gespeichert: {{path}}",
+    "savedHtml": "Bericht gespeichert: {{path}}",
+    "orientation": "Layout",
+    "orientationColumns": "Wochen als Spalten",
+    "orientationRows": "Wochen als Zeilen",
+    "weekStartDay": "Woche beginnt am",
+    "showWeekStartDate": "Wochenstartdatum anzeigen",
+    "splitByMonth": "Nach Monat aufteilen",
+    "showMonthLabels": "Monat anzeigen",
+    "skipWeekends": "Wochenenden ausblenden",
+    "hideSummary": "Zusammenfassung ausblenden",
+    "hideTotalValue": "Gesamtwert ausblenden",
+    "hideAllValues": "Alle Werte ausblenden",
+    "valueLabel": "Wertbezeichnung",
+    "valueLabelPlaceholder": "Wert",
+    "editLegend": "Legende bearbeiten",
+    "exportFolder": "in",
+    "exportFolderPlaceholder": "(Vault-Wurzel)",
+    "presetAllLoggedData": "Erfasst",
+    "presetLastYear": "Letztes Jahr",
+    "presetYearToDate": "YTD",
+    "presetLastMonth": "Letzter Monat",
+    "presetMonthToDate": "MTD",
+    "bandHint": "als {{count}} Bänder dargestellt"
+  },
+  "errors": {
+    "dataviewMissing": {
+      "title": "Dataview ist erforderlich",
+      "body": "Heatmap Tracker liest Ihre Notizen über das Dataview-Plugin. Installieren und aktivieren Sie Dataview und öffnen Sie diese Notiz erneut.",
+      "action": "Dataview in Obsidian öffnen"
+    },
+    "missingProperty": {
+      "title": "Keine Eigenschaft festgelegt",
+      "body": "Geben Sie der Heatmap an, welche frontmatter-Eigenschaft gelesen werden soll, zum Beispiel:"
+    },
+    "invalidYaml": {
+      "title": "Dieser Codeblock konnte nicht gelesen werden",
+      "body": "Der Inhalt ist kein gültiges YAML. Prüfen Sie die Einrückung und dass jede Option als `name: value` geschrieben ist, zum Beispiel:"
+    },
+    "unexpected": {
+      "title": "Heatmap Tracker konnte diese Heatmap nicht erstellen",
+      "body": "Beim Lesen Ihrer Notizen ist etwas schiefgegangen. Die Details unten helfen beim Melden des Problems."
+    },
+    "noMatches": {
+      "title": "Noch keine passenden Notizen",
+      "body": "Unter \"{{path}}\" hat nichts eine \"{{property}}\"-Eigenschaft. Fügen Sie sie einer datierten Notiz hinzu, und die Kästchen füllen sich.",
+      "bodyNoPath": "Noch keine Notiz hat eine \"{{property}}\"-Eigenschaft. Fügen Sie sie einer datierten Notiz hinzu, und die Kästchen füllen sich."
+    }
+  },
+  "docs": {
+    "intro": "Ein kurzer Überblick darüber, was in einen Heatmap-Codeblock gehört. Vollständige Typen, Standardwerte und kopierbare Beispiele finden Sie im README und im Beispiel-Vault – Links unten.",
+    "modalTip": "Empfohlen: Führen Sie den Befehl **Insert Heatmap Tracker** aus (oder klicken Sie auf das Ribbon-Symbol), um eine Heatmap über ein Formular mit Live-Vorschau zu erstellen, und nutzen Sie die Stift-Schaltfläche an jeder Heatmap, um sie später zu bearbeiten – ganz ohne YAML.",
+    "quickStart": "Kleinste funktionierende Heatmap",
+    "quickStartNote": "Liest die Eigenschaft `steps` aus jeder Notiz in Ihrem Vault und färbt jeden Tag nach seinem Wert. Alles Weitere unten ist optional.",
+    "parameters": "trackerData-Parameter",
+    "moreTitle": "Vollständige Dokumentation",
+    "linkReference": "Konfigurationsreferenz (README)",
+    "linkExamples": "Beispiel-Vault – eine Notiz pro Parameter",
+    "linkWebsite": "Website und Anleitungen",
+    "params": {
+      "entries": "Die darzustellenden Tage. Jeder Eintrag benötigt ein `date`; `intensity`, `value`, `customColor`, `emoji`, `content` und `filePath` sind optional.",
+      "year": "Welches Jahr angezeigt wird. Standard ist das aktuelle Jahr.",
+      "heatmapTitle": "Titel über der Heatmap.",
+      "heatmapSubtitle": "Kleinere Zeile unter dem Titel, für eine Beschreibung.",
+      "colorScheme": "Zu verwendende Farben: ein `paletteName` aus den Plugin-Einstellungen oder Ihr eigenes `customColors`-Array.",
+      "intensityConfig": "Ordnet Ihre Werte den Farbstufen zu: `scaleStart`, `scaleEnd`, `defaultIntensity`, `showOutOfRange`, `excludeFalsy`, `aggregation` (`sum` oder `average`).",
+      "layout": "`default` für das jahresweite Raster im GitHub-Stil, `monthly` für eine Zeile pro Monat, `month` für einen einzelnen Kalendermonat, `week` für eine einzelne Woche.",
+      "separateMonths": "Fügt im Jahresraster einen Abstand zwischen den Monaten ein.",
+      "showCurrentDayBorder": "Umrandet das Kästchen des heutigen Tages.",
+      "monthsToShow": "Zeigt den aktuellen Monat plus N vorherige. Hat Vorrang vor den Optionen unten.",
+      "daysToShow": "Zeigt die letzten N Tage ab heute, in jedem Layout. Hat Vorrang vor `startDate`/`endDate`.",
+      "startDate": "Erster angezeigter Tag (YYYY-MM-DD).",
+      "endDate": "Letzter angezeigter Tag (YYYY-MM-DD).",
+      "basePath": "Ordner, der verwendet wird, wenn ein Kästchen angeklickt wird und eine Notiz gefunden oder erstellt werden muss.",
+      "disableFileCreation": "Nie eine Notiz erstellen, wenn ein leeres Kästchen angeklickt wird.",
+      "insights": "Ihre eigenen Zusammenfassungszeilen, jeweils mit einem `name` und einer `calculate`-Funktion über die Einträge des Jahres.",
+      "tags": "Nur Notizen zählen, die mindestens einen dieser Tags tragen.",
+      "filters": "Zusätzliche frontmatter-Bedingungen, die eine Notiz erfüllen muss: `property`, `operator` (equals / contains / notEmpty), `value`.",
+      "ui": "Schalter für die Oberfläche: `hideTabs`, `hideYear`, `hideTitle`, `hideSubtitle`, `showWeekNums`, `defaultView`."
+    }
   }
 }

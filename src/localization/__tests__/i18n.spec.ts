@@ -1,4 +1,5 @@
 import i18n from "src/localization/i18n";
+import de from "src/localization/locales/de.json";
 
 describe("i18n", () => {
   afterEach(async () => {
@@ -26,11 +27,21 @@ describe("i18n", () => {
   });
 
   it("falls back to English for a key missing in the active language", async () => {
+    // Every locale is complete now (localeCompleteness.spec.ts enforces it), so
+    // the gap has to be made: de.json is the same object i18n holds in
+    // `resources`, so deleting a leaf here removes it from the active language.
     const english = i18n.t("report.defaultTitle");
-    await i18n.changeLanguage("de");
+    const report = (de as unknown as Record<string, Record<string, string>>)
+      .report;
+    const german = report.defaultTitle;
+    delete report.defaultTitle;
 
-    // `report.*` only exists in en.json and ru.json.
-    expect(i18n.t("report.defaultTitle")).toBe(english);
+    try {
+      await i18n.changeLanguage("de");
+      expect(i18n.t("report.defaultTitle")).toBe(english);
+    } finally {
+      report.defaultTitle = german;
+    }
   });
 
   it("resolves a flat top-level key that contains dots", () => {

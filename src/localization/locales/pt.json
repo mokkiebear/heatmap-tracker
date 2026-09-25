@@ -73,7 +73,15 @@
   },
   "header": {
     "previousYear": "Ano anterior",
-    "nextYear": "Próximo ano"
+    "nextYear": "Próximo ano",
+    "previous": {
+      "month": "Mês anterior",
+      "week": "Semana anterior"
+    },
+    "next": {
+      "month": "Próximo mês",
+      "week": "Próxima semana"
+    }
   },
   "weekDisplayMode": {
     "all": "Todos",
@@ -97,5 +105,96 @@
   "box": {
     "value": "valor: {{value}}",
     "noData": "sem dados"
+  },
+  "report": {
+    "defaultTitle": "Relatório de registro de trabalho",
+    "startDate": "Data inicial",
+    "endDate": "Data final",
+    "invalidRange": "A data inicial não pode ser posterior à data final.",
+    "loading": "Carregando conteúdo das notas…",
+    "summary": "{{days}} dia(s) registrado(s) · total {{valueLabel}} {{value}}",
+    "saveMarkdown": "Salvar como Markdown",
+    "saveHtml": "Salvar como HTML",
+    "preview": "Pré-visualização do relatório",
+    "savedMarkdown": "Relatório salvo: {{path}}",
+    "savedHtml": "Relatório salvo: {{path}}",
+    "orientation": "Layout",
+    "orientationColumns": "Semanas em colunas",
+    "orientationRows": "Semanas em linhas",
+    "weekStartDay": "A semana começa em",
+    "showWeekStartDate": "Mostrar data de início da semana",
+    "splitByMonth": "Dividir por mês",
+    "showMonthLabels": "Mostrar mês",
+    "skipWeekends": "Ocultar fins de semana",
+    "hideSummary": "Ocultar resumo",
+    "hideTotalValue": "Ocultar valor total",
+    "hideAllValues": "Ocultar todos os valores",
+    "valueLabel": "Rótulo do valor",
+    "valueLabelPlaceholder": "valor",
+    "editLegend": "Editar lenda",
+    "exportFolder": "em",
+    "exportFolderPlaceholder": "(raiz do cofre)",
+    "presetAllLoggedData": "Registrado",
+    "presetLastYear": "Último ano",
+    "presetYearToDate": "No ano",
+    "presetLastMonth": "Último mês",
+    "presetMonthToDate": "No mês",
+    "bandHint": "exibido em {{count}} faixas"
+  },
+  "errors": {
+    "dataviewMissing": {
+      "title": "Dataview é necessário",
+      "body": "O Heatmap Tracker lê suas notas por meio do plugin Dataview. Instale e ative o Dataview e depois reabra esta nota.",
+      "action": "Abrir Dataview no Obsidian"
+    },
+    "missingProperty": {
+      "title": "Nenhuma propriedade definida",
+      "body": "Informe ao mapa de calor qual propriedade do frontmatter deve ser lida, por exemplo:"
+    },
+    "invalidYaml": {
+      "title": "Não foi possível ler este bloco de código",
+      "body": "O conteúdo não é um YAML válido. Verifique a indentação e se cada opção está escrita como `name: value`, por exemplo:"
+    },
+    "unexpected": {
+      "title": "O Heatmap Tracker não conseguiu criar este mapa de calor",
+      "body": "Algo deu errado ao ler suas notas. Os detalhes abaixo ajudam ao relatar o problema."
+    },
+    "noMatches": {
+      "title": "Nenhuma nota corresponde ainda",
+      "body": "Nada em \"{{path}}\" tem a propriedade \"{{property}}\". Adicione-a a uma nota com data e os quadrados serão preenchidos.",
+      "bodyNoPath": "Nenhuma nota tem a propriedade \"{{property}}\" ainda. Adicione-a a uma nota com data e os quadrados serão preenchidos."
+    }
+  },
+  "docs": {
+    "intro": "Um mapa rápido do que você pode colocar em um bloco de código do mapa de calor. Tipos completos, valores padrão e exemplos prontos para copiar e colar estão no README e no cofre de exemplos — links no final.",
+    "modalTip": "Recomendado: execute o comando **Insert Heatmap Tracker** (ou clique no ícone da barra lateral) para criar um mapa de calor por um formulário com pré-visualização ao vivo, e use o botão de lápis em qualquer mapa de calor para editá-lo depois — sem precisar de YAML.",
+    "quickStart": "O menor mapa de calor funcional",
+    "quickStartNote": "Lê a propriedade `steps` de todas as notas do seu cofre e colore cada dia conforme o valor. Tudo abaixo é opcional.",
+    "parameters": "Parâmetros do trackerData",
+    "moreTitle": "Documentação completa",
+    "linkReference": "Referência de configuração (README)",
+    "linkExamples": "Cofre de exemplos — uma nota por parâmetro",
+    "linkWebsite": "Site e guias",
+    "params": {
+      "entries": "Os dias a desenhar. Cada entrada precisa de um `date`; `intensity`, `value`, `customColor`, `emoji`, `content` e `filePath` são opcionais.",
+      "year": "Qual ano mostrar. Por padrão, o ano atual.",
+      "heatmapTitle": "Título exibido acima do mapa de calor.",
+      "heatmapSubtitle": "Linha menor abaixo do título, para uma descrição.",
+      "colorScheme": "Cores a usar: um `paletteName` das configurações do plugin ou seu próprio array `customColors`.",
+      "intensityConfig": "Mapeia seus valores nos passos de cor: `scaleStart`, `scaleEnd`, `defaultIntensity`, `showOutOfRange`, `excludeFalsy`, `aggregation` (`sum` ou `average`).",
+      "layout": "`default` para a grade anual no estilo do GitHub, `monthly` para uma linha por mês, `month` para um único mês do calendário, `week` para uma única semana.",
+      "separateMonths": "Adiciona um espaço entre os meses na grade anual.",
+      "showCurrentDayBorder": "Destaca o contorno do quadrado de hoje.",
+      "monthsToShow": "Mostra o mês atual mais N meses anteriores. Tem prioridade sobre as opções abaixo.",
+      "daysToShow": "Mostra os últimos N dias a partir de hoje, em qualquer layout. Tem prioridade sobre `startDate`/`endDate`.",
+      "startDate": "Primeiro dia a exibir (YYYY-MM-DD).",
+      "endDate": "Último dia a exibir (YYYY-MM-DD).",
+      "basePath": "Pasta usada quando um quadrado é clicado e uma nota precisa ser encontrada ou criada.",
+      "disableFileCreation": "Nunca criar uma nota quando um quadrado vazio for clicado.",
+      "insights": "Suas próprias linhas de resumo, cada uma com um `name` e uma função `calculate` sobre as entradas do ano.",
+      "tags": "Contar apenas as notas que tenham pelo menos uma destas tags.",
+      "filters": "Condições extras de frontmatter que uma nota deve satisfazer: `property`, `operator` (equals / contains / notEmpty), `value`.",
+      "ui": "Alternadores de interface: `hideTabs`, `hideYear`, `hideTitle`, `hideSubtitle`, `showWeekNums`, `defaultView`."
+    }
   }
 }
