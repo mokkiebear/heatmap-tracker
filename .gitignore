@@ -46,3 +46,4 @@ build
 
 # Render harness output (see harness/README.md)
 harness/dist
+harness/shots

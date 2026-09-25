@@ -237,9 +237,32 @@ button:disabled {
   cursor: pointer;
 }
 
+/*
+ * Obsidian's icon-only buttons opt out of the default button chrome entirely.
+ * Without this the `button` rule above wins on specificity and every tab and
+ * header arrow renders as a grey plate on a fixed --input-height, which is
+ * neither what Obsidian draws nor a shape the real icons sit in — the harness
+ * was lying about the header's appearance.
+ */
+button.clickable-icon {
+  height: auto;
+  background-color: transparent;
+  box-shadow: none;
+}
+
 .clickable-icon:hover {
   background: var(--background-modifier-hover);
   color: var(--text-normal);
+}
+
+/*
+ * The selected tab. `HeatmapTab` only sets `is-active` and lets Obsidian draw
+ * it — the plugin has no rule of its own — so without this the harness shows
+ * five identical icons and the current view is invisible.
+ */
+.clickable-icon.is-active {
+  background-color: var(--background-modifier-hover);
+  color: var(--text-accent);
 }
 
 .svg-icon {

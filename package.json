@@ -20,7 +20,8 @@
     "verify": "npm run type-check && npm run lint && npm run format:check && npm test",
     "verify:tz": "npm run test:usa",
     "harness": "node harness/esbuild.harness.mjs --serve",
-    "harness:build": "node harness/esbuild.harness.mjs"
+    "harness:build": "node harness/esbuild.harness.mjs",
+    "harness:shots": "node harness/screenshot.mjs"
   },
   "keywords": [
     "obsidian"
@@ -44,6 +45,7 @@
     "obsidian": "latest",
     "obsidian-daily-notes-interface": "^0.9.4",
     "obsidian-dataview": "^0.5.68",
+    "playwright": "^1.63.0",
     "prettier": "3.9.7",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",

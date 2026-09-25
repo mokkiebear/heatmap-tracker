@@ -57,12 +57,14 @@ const buildOptions = {
 if (serve) {
   const context = await esbuild.context(buildOptions);
   await context.watch();
-  const { host, port } = await context.serve({
+  const { hosts, port } = await context.serve({
     servedir: here,
     host: "127.0.0.1",
     port: 5174,
   });
-  console.log(`Harness running at http://${host}:${port}/index.html`);
+  // esbuild returns `hosts` (an array) — the old singular `host` read as
+  // undefined and printed "http://undefined:5174".
+  console.log(`Harness running at http://${hosts[0]}:${port}/index.html`);
 } else {
   await esbuild.build(buildOptions);
   console.log("Harness built into harness/dist/");

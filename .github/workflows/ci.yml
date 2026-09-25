@@ -56,3 +56,32 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  # The harness renders the real pipeline in a browser; this turns that into
+  # something a reviewer can look at. Not a pixel-diff — font rendering differs
+  # between machines, so a byte comparison would fail for reasons unrelated to
+  # the change. The artifact is for eyes.
+  screenshots:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "20.x"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Capture harness screenshots
+        run: npm run harness:shots
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: harness-screenshots
+          path: harness/shots/
+          retention-days: 14
