@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+- All eight non-English locales are now complete: 540 missing strings translated across German, Spanish, French, Hindi, Polish, Portuguese, Russian and Chinese. The export/report panel, the in-app documentation view and every validation error message previously rendered in English regardless of the selected language, because `i18n.t` silently falls back to English for a missing key — a locale drifting behind `en.json` was only visible to someone who reads that language. A test now fails when any locale lacks a key English has.
+- The `ui` object is documented in the README's configuration reference. `ui.hideTabs`, `hideYear`, `hideTitle`, `hideSubtitle`, `showWeekNums` and `defaultView` all worked but appeared nowhere outside the schema, so they were undiscoverable unless you read the source or the create dialog.
+
 ## [2.14.2] - 2026-09-24
 
 ### Fixed

@@ -265,6 +265,7 @@ The authoritative reference for every `trackerData` parameter. Each one links to
 | [`separateMonths`](#separatemonths) | `boolean` | `true` |
 | [`disableFileCreation`](#disablefilecreation) | `boolean` | `false` |
 | [`insights`](#insights) | `array` | `[]` |
+| [`ui`](#ui) | `object` | see below |
 | [`layout`](#layout) | `"default" \| "monthly" \| "month" \| "week"` | `"default"` |
 | [`monthsToShow` / `daysToShow` / `startDate` + `endDate`](#date-range-monthstoshow-daystoshow-startdateenddate) | `number` / `string` | `undefined` |
 
@@ -506,6 +507,29 @@ Keep the default `"sum"` for anything cumulative (minutes practised, pages read,
 - **Default:** `[]`
 - **Description:** Define your own calculated metrics, displayed in the **Statistics** tab — most productive day, longest streak, total pages read, average sleep, and anything else you can compute.
 - **Example:** [insights](https://github.com/mokkiebear/heatmap-tracker/blob/main/EXAMPLE_VAULT/Documentation%20with%20Examples/3.%20trackerData%20parameters/6.%20insights.md) · [8 ready-made insights](https://github.com/mokkiebear/heatmap-tracker/tree/main/EXAMPLE_VAULT/Documentation%20with%20Examples/4.%20Insights)
+
+---
+
+### `ui`
+
+- **Type:** `object`
+- **Default:** `{ defaultView: "heatmap-tracker", hideTabs: false, hideYear: false, hideTitle: false, hideSubtitle: false }`
+- **Description:** Per-heatmap chrome. Each key hides a part of the header, or picks which tab opens first — useful for embedding a bare grid in a dashboard note.
+
+| Key | Type | Description |
+|---|---|---|
+| `defaultView` | `"heatmap-tracker" \| "heatmap-tracker-statistics" \| "legend" \| "documentation" \| "export"` | Which tab is shown when the note opens. |
+| `hideTabs` | `boolean` | Hides the tab strip entirely. |
+| `hideYear` | `boolean` | Hides the year and the arrows that page through years. |
+| `hideTitle` | `boolean` | Hides `heatmapTitle`. |
+| `hideSubtitle` | `boolean` | Hides `heatmapSubtitle`. |
+| `showWeekNums` | `boolean` | Shows week numbers under the grid. Overrides the plugin-wide setting for this heatmap only. |
+
+```yaml
+ui:
+  hideTabs: true
+  hideYear: true
+```
 
 ---
 

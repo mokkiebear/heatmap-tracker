@@ -104,3 +104,23 @@ Fixed a rendering bug? Add a fixture for it.
 Do not claim a visual result you did not observe. If you did not open the
 harness and did not write a `@testing-library/react` assertion, say the change
 is unverified.
+
+Three checks keep the surrounding docs and fixtures honest; they run as ordinary
+jest tests, so `npm run verify` catches them:
+
+| Check | Fails when |
+|---|---|
+| `src/localization/__tests__/localeCompleteness.spec.ts` | a locale gains a key English lacks, or drifts further behind `en.json` than its declared budget |
+| `src/schemas/__tests__/readmeCoverage.spec.ts` | a `trackerData` parameter exists in the schema with no README section or "At a glance" row |
+| `src/utils/__tests__/regressionCoverage.spec.ts` | a CHANGELOG `### Fixed` entry links an issue that no test or harness fixture names |
+
+Adding a translation key is expected to fail the first of these for every locale
+until each is translated: lower that locale's number in `ALLOWED_MISSING`, never
+raise it silently. The third wants the issue number written as `issue #123`,
+`(#123)` or an `issues/123` link — in a unit test if the bug was in derivation,
+in a fixture if it was visual.
+
+`npm run harness:shots` screenshots every fixture into `harness/shots/`; CI runs
+it and uploads the PNGs as the `harness-screenshots` artifact, so a PR that
+changes the rendering carries the pictures with it.
+
