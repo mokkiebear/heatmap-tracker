@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+- Drop-in compatibility with the unmaintained [heatmap-calendar](https://github.com/Richardsl/heatmap-calendar-obsidian) plugin: `renderHeatmapCalendar()` is now provided by Heatmap Tracker, so existing `dataviewjs` blocks render as-is once the old plugin is disabled — no note edits needed. Its named palettes are read from its plugin data so `colors: "blue"` keeps resolving. Per-entry `color` is ignored; those days use the main palette.
+
 ## [2.15.0] - 2026-09-25
 
 ### Added
