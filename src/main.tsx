@@ -31,6 +31,11 @@ import {
   readLegacyPalettes,
 } from "./utils/heatmapCalendarCompat";
 
+/** `app.plugins` is not part of Obsidian's public typings. */
+interface AppWithPlugins {
+  plugins?: { enabledPlugins?: Set<string> };
+}
+
 declare global {
   interface Window {
     renderHeatmapTracker?: (
@@ -48,6 +53,7 @@ declare global {
 
 export default class HeatmapTrackerPlugin extends Plugin {
   settings: TrackerSettings = DEFAULT_SETTINGS;
+  private ownsHeatmapCalendarGlobal = false;
 
   async onload() {
     await this.loadSettings();
@@ -183,7 +189,14 @@ export default class HeatmapTrackerPlugin extends Plugin {
     );
 
     // Old heatmap-calendar codeblocks keep calling this global. Serving it
-    // means existing notes render as-is once the old plugin is disabled.
+    // means existing notes render as-is once the old plugin is disabled. If
+    // the old plugin is still enabled, leave its global alone — whichever
+    // plugin loaded second would otherwise silently win the race.
+    const appWithPlugins = this.app as unknown as AppWithPlugins;
+    if (appWithPlugins.plugins?.enabledPlugins?.has("heatmap-calendar")) {
+      return;
+    }
+
     const legacyPalettes = await readLegacyPalettes(this.app);
 
     window.renderHeatmapCalendar = (el, calendarData) => {
@@ -198,6 +211,7 @@ export default class HeatmapTrackerPlugin extends Plugin {
         },
       );
     };
+    this.ownsHeatmapCalendarGlobal = true;
   }
 
   private openInsertModal() {
@@ -215,7 +229,7 @@ export default class HeatmapTrackerPlugin extends Plugin {
     if (window.renderHeatmapTracker) {
       delete window.renderHeatmapTracker;
     }
-    if (window.renderHeatmapCalendar) {
+    if (window.renderHeatmapCalendar && this.ownsHeatmapCalendarGlobal) {
       delete window.renderHeatmapCalendar;
     }
   }
