@@ -45,11 +45,7 @@ type LegacyTrackerData = Partial<TrackerData> &
 export function calendarDataToTrackerData(
   calendarData: CalendarData,
 ): LegacyTrackerData {
-  const {
-    colors,
-    entries = [],
-    ...rest
-  } = calendarData ?? ({} as CalendarData);
+  const { colors, entries = [], ...rest } = calendarData;
 
   const colorScheme =
     typeof colors === "string"
