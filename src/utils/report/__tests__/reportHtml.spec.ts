@@ -324,3 +324,61 @@ describe("buildReportHtml", () => {
     });
   });
 });
+
+describe("buildReportHtml with rendered note bodies", () => {
+  const withBodyHtml = (bodyHtml: string | undefined): ReportModel => ({
+    ...model,
+    weeks: [
+      {
+        weekStart: "2026-07-13",
+        days: [{ ...model.weeks[0].days[0], bodyHtml }],
+      },
+    ],
+  });
+  const options = {
+    title: "Report",
+    generatedAt: "2026-07-17",
+    heatmapHtml: "",
+  };
+
+  it("embeds the Obsidian-rendered HTML (math, code, callouts) instead of the escaped text", () => {
+    const rendered =
+      '<div class="callout" data-callout="tip"></div><span class="katex"></span><pre><code class="language-js"></code></pre>';
+
+    const html = buildReportHtml(withBodyHtml(rendered), options);
+
+    expect(html).toContain(
+      `<div class="wlr-body markdown-rendered">${rendered}`,
+    );
+    expect(html).not.toContain("&lt;script&gt;");
+  });
+
+  it("ships the stylesheet those class names need", () => {
+    const html = buildReportHtml(withBodyHtml("<p>x</p>"), options);
+
+    expect(html).toContain(".wlr-body .callout");
+    expect(html).toContain(".wlr-body .token.keyword");
+  });
+
+  it("links the KaTeX stylesheet only when a note contains math", () => {
+    const link =
+      /<link rel="stylesheet" href="https:\/\/cdn\.jsdelivr\.net\/npm\/katex@[\d.]+\/dist\/katex\.min\.css"/;
+
+    expect(
+      buildReportHtml(
+        withBodyHtml('<p><span class="katex">x</span></p>'),
+        options,
+      ),
+    ).toMatch(link);
+    expect(buildReportHtml(withBodyHtml("<p>x</p>"), options)).not.toMatch(
+      link,
+    );
+  });
+
+  it("falls back to the escaped text body when nothing was rendered", () => {
+    const html = buildReportHtml(withBodyHtml(undefined), options);
+
+    expect(html).toContain("<li>&lt;script&gt;alert(1)&lt;/script&gt;</li>");
+    expect(html).not.toContain('<div class="wlr-body');
+  });
+});

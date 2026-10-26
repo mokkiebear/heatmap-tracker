@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { App } from "obsidian";
 import { ColorsList, Entry } from "src/types";
 import { readNoteBodies } from "src/utils/report/noteBody";
+import { renderBodiesToHtml } from "src/utils/report/renderBodyHtml";
 import { buildReportModel } from "src/utils/report/reportModel";
 import {
   buildHeatmapGridHtml,
@@ -21,7 +22,13 @@ function useNoteBodies(
   enabled: boolean,
 ) {
   const [bodiesByPath, setBodiesByPath] = useState<Record<string, string>>({});
+  const [bodyHtmlByPath, setBodyHtmlByPath] = useState<Record<string, string>>(
+    {},
+  );
   const [isLoading, setIsLoading] = useState(false);
+  // Rendering is the slow part; a note whose body is unchanged keeps its HTML
+  // while the user drags the date range around.
+  const renderCache = useRef(new Map<string, { body: string; html: string }>());
 
   useEffect(() => {
     if (!enabled) return;
@@ -36,9 +43,14 @@ function useNoteBodies(
         .filter((path): path is string => Boolean(path));
 
       readNoteBodies(app, inRangePaths)
-        .then((bodies) => {
+        .then(async (bodies) => {
+          const html = await renderBodiesToHtml(app, bodies, {
+            cache: renderCache.current,
+            isCancelled: () => ignore,
+          });
           if (ignore) return;
           setBodiesByPath(bodies);
+          setBodyHtmlByPath(html);
           setIsLoading(false);
         })
         .catch((error) => {
@@ -57,7 +69,7 @@ function useNoteBodies(
     };
   }, [app, entriesByDate, startDate, endDate, enabled]);
 
-  return { bodiesByPath, isLoading };
+  return { bodiesByPath, bodyHtmlByPath, isLoading };
 }
 
 /**
@@ -84,7 +96,7 @@ export function useReportPreview(args: {
     legend,
   } = options;
 
-  const { bodiesByPath, isLoading } = useNoteBodies(
+  const { bodiesByPath, bodyHtmlByPath, isLoading } = useNoteBodies(
     app,
     entriesByDate,
     startDate,
@@ -98,6 +110,7 @@ export function useReportPreview(args: {
       entriesByDate,
       colorsList,
       bodiesByPath,
+      bodyHtmlByPath,
       startDate,
       endDate,
       weekStartDay,
@@ -107,6 +120,7 @@ export function useReportPreview(args: {
     entriesByDate,
     colorsList,
     bodiesByPath,
+    bodyHtmlByPath,
     startDate,
     endDate,
     weekStartDay,

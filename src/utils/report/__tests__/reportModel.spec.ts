@@ -372,3 +372,25 @@ describe("computeDataRange", () => {
     });
   });
 });
+
+describe("buildReportModel rendered bodies", () => {
+  it("attaches the rendered HTML for the note behind each day", () => {
+    const model = buildReportModel({
+      entriesByDate: {
+        "2026-01-05": entry({ date: "2026-01-05", value: 1, filePath: "a.md" }),
+        "2026-01-06": entry({ date: "2026-01-06", value: 1, filePath: "b.md" }),
+      },
+      colorsList: ["#aaa"],
+      bodiesByPath: { "a.md": "$x$", "b.md": "text" },
+      bodyHtmlByPath: { "a.md": '<span class="katex"></span>' },
+      startDate: "2026-01-05",
+      endDate: "2026-01-06",
+      weekStartDay: 1,
+    });
+
+    const [a, b] = model.weeks[0].days;
+    expect(a.bodyHtml).toBe('<span class="katex"></span>');
+    expect(a.body).toBe("$x$");
+    expect(b.bodyHtml).toBeUndefined();
+  });
+});

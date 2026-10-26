@@ -333,6 +333,9 @@ const elementHelpers: Record<string, unknown> = {
   setText(this: HTMLElement, text: string) {
     this.textContent = text;
   },
+  setCssStyles(this: HTMLElement, styles: Partial<CSSStyleDeclaration>) {
+    Object.assign(this.style, styles);
+  },
   appendText(this: HTMLElement, text: string) {
     this.appendChild(document.createTextNode(text));
   },
@@ -412,6 +415,36 @@ export function createSpan(): HTMLSpanElement {
 
 (global as any).createSpan = createSpan;
 
+// Obsidian's other global DOM helpers, as far as the plugin uses them.
+Object.assign(globalThis, {
+  createFragment: (): DocumentFragment => document.createDocumentFragment(),
+  createEl: <K extends keyof HTMLElementTagNameMap>(
+    tag: K,
+  ): HTMLElementTagNameMap[K] => document.createElement(tag),
+});
+
 // Obsidian re-exports the moment instance it ships with; `src/utils/heatmapBox`
 // takes it from here rather than bundling a second copy.
 export { default as moment } from "moment";
+
+export class Component {
+  load(): void {}
+  unload(): void {}
+}
+
+/** Stand-in for the app's renderer: one paragraph per line. */
+export const MarkdownRenderer = {
+  async render(
+    _app: App,
+    markdown: string,
+    el: HTMLElement,
+    _sourcePath: string,
+    _component: Component,
+  ) {
+    markdown.split("\n").forEach((line) => {
+      const p = document.createElement("p");
+      p.textContent = line;
+      el.appendChild(p);
+    });
+  },
+};

@@ -1,6 +1,8 @@
+import katex from "katex";
 import { ReportDay, ReportModel } from "src/utils/report/reportModel";
 import { escapeHtml } from "src/utils/report/heatmapHtml";
 import { formatDayLabel, formatWeekLabel } from "src/utils/report/dateLabels";
+import { REPORT_BODY_CSS } from "src/utils/report/reportBodyCss";
 import {
   LegendEntry,
   buildGradientLegendHtml,
@@ -69,7 +71,13 @@ function renderDay(day: ReportDay, hideAllValues: boolean): string {
     !hideAllValues && day.value !== undefined
       ? ` <span class="wlr-day__value">(${escapeHtml(String(day.value))})</span>`
       : "";
-  const bodyHtml = day.body?.trim() ? bulletsToHtml(day.body) : "<p>-</p>";
+  // Obsidian-rendered HTML keeps math, code and callouts; the bullet fallback
+  // covers entries with no note behind them and notes that failed to render.
+  const bodyHtml = day.bodyHtml?.trim()
+    ? `<div class="wlr-body markdown-rendered">${day.bodyHtml}</div>`
+    : day.body?.trim()
+      ? bulletsToHtml(day.body)
+      : "<p>-</p>";
 
   return `<section class="wlr-day"><h3>${escapeHtml(formatDayLabel(day.date))}${valueLabel}</h3>${bodyHtml}</section>`;
 }
@@ -126,12 +134,19 @@ export function buildReportHtml(
     )
     .join("");
 
+  const hasMath = model.weeks.some((week) =>
+    week.days.some((day) => day.bodyHtml?.includes('class="katex')),
+  );
+  const katexCss = hasMath
+    ? `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@${katex.version}/dist/katex.min.css" />\n`
+    : "";
+
   return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <title>${escapeHtml(title)}</title>
-<style>
+${katexCss}<style>
   :root { color-scheme: light dark; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; color: #1f2328; background: #ffffff; }
   @media (prefers-color-scheme: dark) { body { color: #e6edf3; background: #0d1117; } }
@@ -145,7 +160,7 @@ export function buildReportHtml(
   .wlr-day__value { font-weight: normal; color: #6b7280; }
   ul { margin: 0.25rem 0; padding-left: 1.25rem; }
   p { margin: 0.25rem 0; }
-</style>
+${REPORT_BODY_CSS}</style>
 </head>
 <body>
   <h1>${escapeHtml(title)}</h1>

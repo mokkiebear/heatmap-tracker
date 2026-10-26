@@ -9,6 +9,8 @@ export interface ReportDay {
   value?: number;
   color?: string;
   body?: string;
+  /** `body` rendered by Obsidian's Markdown renderer (math, code, callouts); the HTML report prefers it over `body`. */
+  bodyHtml?: string;
 }
 
 export interface ReportWeek {
@@ -35,6 +37,8 @@ export interface BuildReportModelParams {
   colorsList: ColorsList;
   /** Note body text (frontmatter stripped) keyed by vault-relative file path. */
   bodiesByPath: Record<string, string>;
+  /** Rendered HTML for the same notes, keyed by path (see renderBodiesToHtml). */
+  bodyHtmlByPath?: Record<string, string>;
   startDate: string;
   endDate: string;
   weekStartDay: number;
@@ -67,6 +71,7 @@ export function buildReportModel({
   entriesByDate,
   colorsList,
   bodiesByPath,
+  bodyHtmlByPath = {},
   startDate,
   endDate,
   weekStartDay,
@@ -106,6 +111,7 @@ export function buildReportModel({
       value,
       color,
       body,
+      bodyHtml: entry.filePath ? bodyHtmlByPath[entry.filePath] : undefined,
     };
 
     totalDays += 1;
