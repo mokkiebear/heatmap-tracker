@@ -362,6 +362,7 @@ The authoritative reference for every `trackerData` parameter. Each one links to
 | `content` | Optional tooltip / note text |
 | `customColor` | Overrides the color for this entry |
 | `emoji` | A short glyph drawn inside the box, e.g. `"✅"` (max 8 chars) — see [Emoji habit tracking](#emoji-habit-tracking) |
+| `countAs` | How the day counts in the export summary, fractionally if needed — e.g. `{ "Workday": 0.5, "Annual Leave": 0.5 }` for a half day of leave |
 | `filePath` | Absolute path to the file opened on click |
 | `customHref` | Custom URL to open on click (takes precedence over `filePath`) |
 
@@ -593,7 +594,7 @@ Every heatmap has an **Export** tab alongside Heatmap Tracker / Statistics / Leg
 
 **Layout.** "Weeks as columns" or "Weeks as rows", rendered pixel-for-pixel like the heatmap itself — including exact day-level month splitting (with a year label whenever the range crosses a year boundary) and, when a range is too wide or tall for one grid, automatic wrapping into multiple bands, evenly split rather than front-loading one band and leaving a small leftover.
 
-**Date range.** Pick start/end dates directly, or jump to a range with a preset: Logged (the full span of your tracked data), Last year, Year to date, Last month, or Month to date.
+**Date range.** Pick start and end dates, or use a preset — by default Logged (all your data), Last week, WTD, Last month and MTD. The gear next to them shows, hides, reorders and renames presets (Last quarter, QTD, Last year and YTD are there too) and adds your own, like the last 3 months or everything since a date.
 
 **Display options.** Which day the week starts on, whether to show each week's start date, splitting the grid by month, month labels, and hiding weekends.
 
