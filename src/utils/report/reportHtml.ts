@@ -1,3 +1,4 @@
+import i18n from "src/localization/i18n";
 import katex from "katex";
 import { ReportDay, ReportModel } from "src/utils/report/reportModel";
 import { escapeHtml } from "src/utils/report/heatmapHtml";
@@ -128,8 +129,10 @@ export function buildReportHtml(
   const weeksHtml = model.weeks
     .map(
       (week) =>
-        `<section class="wlr-week"><h2>Week of ${escapeHtml(
-          formatWeekLabel(week.weekStart),
+        `<section class="wlr-week"><h2>${escapeHtml(
+          i18n.t("report.document.weekOf", {
+            date: formatWeekLabel(week.weekStart),
+          }),
         )}</h2>${week.days.map((day) => renderDay(day, hideAllValues)).join("")}</section>`,
     )
     .join("");
@@ -142,7 +145,7 @@ export function buildReportHtml(
     : "";
 
   return `<!doctype html>
-<html lang="en">
+<html lang="${escapeHtml(i18n.language)}">
 <head>
 <meta charset="utf-8" />
 <title>${escapeHtml(title)}</title>
@@ -166,7 +169,9 @@ ${REPORT_BODY_CSS}</style>
   <h1>${escapeHtml(title)}</h1>
   <div class="wlr-meta">${escapeHtml(formatWeekLabel(model.startDate))} – ${escapeHtml(
     formatWeekLabel(model.endDate),
-  )}<br>Report generated ${escapeHtml(generatedAt)}</div>
+  )}<br>${escapeHtml(
+    i18n.t("report.document.generated", { date: generatedAt }),
+  )}</div>
   ${summaryLine ? `<div class="wlr-summary">${summaryLine}</div>` : ""}
   ${heatmapHtml}
   ${legendHtml}

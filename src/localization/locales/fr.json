@@ -112,7 +112,7 @@
     "endDate": "Date de fin",
     "invalidRange": "La date de début ne doit pas être postérieure à la date de fin.",
     "loading": "Chargement du contenu des notes…",
-    "summary": "{{days}} jour(s) enregistré(s) · total {{valueLabel}} {{value}}",
+    "summary": "Jours enregistrés : {{days}} · total ({{valueLabel}}) : {{value}}",
     "saveMarkdown": "Enregistrer en Markdown",
     "saveHtml": "Enregistrer en HTML",
     "preview": "Aperçu du rapport",
@@ -134,7 +134,7 @@
     "editLegend": "Modifier la légende",
     "exportFolder": "dans",
     "exportFolderPlaceholder": "(racine du coffre)",
-    "presetAllLoggedData": "Suivi",
+    "presetAllLoggedData": "Tout l’historique",
     "presetLastYear": "Année dernière",
     "presetYearToDate": "Cette année",
     "presetLastMonth": "Mois dernier",
@@ -144,7 +144,7 @@
     "presetLastQuarter": "Trimestre dernier",
     "presetQuarterToDate": "Ce trimestre",
     "configurePresets": "Configurer les plages prédéfinies",
-    "bandHint": "rendu en {{count}} paliers",
+    "bandHint": "rendu en {{count}} blocs",
     "presetYesterday": "Hier",
     "presetToday": "Aujourd’hui",
     "presetSince": "Depuis {{date}}",
@@ -202,6 +202,39 @@
       "loggedLogic": "Premier → dernier jour enregistré",
       "hintMeaning": "0 désigne la période en cours, jusqu’à aujourd’hui ; 1 la période complète précédente.",
       "hintExamples": "Exemples : Semaine dernière ({{lastWeek}}), 7 derniers jours ({{lastSevenDays}})."
+    },
+    "legendEditor": {
+      "title": "Légende du calendrier",
+      "intro": "Définissez la signification de chaque couleur du calendrier pour la légende et le résumé.",
+      "reorderHint": "Faites glisser les lignes pour les réordonner. Cliquez sur l’œil pour alterner entre affichée, masquée du résumé et entièrement masquée.",
+      "valueHint": "Vous pouvez définir des valeurs fixes pour que tous les jours de cette catégorie aient la même valeur.",
+      "separateRows": "Lignes séparées",
+      "gradientRow": "Une seule ligne en dégradé",
+      "refreshColors": "Actualiser les couleurs",
+      "refreshTooltip": "Récupérer les nouvelles couleurs et retirer les obsolètes, sans rien changer d’autre",
+      "resetTooltip": "Annuler toutes les personnalisations et repartir de zéro",
+      "empty": "Aucune entrée de légende pour l’instant.",
+      "blank": "Vide",
+      "labelPlaceholder": "Libellé (ex. : Jour travaillé)",
+      "sharedLabelPlaceholder": "Libellé commun (ex. : Activité)",
+      "weightsTooltip": "Définir le poids dans le décompte des jours et la valeur fixe de chaque couleur de la palette",
+      "valuePlaceholder": "valeur",
+      "valueTooltip": "Valeur fixe pour chaque jour de cette couleur, à la place de la valeur enregistrée",
+      "weightPlaceholder": "poids",
+      "weightTooltip": "Poids dans le décompte des jours (ex. : 0.5 pour une demi-journée, ou 0 pour l’exclure entièrement)",
+      "shown": "Affichée dans la légende et le résumé – cliquez pour la masquer du résumé",
+      "summaryHidden": "Dans la légende uniquement, pas dans le résumé – cliquez pour la masquer entièrement",
+      "hidden": "Entièrement masquée – cliquez pour la réafficher",
+      "groupToggle": "{{state}} (s’applique à toutes les couleurs de la palette)",
+      "weightsTitle": "Réglages des couleurs de la palette",
+      "weightsIntro": "Pour chaque couleur de la palette, vous pouvez définir une valeur fixe par jour et indiquer son poids dans le décompte commun des jours."
+    },
+    "document": {
+      "weekOf": "Semaine du {{date}}",
+      "generated": "Rapport généré le {{date}}",
+      "daysLogged": "Jours enregistrés",
+      "other": "Autres",
+      "total": "Total ({{valueLabel}})"
     }
   },
   "errors": {
@@ -226,7 +259,8 @@
       "title": "Aucune note ne correspond pour l’instant",
       "body": "Rien sous \"{{path}}\" ne possède de propriété \"{{property}}\". Ajoutez-la à une note datée et les cases se rempliront.",
       "bodyNoPath": "Aucune note ne possède encore de propriété \"{{property}}\". Ajoutez-la à une note datée et les cases se rempliront."
-    }
+    },
+    "actionFailed": "Un problème est survenu. Consultez la console développeur pour plus de détails."
   },
   "docs": {
     "intro": "Un aperçu rapide de ce que vous pouvez mettre dans un bloc de code heatmap. Les types complets, les valeurs par défaut et des exemples à copier-coller se trouvent dans le README et le coffre d’exemples — liens en bas.",

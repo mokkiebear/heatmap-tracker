@@ -1,3 +1,4 @@
+import i18n from "src/localization/i18n";
 import { LegendEntry } from "src/utils/report/legend";
 
 /** A number input bound to an optional numeric field of a legend entry. */
@@ -34,12 +35,11 @@ export function numberInput(
 export function valueOverrideInput(
   row: HTMLElement,
   entry: LegendEntry,
-  ariaLabel: string,
 ): HTMLInputElement {
   return numberInput(row, {
     cls: "heatmap-legend-modal__value-input",
-    placeholder: "value",
-    ariaLabel,
+    placeholder: i18n.t("report.legendEditor.valuePlaceholder"),
+    ariaLabel: i18n.t("report.legendEditor.valueTooltip"),
     get: () => entry.valueOverride,
     set: (value) => {
       entry.valueOverride = value;

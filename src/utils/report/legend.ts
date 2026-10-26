@@ -3,6 +3,7 @@ import { EMPTY_CELL_COLOR, escapeHtml } from "src/utils/report/heatmapHtml";
 import { normalizeColor } from "src/utils/report/legendMatch";
 import { parseUTCDate } from "src/utils/date";
 import { LegendEntry } from "src/types";
+import i18n from "src/localization/i18n";
 
 export type { LegendEntry } from "src/types";
 
@@ -355,7 +356,9 @@ export function buildSummaryModel(
   model: ReportModel,
   options: SummaryOptions = {},
 ): SummaryModel {
-  const valueLabel = options.valueLabel?.trim() || "value";
+  const valueLabel =
+    options.valueLabel?.trim() || i18n.t("report.valueLabelPlaceholder");
+  const otherLabel = i18n.t("report.document.other");
   const legend = options.legend ?? [];
   const legendMode = options.legendMode ?? "separate";
 
@@ -473,7 +476,7 @@ export function buildSummaryModel(
           part.value = roundCount(part.value + share.value);
         } else if (hiddenLabels.has(key)) {
           return;
-        } else if (key === "other") {
+        } else if (key === "other" || key === normalizeLabel(otherLabel)) {
           other += share.value;
         } else {
           dayTypeParts.push(share);
@@ -482,11 +485,11 @@ export function buildSummaryModel(
       other = roundCount(other);
 
       if (other > 0) {
-        dayTypeParts.push({ label: "Other", value: other });
+        dayTypeParts.push({ label: otherLabel, value: other });
       }
     } else {
       dayTypeParts.push({
-        label: "Days logged",
+        label: i18n.t("report.document.daysLogged"),
         value: model.summary.totalDays,
       });
     }
@@ -495,7 +498,10 @@ export function buildSummaryModel(
   const total: SummaryPart | null =
     options.hideTotalValue || options.hideAllValues
       ? null
-      : { label: `Total ${valueLabel}`, value: model.summary.totalValue };
+      : {
+          label: i18n.t("report.document.total", { valueLabel }),
+          value: model.summary.totalValue,
+        };
 
   return { dayTypeParts, total };
 }

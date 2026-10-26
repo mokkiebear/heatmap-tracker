@@ -1,3 +1,4 @@
+import i18n from "src/localization/i18n";
 import { notify } from "src/utils/notify";
 
 /**
@@ -11,7 +12,7 @@ import { notify } from "src/utils/notify";
  */
 export function asyncHandler<Args extends unknown[]>(
   handler: (...args: Args) => Promise<unknown>,
-  message = "* Heatmap Tracker *\nSomething went wrong. See the developer console for details.",
+  message = `* Heatmap Tracker *\n${i18n.t("errors.actionFailed")}`,
 ): (...args: Args) => void {
   return (...args: Args) => {
     handler(...args).catch((error: unknown) => {

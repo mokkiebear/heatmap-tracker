@@ -1,3 +1,4 @@
+import i18n from "src/localization/i18n";
 import { App, setIcon } from "obsidian";
 import {
   LegendEntry,
@@ -40,12 +41,17 @@ function addVisibilityToggle(
   row: HTMLElement,
   entries: LegendEntry[],
   rerender: () => void,
-  ariaSuffix = "",
+  isGroup = false,
 ) {
   const visibility = aggregateVisibility(entries);
+  const state = VISIBILITY_TITLE[visibility]();
   const button = row.createEl("button", {
     cls: "heatmap-legend-modal__include-toggle clickable-icon",
-    attr: { "aria-label": VISIBILITY_TITLE[visibility] + ariaSuffix },
+    attr: {
+      "aria-label": isGroup
+        ? i18n.t("report.legendEditor.groupToggle", { state })
+        : state,
+    },
   });
   setIcon(button, VISIBILITY_ICON[visibility]);
   button.addEventListener("click", () => {
@@ -98,7 +104,10 @@ export function renderGradientGroupRow(
 
   const labelInput = row.createEl("input", {
     cls: "heatmap-legend-modal__label-input",
-    attr: { type: "text", placeholder: "Shared label (e.g. Activity)" },
+    attr: {
+      type: "text",
+      placeholder: i18n.t("report.legendEditor.sharedLabelPlaceholder"),
+    },
     value: ctx.getGradientLabel(),
   });
   labelInput.addEventListener("input", () =>
@@ -108,7 +117,7 @@ export function renderGradientGroupRow(
   const gearBtn = row.createEl("button", {
     cls: "heatmap-legend-modal__gear-button clickable-icon",
     attr: {
-      "aria-label": "Set each palette color's day-count weight and fixed value",
+      "aria-label": i18n.t("report.legendEditor.weightsTooltip"),
     },
   });
   setIcon(gearBtn, "settings");
@@ -118,12 +127,7 @@ export function renderGradientGroupRow(
 
   // Bulk-applies to every palette color at once - the gear icon above still
   // lets each color's weight/value be set independently.
-  addVisibilityToggle(
-    row,
-    intensityOrder,
-    ctx.rerender,
-    " (applies to every palette color)",
-  );
+  addVisibilityToggle(row, intensityOrder, ctx.rerender, true);
 }
 
 /** One color's own row: swatch, label, fixed value, visibility. */
@@ -148,23 +152,24 @@ export function renderEntryRow(
   // next to the swatch rather than a (disabled-looking) input box.
   row.createSpan({
     cls: "heatmap-legend-modal__color-text",
-    text: isBlankColor(entry.color) ? "Blank" : entry.color,
+    text: isBlankColor(entry.color)
+      ? i18n.t("report.legendEditor.blank")
+      : entry.color,
   });
 
   const labelInput = row.createEl("input", {
     cls: "heatmap-legend-modal__label-input",
-    attr: { type: "text", placeholder: "Label (e.g. Workday)" },
+    attr: {
+      type: "text",
+      placeholder: i18n.t("report.legendEditor.labelPlaceholder"),
+    },
     value: entry.label,
   });
   labelInput.addEventListener("input", () => {
     entry.label = labelInput.value;
   });
 
-  valueOverrideInput(
-    row,
-    entry,
-    "To set fixed value (overriding actual values)",
-  );
+  valueOverrideInput(row, entry);
 
   // Day-count weight only ever applies to palette colors being combined in
   // gradient mode - this row is only ever rendered for a color that ISN'T in

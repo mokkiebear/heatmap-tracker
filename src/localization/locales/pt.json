@@ -95,7 +95,7 @@
     "donation": "Doação",
     "heatmap-tracker": "Mapa de calor",
     "heatmap-tracker-statistics": "Estatísticas",
-    "legend": "Lenda",
+    "legend": "Legenda",
     "export": "Exportar"
   },
   "support.header": "☕️ Oi!",
@@ -112,7 +112,7 @@
     "endDate": "Data final",
     "invalidRange": "A data inicial não pode ser posterior à data final.",
     "loading": "Carregando conteúdo das notas…",
-    "summary": "{{days}} dia(s) registrado(s) · total {{valueLabel}} {{value}}",
+    "summary": "Dias registrados: {{days}} · {{valueLabel}} total: {{value}}",
     "saveMarkdown": "Salvar como Markdown",
     "saveHtml": "Salvar como HTML",
     "preview": "Pré-visualização do relatório",
@@ -131,14 +131,14 @@
     "hideAllValues": "Ocultar todos os valores",
     "valueLabel": "Rótulo do valor",
     "valueLabelPlaceholder": "valor",
-    "editLegend": "Editar lenda",
+    "editLegend": "Editar legenda",
     "exportFolder": "em",
     "exportFolderPlaceholder": "(raiz do cofre)",
-    "presetAllLoggedData": "Registrado",
-    "presetLastYear": "Último ano",
-    "presetYearToDate": "No ano",
-    "presetLastMonth": "Último mês",
-    "presetMonthToDate": "No mês",
+    "presetAllLoggedData": "Todo o histórico",
+    "presetLastYear": "Ano passado",
+    "presetYearToDate": "Este ano",
+    "presetLastMonth": "Mês passado",
+    "presetMonthToDate": "Este mês",
     "presetLastWeek": "Semana passada",
     "presetWeekToDate": "Esta semana",
     "presetLastQuarter": "Trimestre passado",
@@ -202,6 +202,39 @@
       "loggedLogic": "Primeiro → último dia registrado",
       "hintMeaning": "0 é o período atual, até hoje; 1 é o período completo anterior.",
       "hintExamples": "Exemplos: Semana passada ({{lastWeek}}), Últimos 7 dias ({{lastSevenDays}})."
+    },
+    "legendEditor": {
+      "title": "Legenda do calendário",
+      "intro": "Defina o significado de cada cor do calendário na legenda e no resumo.",
+      "reorderHint": "Arraste as linhas para reordenar. Clique no olho para alternar entre visível, oculto no resumo e totalmente oculto.",
+      "valueHint": "Opcionalmente, defina valores fixos para que todos os dias dessa categoria usem o mesmo valor.",
+      "separateRows": "Linhas separadas",
+      "gradientRow": "Uma só linha em degradê",
+      "refreshColors": "Atualizar cores",
+      "refreshTooltip": "Buscar cores novas e remover as obsoletas, mantendo todo o resto como está",
+      "resetTooltip": "Descartar todas as personalizações e começar de novo",
+      "empty": "Ainda não há itens na legenda.",
+      "blank": "Vazio",
+      "labelPlaceholder": "Rótulo (ex.: Dia útil)",
+      "sharedLabelPlaceholder": "Rótulo comum (ex.: Atividade)",
+      "weightsTooltip": "Definir o peso na contagem de dias e o valor fixo de cada cor da paleta",
+      "valuePlaceholder": "valor",
+      "valueTooltip": "Valor fixo para todos os dias desta cor, substituindo o valor registrado",
+      "weightPlaceholder": "peso",
+      "weightTooltip": "Peso na contagem de dias (ex.: 0.5 para meio dia, ou 0 para excluir totalmente)",
+      "shown": "Visível na legenda e no resumo - clique para ocultar do resumo",
+      "summaryHidden": "Só na legenda, não no resumo - clique para ocultar totalmente",
+      "hidden": "Totalmente oculto - clique para mostrar de novo",
+      "groupToggle": "{{state}} (vale para todas as cores da paleta)",
+      "weightsTitle": "Configurações das cores da paleta",
+      "weightsIntro": "Para cada cor da paleta, você pode definir um valor fixo por dia e indicar quanto ela pesa na contagem comum de dias."
+    },
+    "document": {
+      "weekOf": "Semana de {{date}}",
+      "generated": "Relatório gerado em {{date}}",
+      "daysLogged": "Dias registrados",
+      "other": "Outros",
+      "total": "{{valueLabel}} total"
     }
   },
   "errors": {
@@ -226,7 +259,8 @@
       "title": "Nenhuma nota corresponde ainda",
       "body": "Nada em \"{{path}}\" tem a propriedade \"{{property}}\". Adicione-a a uma nota com data e os quadrados serão preenchidos.",
       "bodyNoPath": "Nenhuma nota tem a propriedade \"{{property}}\" ainda. Adicione-a a uma nota com data e os quadrados serão preenchidos."
-    }
+    },
+    "actionFailed": "Algo deu errado. Veja o console do desenvolvedor para mais detalhes."
   },
   "docs": {
     "intro": "Um mapa rápido do que você pode colocar em um bloco de código do mapa de calor. Tipos completos, valores padrão e exemplos prontos para copiar e colar estão no README e no cofre de exemplos — links no final.",

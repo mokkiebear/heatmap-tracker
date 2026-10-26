@@ -9,6 +9,7 @@ import {
   countBandsInRange,
 } from "src/utils/report/heatmapHtml";
 import { buildReportHtml } from "src/utils/report/reportHtml";
+import { useTranslation } from "src/localization/useTranslation";
 import { ExportOptions } from "./useExportOptions";
 
 const PREVIEW_DEBOUNCE_MS = 300;
@@ -87,6 +88,9 @@ export function useReportPreview(args: {
   generatedAt: string;
 }) {
   const { app, entriesByDate, colorsList, options, rangeValid } = args;
+  // The grid and report text are built in the plugin language; `t` changes
+  // identity with it, so listing it below rebuilds them on a language switch.
+  const { t } = useTranslation();
   const {
     startDate,
     endDate,
@@ -167,6 +171,7 @@ export function useReportPreview(args: {
     options.skipWeekends,
     legend,
     rangeValid,
+    t,
   ]);
 
   /** Shared by the HTML preview, the HTML export and the Markdown export. */
@@ -196,6 +201,7 @@ export function useReportPreview(args: {
       options.hideSummary,
       options.hideTotalValue,
       options.hideAllValues,
+      t,
     ],
   );
 

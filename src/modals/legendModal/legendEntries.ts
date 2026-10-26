@@ -1,3 +1,4 @@
+import i18n from "src/localization/i18n";
 import {
   LegendEntry,
   LegendVisibility,
@@ -18,10 +19,10 @@ export const VISIBILITY_ICON: Record<LegendVisibility, string> = {
   hidden: "eye-closed",
 };
 
-export const VISIBILITY_TITLE: Record<LegendVisibility, string> = {
-  shown: "Shown in legend and summary - click to hide from summary",
-  summaryHidden: "Shown in legend only, not summary - click to hide entirely",
-  hidden: "Hidden entirely - click to show again",
+export const VISIBILITY_TITLE: Record<LegendVisibility, () => string> = {
+  shown: () => i18n.t("report.legendEditor.shown"),
+  summaryHidden: () => i18n.t("report.legendEditor.summaryHidden"),
+  hidden: () => i18n.t("report.legendEditor.hidden"),
 };
 
 /** The shared visibility if every entry agrees, otherwise "shown" as a neutral starting point for the next click. */

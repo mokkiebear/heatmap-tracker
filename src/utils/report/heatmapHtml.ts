@@ -1,3 +1,4 @@
+import i18n from "src/localization/i18n";
 import { ColorsList, Entry, LegendEntry } from "src/types";
 import { getEntryColor } from "src/utils/colors";
 import { countWeeks, placeDays } from "src/utils/grid";
@@ -78,26 +79,49 @@ export interface HeatmapGridOptions {
   cellSize?: number;
 }
 
-const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-// Rows mode uses weekdays as column headers above narrow day-cells, where a
-// 3-letter label would force each column wider than the cell itself; columns
-// mode uses them in the leading label column (unconstrained), so it keeps
-// the full abbreviation, matching the native plugin's own look.
-const WEEKDAY_LABELS_SHORT = ["S", "M", "T", "W", "T", "F", "S"];
-const MONTH_LABELS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
+const WEEKDAYS = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
 ];
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+const monthLabel = (date: Date) =>
+  i18n.t(`monthsShort.${MONTHS[date.getUTCMonth()]}`);
+
+/**
+ * Weekday labels from Sunday, in the plugin language. Rows mode heads narrow
+ * day-cells with them, where a 3-letter label would force each column wider
+ * than the cell, so it takes the one-letter form.
+ */
+function weekdayLabels(orientation: HeatmapOrientation): string[] {
+  if (orientation === "rows") {
+    const narrow = new Intl.DateTimeFormat(i18n.language, {
+      weekday: "narrow",
+      timeZone: "UTC",
+    });
+    // 2023-01-01 was a Sunday.
+    return WEEKDAYS.map((_, i) => narrow.format(Date.UTC(2023, 0, 1 + i)));
+  }
+  return WEEKDAYS.map((day) => i18n.t(`weekdaysShort.${day}`));
+}
 
 // `min-width:0` overrides the grid item default of `min-width:auto`, which
 // would otherwise let a header label's own text width force its track wider
@@ -327,8 +351,7 @@ export function countBandsInRange(
   if (splitByMonth) {
     slots.forEach((slot) => {
       if (monthLabelByWeekIndex[slot.weekIndex] === null) {
-        monthLabelByWeekIndex[slot.weekIndex] =
-          MONTH_LABELS[slot.date.getUTCMonth()];
+        monthLabelByWeekIndex[slot.weekIndex] = monthLabel(slot.date);
       }
     });
   }
@@ -375,10 +398,8 @@ export function buildHeatmapGridHtml({
   const start = parseUTCDate(startDate);
   const end = parseUTCDate(endDate);
 
-  const weekdayLabelSource =
-    orientation === "rows" ? WEEKDAY_LABELS_SHORT : WEEKDAY_LABELS;
   const shiftedWeekdayLabels = getShiftedWeekdays(
-    weekdayLabelSource,
+    weekdayLabels(orientation),
     weekStartDay,
   );
   const dayEntries = shiftedWeekdayLabels
@@ -411,8 +432,7 @@ export function buildHeatmapGridHtml({
   slots.forEach((slot) => {
     dateByPosition.set(`${slot.weekIndex}:${slot.weekdayIndex}`, slot.date);
     if (monthLabelByWeekIndex[slot.weekIndex] === null) {
-      monthLabelByWeekIndex[slot.weekIndex] =
-        MONTH_LABELS[slot.date.getUTCMonth()];
+      monthLabelByWeekIndex[slot.weekIndex] = monthLabel(slot.date);
     }
     if (yearLabelByWeekIndex[slot.weekIndex] === null) {
       yearLabelByWeekIndex[slot.weekIndex] = String(slot.date.getUTCFullYear());

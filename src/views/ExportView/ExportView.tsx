@@ -186,7 +186,9 @@ function ExportView() {
               : t("report.summary", {
                   days: model?.summary.totalDays ?? 0,
                   value: model?.summary.totalValue ?? 0,
-                  valueLabel: options.valueLabel.trim() || "value",
+                  valueLabel:
+                    options.valueLabel.trim() ||
+                    t("report.valueLabelPlaceholder"),
                 })}
             {bandCount > 1 && (
               <>

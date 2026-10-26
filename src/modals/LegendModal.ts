@@ -1,4 +1,5 @@
 import { App, Modal, Setting } from "obsidian";
+import i18n from "src/localization/i18n";
 import { LegendEntry } from "src/utils/report/legend";
 import { normalizeColor } from "src/utils/report/legendMatch";
 import { RowDragController } from "./legendModal/RowDragController";
@@ -84,11 +85,11 @@ export class LegendModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
     this.modalEl.addClass("heatmap-legend-modal");
-    this.setTitle("Calendar legend");
+    this.setTitle(i18n.t("report.legendEditor.title"));
 
     contentEl.createEl("p", {
       cls: "heatmap-legend-modal__hint",
-      text: "Define the meaning of each calendar color for legend and summary.",
+      text: i18n.t("report.legendEditor.intro"),
     });
 
     this.listEl = contentEl.createDiv({ cls: "heatmap-legend-modal__list" });
@@ -97,19 +98,15 @@ export class LegendModal extends Modal {
     const footnote = contentEl.createEl("p", {
       cls: "heatmap-legend-modal__footnote",
     });
-    footnote.appendText(
-      "Drag rows to reorder. Click the eye to cycle through shown, summary-hidden, and fully hidden.",
-    );
+    footnote.appendText(i18n.t("report.legendEditor.reorderHint"));
     footnote.createEl("br");
-    footnote.appendText(
-      "Optionally set fixed values to make every day in that category use the same value.",
-    );
+    footnote.appendText(i18n.t("report.legendEditor.valueHint"));
 
     this.renderButtonRow(contentEl);
 
     new Setting(contentEl).addButton((btn) =>
       btn
-        .setButtonText("Done")
+        .setButtonText(i18n.t("report.actions.done"))
         .setCta()
         .onClick(() => {
           // Every row is already a real, meaningful color slot (auto-
@@ -137,10 +134,13 @@ export class LegendModal extends Modal {
     const modeSelect = buttonRow.createEl("select", {
       cls: "heatmap-legend-modal__mode-select dropdown",
     });
-    modeSelect.createEl("option", { value: "separate", text: "Separate rows" });
+    modeSelect.createEl("option", {
+      value: "separate",
+      text: i18n.t("report.legendEditor.separateRows"),
+    });
     modeSelect.createEl("option", {
       value: "gradient",
-      text: "Single gradient row",
+      text: i18n.t("report.legendEditor.gradientRow"),
     });
     modeSelect.value = this.legendMode;
     modeSelect.addEventListener("change", () => {
@@ -149,11 +149,8 @@ export class LegendModal extends Modal {
     });
 
     const refreshBtn = buttonRow.createEl("button", {
-      attr: {
-        "aria-label":
-          "Fetch new colors and drop stale ones, keeping everything else as-is",
-      },
-      text: "Refresh colors",
+      attr: { "aria-label": i18n.t("report.legendEditor.refreshTooltip") },
+      text: i18n.t("report.legendEditor.refreshColors"),
     });
     refreshBtn.addEventListener("click", () => {
       this.entries = mergeLegendWithDefaults(this.entries, this.baseline);
@@ -162,8 +159,8 @@ export class LegendModal extends Modal {
 
     const resetBtn = buttonRow.createEl("button", {
       cls: "mod-warning",
-      attr: { "aria-label": "Discard all customizations and start over" },
-      text: "Reset",
+      attr: { "aria-label": i18n.t("report.legendEditor.resetTooltip") },
+      text: i18n.t("report.actions.reset"),
     });
     resetBtn.addEventListener("click", () => {
       this.entries = this.baseline.map((entry) => ({ ...entry }));
@@ -193,7 +190,7 @@ export class LegendModal extends Modal {
     if (this.entries.length === 0) {
       container.createSpan({
         cls: "heatmap-legend-modal__empty",
-        text: "No legend entries yet.",
+        text: i18n.t("report.legendEditor.empty"),
       });
       return;
     }

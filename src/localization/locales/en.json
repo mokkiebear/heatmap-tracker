@@ -194,6 +194,39 @@
       "loggedLogic": "First → last logged day",
       "hintMeaning": "0 means the current period, through today; 1 means the previous complete period.",
       "hintExamples": "Examples: Last week ({{lastWeek}}), Last 7 days ({{lastSevenDays}})."
+    },
+    "legendEditor": {
+      "title": "Calendar legend",
+      "intro": "Define the meaning of each calendar color for legend and summary.",
+      "reorderHint": "Drag rows to reorder. Click the eye to cycle through shown, summary-hidden, and fully hidden.",
+      "valueHint": "Optionally set fixed values to make every day in that category use the same value.",
+      "separateRows": "Separate rows",
+      "gradientRow": "Single gradient row",
+      "refreshColors": "Refresh colors",
+      "refreshTooltip": "Fetch new colors and drop stale ones, keeping everything else as-is",
+      "resetTooltip": "Discard all customizations and start over",
+      "empty": "No legend entries yet.",
+      "blank": "Blank",
+      "labelPlaceholder": "Label (e.g. Workday)",
+      "sharedLabelPlaceholder": "Shared label (e.g. Activity)",
+      "weightsTooltip": "Set each palette color's day-count weight and fixed value",
+      "valuePlaceholder": "value",
+      "valueTooltip": "Fixed value for every day of this color, overriding the logged value",
+      "weightPlaceholder": "weight",
+      "weightTooltip": "Day-count weight (e.g. 0.5 for a half day, or 0 to exclude entirely)",
+      "shown": "Shown in legend and summary - click to hide from summary",
+      "summaryHidden": "Shown in legend only, not summary - click to hide entirely",
+      "hidden": "Hidden entirely - click to show again",
+      "groupToggle": "{{state}} (applies to every palette color)",
+      "weightsTitle": "Palette color settings",
+      "weightsIntro": "For each color in the palette, you can optionally set a fixed value per day and specify how much it's weighted towards the shared day count."
+    },
+    "document": {
+      "weekOf": "Week of {{date}}",
+      "generated": "Report generated {{date}}",
+      "daysLogged": "Days logged",
+      "other": "Other",
+      "total": "Total {{valueLabel}}"
     }
   },
   "support.header": "☕️ Hey there!",
@@ -226,7 +259,8 @@
       "title": "No notes matched yet",
       "body": "Nothing under \"{{path}}\" has a \"{{property}}\" property. Add it to a dated note and the squares will fill in.",
       "bodyNoPath": "No note has a \"{{property}}\" property yet. Add it to a dated note and the squares will fill in."
-    }
+    },
+    "actionFailed": "Something went wrong. See the developer console for details."
   },
   "docs": {
     "intro": "A quick map of what you can put in a heatmap codeblock. Full types, defaults and copy-pasteable examples live in the README and the example vault — links at the bottom.",

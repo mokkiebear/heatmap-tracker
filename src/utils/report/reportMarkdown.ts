@@ -1,3 +1,4 @@
+import i18n from "src/localization/i18n";
 import { ReportModel } from "src/utils/report/reportModel";
 import { formatDayLabel, formatWeekLabel } from "src/utils/report/dateLabels";
 import {
@@ -59,7 +60,7 @@ export function buildReportMarkdown(
   // between them renders as a full paragraph break, too much space for what's
   // really one two-line caption.
   lines.push(
-    `*${formatWeekLabel(model.startDate)} – ${formatWeekLabel(model.endDate)}*<br>*Report generated ${generatedAt}*`,
+    `*${formatWeekLabel(model.startDate)} – ${formatWeekLabel(model.endDate)}*<br>*${i18n.t("report.document.generated", { date: generatedAt })}*`,
   );
   lines.push("");
   const { dayTypeParts, total } = buildSummaryModel(model, {
@@ -96,7 +97,9 @@ export function buildReportMarkdown(
   }
 
   model.weeks.forEach((week) => {
-    lines.push(`## Week of ${formatWeekLabel(week.weekStart)}`);
+    lines.push(
+      `## ${i18n.t("report.document.weekOf", { date: formatWeekLabel(week.weekStart) })}`,
+    );
     lines.push("");
 
     week.days.forEach((day) => {
