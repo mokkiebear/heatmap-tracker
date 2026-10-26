@@ -8,13 +8,9 @@ import {
   isBuiltinPreset,
   newCustomPreset,
   presetRule,
-  reorderPresets,
   resetPresets,
 } from "src/views/ExportView/rangePresets";
-import {
-  RowDragController,
-  addDragHandle,
-} from "./legendModal/RowDragController";
+import { RowDragController, reorder } from "./legendModal/RowDragController";
 import {
   renderCustomPresetForm,
   renderRenameBuiltinForm,
@@ -23,26 +19,24 @@ import {
 /**
  * Popup for the Export tab's date-range preset buttons: show or hide each,
  * drag to reorder, rename any, and add, edit or delete custom presets.
- * Built-ins keep their rule; only their name can change. Changes are saved
- * on "Done" only; closing any other way discards them. The list and form
- * scroll while Reset and Done stay pinned below, so saving never means
- * scrolling to the bottom of a long list.
+ * Changes are saved on "Done" only, which stays pinned below the scrolling
+ * list; closing any other way discards them.
  */
 export class RangePresetsModal extends Modal {
   private presets: RangePresetSetting[];
   private editingId: string | null = null;
-  private listEl: HTMLElement | null = null;
-  private formEl: HTMLElement | null = null;
+  private listEl!: HTMLElement;
+  private formEl!: HTMLElement;
   /** What the dialog opened with, so Done without changes writes nothing. */
   private initial: string;
   /** Applies the open edit/rename form, if any, so Done doesn't lose it. */
   private flushForm: () => void = () => {};
-  // A row's payload is its preset id; the drop zone after the last row is `null`.
-  private drag = new RowDragController<string | null>((dragged, target) => {
-    if (dragged === null) return;
-    this.presets = reorderPresets(this.presets, dragged, target);
-    this.renderRows();
-  });
+  private drag = new RowDragController<RangePresetSetting[]>(
+    (dragged, target) => {
+      this.presets = reorder(this.presets, dragged, target);
+      this.renderRows();
+    },
+  );
 
   constructor(
     app: App,
@@ -127,14 +121,8 @@ export class RangePresetsModal extends Modal {
     return `${describeRuleLogic(rule)} · ${describeSpan(rule, this.resolve(rule))}`;
   }
 
-  /** What a blank name falls back to: the built-in's own or the rule's description. */
-  private defaultLabel(preset: RangePresetSetting): string {
-    return this.labelFor({ ...preset, label: undefined });
-  }
-
   private renderRows() {
     const container = this.listEl;
-    if (!container) return;
     container.empty();
 
     for (const preset of this.presets) {
@@ -143,9 +131,7 @@ export class RangePresetsModal extends Modal {
       });
       row.toggleClass("is-hidden", !preset.visible);
       row.toggleClass("is-editing", preset.id === this.editingId);
-      const arm = this.drag.wire(row, preset.id);
-
-      addDragHandle(row, arm, "heatmap-range-presets-modal__handle");
+      this.drag.wire(row, [preset], "heatmap-range-presets-modal__handle");
 
       this.iconButton(
         row,
@@ -183,20 +169,14 @@ export class RangePresetsModal extends Modal {
       );
 
       if (!isBuiltinPreset(preset)) {
-        const remove = this.iconButton(
-          row,
-          "trash-2",
-          i18n.t("report.actions.delete"),
-          () => {
-            this.presets = this.presets.filter((p) => p.id !== preset.id);
-            if (this.editingId === preset.id) {
-              this.editingId = null;
-              this.renderForm();
-            }
-            this.renderRows();
-          },
-        );
-        remove.addClass("is-destructive");
+        this.iconButton(row, "trash-2", i18n.t("report.actions.delete"), () => {
+          this.presets = this.presets.filter((p) => p.id !== preset.id);
+          if (this.editingId === preset.id) {
+            this.editingId = null;
+            this.renderForm();
+          }
+          this.renderRows();
+        }).addClass("is-destructive");
       }
     }
 
@@ -204,7 +184,7 @@ export class RangePresetsModal extends Modal {
     const end = container.createDiv({
       cls: "heatmap-range-presets-modal__drop-end",
     });
-    this.drag.wire(end, null);
+    this.drag.wire(end, []);
   }
 
   private iconButton(
@@ -224,7 +204,6 @@ export class RangePresetsModal extends Modal {
 
   private renderForm() {
     const container = this.formEl;
-    if (!container) return;
     const editing = this.presets.find((p) => p.id === this.editingId);
     const closeForm = () => {
       this.editingId = null;
@@ -238,7 +217,7 @@ export class RangePresetsModal extends Modal {
       this.flushForm = renderRenameBuiltinForm(container, {
         preset: editing,
         rule: builtinRule,
-        defaultLabel: this.defaultLabel(editing),
+        defaultLabel: this.labelFor({ ...editing, label: undefined }),
         resolve: this.resolve,
         onSubmit: (label) => {
           editing.label = label.trim() || undefined;

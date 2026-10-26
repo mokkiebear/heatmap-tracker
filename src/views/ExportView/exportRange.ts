@@ -44,72 +44,54 @@ export function defaultRange(
   return span(getFirstDayOfYear(currentYear), getLastDayOfYear(currentYear));
 }
 
-function startOfUnit(date: Date, unit: RangeUnit, weekStartDay: number): Date {
-  switch (unit) {
-    case "day":
-      return date;
-    case "week":
-      return getWeekStartDate(date, weekStartDay);
-    case "month":
-      return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
-    case "quarter": {
-      const month = date.getUTCMonth();
-      return new Date(Date.UTC(date.getUTCFullYear(), month - (month % 3), 1));
-    }
-    case "year":
-      return getFirstDayOfYear(date.getUTCFullYear());
-  }
-}
-
 const MONTHS_PER_UNIT = { month: 1, quarter: 3, year: 12 } as const;
 
-/** Moves a period's first day (from `startOfUnit`) by `count` periods. */
-function shiftByUnits(periodStart: Date, unit: RangeUnit, count: number): Date {
-  if (unit === "day") return addDays(periodStart, count);
-  if (unit === "week") return addDays(periodStart, 7 * count);
-
-  const month = periodStart.getUTCMonth() + MONTHS_PER_UNIT[unit] * count;
-  return new Date(Date.UTC(periodStart.getUTCFullYear(), month, 1));
+/** The first day of the period `offset` periods after the one holding `today`. */
+function periodStart(
+  today: Date,
+  unit: RangeUnit,
+  weekStartDay: number,
+  offset: number,
+): Date {
+  if (unit === "day") return addDays(today, offset);
+  if (unit === "week") {
+    return addDays(getWeekStartDate(today, weekStartDay), 7 * offset);
+  }
+  const months = MONTHS_PER_UNIT[unit];
+  const month = today.getUTCMonth();
+  return new Date(
+    Date.UTC(
+      today.getUTCFullYear(),
+      month - (month % months) + months * offset,
+      1,
+    ),
+  );
 }
 
 export const isPeriodsAgo = (bound: number) =>
   Number.isInteger(bound) && bound >= 0;
 
-function parseFixedDate(value: string): Date | null {
-  const date = parseUTCDate(value);
-  return isNaN(date.getTime()) ? null : date;
-}
-
-interface BoundContext {
-  unit: RangeUnit;
-  today: Date;
-  weekStartDay: number;
-}
-
-/** A range's first day: the start of the period `bound` ago, or the fixed date. */
-function boundStart(
+/**
+ * A range's first or last day: the fixed date, or the start or end of the
+ * period `bound` ago, where the current period ends today.
+ */
+function boundDate(
   bound: RangeBound,
-  { unit, today, weekStartDay }: BoundContext,
-): Date | null {
-  if (typeof bound === "string") return parseFixedDate(bound);
-  if (!isPeriodsAgo(bound)) return null;
-  return shiftByUnits(startOfUnit(today, unit, weekStartDay), unit, -bound);
-}
-
-/** A range's last day: today for the current period, the end of the period `bound` ago, or the fixed date. */
-function boundEnd(
-  bound: RangeBound,
-  { unit, today, weekStartDay }: BoundContext,
-): Date | null {
-  if (typeof bound === "string") return parseFixedDate(bound);
-  if (!isPeriodsAgo(bound)) return null;
-  if (bound === 0) return today;
-  const nextStart = shiftByUnits(
-    startOfUnit(today, unit, weekStartDay),
+  end: "from" | "to",
+  {
     unit,
-    1 - bound,
-  );
-  return addDays(nextStart, -1);
+    today,
+    weekStartDay,
+  }: { unit: RangeUnit; today: Date; weekStartDay: number },
+): Date | null {
+  if (typeof bound === "string") {
+    const date = parseUTCDate(bound);
+    return isNaN(date.getTime()) ? null : date;
+  }
+  if (!isPeriodsAgo(bound)) return null;
+  if (end === "from") return periodStart(today, unit, weekStartDay, -bound);
+  if (bound === 0) return today;
+  return addDays(periodStart(today, unit, weekStartDay, 1 - bound), -1);
 }
 
 /**
@@ -130,8 +112,8 @@ export function resolveRangeRule(
   }
 
   const bounds = { ...context, unit: rule.unit };
-  const start = boundStart(rule.from, bounds);
-  const end = boundEnd(rule.to, bounds);
+  const start = boundDate(rule.from, "from", bounds);
+  const end = boundDate(rule.to, "to", bounds);
   if (!start || !end || start > end) return null;
   return span(start, end);
 }

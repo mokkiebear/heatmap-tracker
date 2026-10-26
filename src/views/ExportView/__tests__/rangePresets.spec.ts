@@ -6,7 +6,6 @@ import {
 } from "src/types";
 import {
   BUILTIN_PRESETS,
-  defaultPresetLabel,
   defaultPresets,
   describeRule,
   describeRuleLogic,
@@ -15,7 +14,6 @@ import {
   newCustomPreset,
   presetLabel,
   presetRule,
-  reorderPresets,
   resetPresets,
 } from "../rangePresets";
 
@@ -140,94 +138,65 @@ describe("resetPresets", () => {
 describe("presetRule and presetLabel", () => {
   const t = (key: string) => `t:${key}`;
 
-  it("takes a built-in's rule and translated label from the code", () => {
-    const lastWeek = { id: "lastWeek", visible: true };
-
-    expect(presetRule(lastWeek)).toEqual(periods("week", 1, 1));
-    expect(presetLabel(lastWeek, t)).toBe("t:report.presetLastWeek");
-  });
-
-  it("prefers a built-in's own name, falling back to the translated one", () => {
-    const renamed = { id: "lastWeek", visible: true, label: "Prior week" };
-
-    expect(presetLabel(renamed, t)).toBe("Prior week");
-    expect(defaultPresetLabel(renamed, t)).toBe("t:report.presetLastWeek");
-  });
-
-  it("uses a custom preset's own label, or describes its rule when unnamed", () => {
-    expect(presetLabel(custom, t)).toBe("Semester");
-    expect(
-      presetLabel({ ...custom, label: "  ", rule: periods("week", 0, 0) }, t),
-    ).toBe("t:report.presetWeekToDate");
-  });
-
-  it("labels every built-in through a locale key", () => {
-    for (const builtin of BUILTIN_PRESETS) {
-      expect(presetLabel({ id: builtin.id, visible: true }, t)).toBe(
-        `t:report.${builtin.labelKey}`,
+  it.each(BUILTIN_PRESETS)(
+    "takes $id's rule and name from the code",
+    ({ id, labelKey, rule }) => {
+      expect(presetRule({ id, visible: true })).toBe(rule);
+      expect(presetLabel({ id, visible: true, label: " " }, t)).toBe(
+        `t:report.${labelKey}`,
       );
-    }
+    },
+  );
+
+  it.each([
+    [{ id: "lastWeek", visible: true, label: "Prior week" }, "Prior week"],
+    [custom, "Semester"],
+    [
+      { ...custom, label: "  ", rule: periods("week", 0, 0) },
+      "t:report.presetWeekToDate",
+    ],
+  ])("labels %j as %s", (preset, label) => {
+    expect(presetLabel(preset, t)).toBe(label);
   });
 });
 
-describe("describeRule", () => {
-  it("reuses a built-in's name for a single previous or current period", () => {
-    expect(describeRule(periods("week", 1, 1))).toBe("Last week");
-    expect(describeRule(periods("quarter", 1, 1))).toBe("Last quarter");
-    expect(describeRule(periods("month", 0, 0))).toBe("MTD");
-    expect(describeRule(periods("day", 1, 1))).toBe("Yesterday");
-    expect(describeRule(periods("day", 0, 0))).toBe("Today");
-  });
-
-  it("falls back to the From → To notation, which needs no plurals", () => {
-    expect(describeRule(periods("month", 3, 1))).toBe("Months ago: 3 → 1");
-    expect(describeRule(periods("day", 29, 0))).toBe("Days ago: 29 → 0");
-    expect(describeRule(periods("month", "2026-01-15", 1))).toBe(
+describe("describeRule and describeRuleLogic", () => {
+  it.each([
+    // A built-in's name for a single previous or current period.
+    [periods("week", 1, 1), "Last week", "Weeks ago: 1 → 1"],
+    [periods("quarter", 1, 1), "Last quarter", "Quarters ago: 1 → 1"],
+    [periods("month", 0, 0), "MTD", "Months ago: 0 → 0"],
+    [periods("day", 1, 1), "Yesterday", "Days ago: 1 → 1"],
+    [periods("day", 0, 0), "Today", "Days ago: 0 → 0"],
+    // Otherwise the From → To notation, which needs no plurals.
+    [periods("month", 3, 1), "Months ago: 3 → 1", "Months ago: 3 → 1"],
+    [periods("day", 29, 0), "Days ago: 29 → 0", "Days ago: 29 → 0"],
+    [
+      periods("month", "2026-01-15", 1),
       "Jan 15, 2026 → Months ago: 1",
-    );
-  });
-
-  it("names fixed dates", () => {
-    expect(describeRule(custom.rule!)).toBe("Since Sep 1, 2026");
-    expect(describeRule(periods("day", "", 0))).toBe("Since …");
-    expect(describeRule(periods("day", "2026-09-01", "2026-12-18"))).toBe(
-      "Sep 1, 2026 – Dec 18, 2026",
-    );
-  });
-
-  it("translates through the given t", () => {
-    const t = (key: string) => `t:${key}`;
-    expect(describeRule(periods("week", 1, 1), t)).toBe(
-      "t:report.presetLastWeek",
-    );
-  });
-});
-
-describe("describeRuleLogic", () => {
-  it("states the rule as a unit label and its From → To counts", () => {
-    expect(describeRuleLogic(periods("month", 1, 1))).toBe("Months ago: 1 → 1");
-    expect(describeRuleLogic(periods("week", 0, 0))).toBe("Weeks ago: 0 → 0");
-    expect(describeRuleLogic(periods("quarter", 3, 1))).toBe(
-      "Quarters ago: 3 → 1",
-    );
-  });
-
-  it("puts a fixed date in place of a count", () => {
-    expect(describeRuleLogic(periods("day", "2026-09-01", 0))).toBe(
-      "Sep 1, 2026 → Days ago: 0",
-    );
-    expect(describeRuleLogic(periods("month", 2, "2026-12-31"))).toBe(
+      "Jan 15, 2026 → Months ago: 1",
+    ],
+    [
+      periods("month", 2, "2026-12-31"),
       "Months ago: 2 → Dec 31, 2026",
-    );
-    expect(describeRuleLogic(periods("day", "2026-09-01", "2026-12-18"))).toBe(
+      "Months ago: 2 → Dec 31, 2026",
+    ],
+    // Fixed dates.
+    [
+      periods("day", "2026-09-01", 0),
+      "Since Sep 1, 2026",
+      "Sep 1, 2026 → Days ago: 0",
+    ],
+    [periods("day", "", 0), "Since …", "… → Days ago: 0"],
+    [
+      periods("day", "2026-09-01", "2026-12-18"),
+      "Sep 1, 2026 – Dec 18, 2026",
       "Sep 1, 2026 → Dec 18, 2026",
-    );
-  });
-
-  it("describes Logged by the data it spans", () => {
-    expect(describeRuleLogic({ kind: "logged" })).toBe(
-      "First → last logged day",
-    );
+    ],
+    [{ kind: "logged" } as const, "Logged", "First → last logged day"],
+  ])("describes %j as %s, or %s", (rule, label, logic) => {
+    expect(describeRule(rule)).toBe(label);
+    expect(describeRuleLogic(rule)).toBe(logic);
   });
 });
 
@@ -251,26 +220,5 @@ describe("newCustomPreset", () => {
     expect(a.id).not.toBe(b.id);
     expect(a).toMatchObject({ visible: true, label: undefined });
     expect(b.label).toBe("Week");
-  });
-});
-
-describe("reorderPresets", () => {
-  const list = defaultPresets();
-
-  it("moves a preset to sit immediately before the target", () => {
-    expect(
-      ids(reorderPresets(list, "lastMonth", "lastWeek")).slice(0, 3),
-    ).toEqual(["logged", "lastMonth", "lastWeek"]);
-  });
-
-  it("moves a preset to the end for a null target", () => {
-    const moved = ids(reorderPresets(list, "logged", null));
-    expect(moved[moved.length - 1]).toBe("logged");
-  });
-
-  it("is a no-op for a drop onto itself or an unknown id", () => {
-    expect(reorderPresets(list, "logged", "logged")).toBe(list);
-    expect(reorderPresets(list, "nope", "logged")).toBe(list);
-    expect(reorderPresets(list, "logged", "nope")).toBe(list);
   });
 });

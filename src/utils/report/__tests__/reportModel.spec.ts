@@ -1,423 +1,219 @@
 import { Entry } from "src/types";
 import {
+  BuildReportModelParams,
+  ReportModel,
   buildReportModel,
   computeDataRange,
   getWeekStartDate,
 } from "../reportModel";
 
-function entry(overrides: Partial<Entry> & { date: string }): Entry {
-  return overrides as Entry;
-}
-
 const colorsList = ["#ebedf0", "#c6e48b", "#7bc96f", "#239a3b", "#196127"];
 
+type Fields = Omit<Entry, "date">;
+
+/** Entries keyed by date, from each date's own fields. */
+const entries = (byDate: Record<string, Fields>): Record<string, Entry> =>
+  Object.fromEntries(
+    Object.entries(byDate).map(([date, fields]) => [date, { date, ...fields }]),
+  );
+
+/** The report for `startDate`–`endDate`, in Monday-start weeks. */
+function build(
+  byDate: Record<string, Fields>,
+  startDate: string,
+  endDate: string,
+  params: Partial<BuildReportModelParams> = {},
+): ReportModel {
+  return buildReportModel({
+    entriesByDate: entries(byDate),
+    colorsList,
+    bodiesByPath: {},
+    startDate,
+    endDate,
+    weekStartDay: 1,
+    ...params,
+  });
+}
+
+const days = (model: ReportModel) => model.weeks.flatMap((week) => week.days);
+
 describe("getWeekStartDate", () => {
-  it("returns the same date when it already is the week start", () => {
-    const monday = new Date(Date.UTC(2026, 6, 13)); // 2026-07-13 is a Monday
-    expect(getWeekStartDate(monday, 1).toISOString()).toBe(
-      monday.toISOString(),
-    );
-  });
-
-  it("rolls back to the most recent occurrence of weekStartDay", () => {
-    const thursday = new Date(Date.UTC(2026, 6, 16)); // 2026-07-16
-    const weekStart = getWeekStartDate(thursday, 1); // Monday-start week
-    expect(weekStart.toISOString()).toBe(
-      new Date(Date.UTC(2026, 6, 13)).toISOString(),
-    );
-  });
-
-  it("supports a Sunday week start", () => {
-    const thursday = new Date(Date.UTC(2026, 6, 16)); // 2026-07-16
-    const weekStart = getWeekStartDate(thursday, 0);
-    expect(weekStart.toISOString()).toBe(
-      new Date(Date.UTC(2026, 6, 12)).toISOString(),
-    );
-  });
+  it.each([
+    ["2026-07-13", 1, "2026-07-13"], // already a Monday
+    ["2026-07-16", 1, "2026-07-13"], // a Thursday
+    ["2026-07-16", 0, "2026-07-12"], // the same Thursday, Sunday weeks
+  ])(
+    "starts %s's week (weekStartDay %i) on %s",
+    (date, weekStartDay, start) => {
+      expect(
+        getWeekStartDate(new Date(date), weekStartDay)
+          .toISOString()
+          .slice(0, 10),
+      ).toBe(start);
+    },
+  );
 });
 
 describe("buildReportModel", () => {
-  it("filters entries outside the given range", () => {
-    const entriesByDate: Record<string, Entry> = {
-      "2026-07-09": entry({ date: "2026-07-09", value: 8, intensity: 3 }),
-      "2026-07-15": entry({ date: "2026-07-15", value: 8, intensity: 3 }),
-      "2026-07-20": entry({ date: "2026-07-20", value: 8, intensity: 3 }),
-    };
-
-    const model = buildReportModel({
-      entriesByDate,
-      colorsList,
-      bodiesByPath: {},
-      startDate: "2026-07-10",
-      endDate: "2026-07-16",
-      weekStartDay: 1,
-    });
-
-    const allDates = model.weeks.flatMap((w) => w.days.map((d) => d.date));
-    expect(allDates).toEqual(["2026-07-15"]);
-  });
-
-  it("groups days into weeks according to weekStartDay", () => {
-    const entriesByDate: Record<string, Entry> = {
-      "2026-07-13": entry({ date: "2026-07-13", value: 8, intensity: 3 }), // Monday
-      "2026-07-16": entry({ date: "2026-07-16", value: 6, intensity: 2 }), // Thursday, same week
-      "2026-07-20": entry({ date: "2026-07-20", value: 4, intensity: 2 }), // next Monday
-    };
-
-    const model = buildReportModel({
-      entriesByDate,
-      colorsList,
-      bodiesByPath: {},
-      startDate: "2026-07-13",
-      endDate: "2026-07-20",
-      weekStartDay: 1,
-    });
-
-    expect(model.weeks).toHaveLength(2);
-    expect(model.weeks[0].weekStart).toBe("2026-07-13");
-    expect(model.weeks[0].days.map((d) => d.date)).toEqual([
-      "2026-07-13",
-      "2026-07-16",
-    ]);
-    expect(model.weeks[1].weekStart).toBe("2026-07-20");
-    expect(model.weeks[1].days.map((d) => d.date)).toEqual(["2026-07-20"]);
-  });
-
-  it("groups a week that straddles a year boundary", () => {
-    const entriesByDate: Record<string, Entry> = {
-      "2025-12-30": entry({ date: "2025-12-30", value: 8, intensity: 3 }), // Tuesday
-      "2026-01-02": entry({ date: "2026-01-02", value: 4, intensity: 2 }), // Friday, same week (Monday-start)
-    };
-
-    const model = buildReportModel({
-      entriesByDate,
-      colorsList,
-      bodiesByPath: {},
-      startDate: "2025-12-29",
-      endDate: "2026-01-04",
-      weekStartDay: 1,
-    });
-
-    expect(model.weeks).toHaveLength(1);
-    expect(model.weeks[0].weekStart).toBe("2025-12-29");
-    expect(model.weeks[0].days.map((d) => d.date)).toEqual([
-      "2025-12-30",
-      "2026-01-02",
-    ]);
-  });
-
-  it("keeps the emoji marker out of the report body, unlike content", () => {
-    // `emoji` is decoration on the grid; `content` is the day's text. Putting
-    // a glyph in `content` (the pre-`emoji` workaround) made the exported
-    // report a column of lone "✅"s, which is what the separate field avoids.
-    const model = buildReportModel({
-      entriesByDate: {
-        "2026-01-01": entry({
-          date: "2026-01-01",
-          value: 1,
-          intensity: 1,
-          emoji: "🏃",
-          content: "5km, felt good",
-        }),
-        "2026-01-02": entry({
-          date: "2026-01-02",
-          value: 1,
-          intensity: 1,
-          emoji: "🧘",
-        }),
-      },
-      colorsList,
-      bodiesByPath: {},
-      startDate: "2026-01-01",
-      endDate: "2026-01-02",
-      weekStartDay: 1,
-    });
-
-    const days = model.weeks.flatMap((week) => week.days);
-
-    expect(days.find((d) => d.date === "2026-01-01")?.body).toBe(
-      "5km, felt good",
+  it.each([
+    [
+      "leaves out days outside the range",
+      ["2026-07-09", "2026-07-15", "2026-07-20"],
+      ["2026-07-10", "2026-07-16"],
+      [["2026-07-13", "2026-07-15"]],
+    ],
+    [
+      "groups days into weeks by weekStartDay",
+      ["2026-07-13", "2026-07-16", "2026-07-20"],
+      ["2026-07-13", "2026-07-20"],
+      [
+        ["2026-07-13", "2026-07-13", "2026-07-16"],
+        ["2026-07-20", "2026-07-20"],
+      ],
+    ],
+    [
+      "keeps a week that straddles a year boundary together",
+      ["2025-12-30", "2026-01-02"],
+      ["2025-12-29", "2026-01-04"],
+      [["2025-12-29", "2025-12-30", "2026-01-02"]],
+    ],
+    ["is empty when nothing is in range", [], ["2026-07-01", "2026-07-07"], []],
+  ])("%s", (_, logged, [start, end], weeks) => {
+    const model = build(
+      Object.fromEntries(logged.map((date) => [date, { value: 8 }])),
+      start,
+      end,
     );
-    // An emoji-only day carries no body at all rather than a stray glyph.
-    expect(days.find((d) => d.date === "2026-01-02")?.body).toBeUndefined();
+
+    // Each week's start, then its days.
+    expect(
+      model.weeks.map((week) => [
+        week.weekStart,
+        ...week.days.map((d) => d.date),
+      ]),
+    ).toEqual(weeks);
   });
 
-  it("carries each entry's countAs shares onto its day", () => {
-    const model = buildReportModel({
-      entriesByDate: {
-        "2026-01-01": entry({
-          date: "2026-01-01",
-          value: 3,
-          intensity: 1,
-          countAs: { Workday: 0.5, "Annual Leave": 0.5 },
-        }),
-        "2026-01-02": entry({ date: "2026-01-02", value: 8, intensity: 3 }),
-      },
-      colorsList,
-      bodiesByPath: {},
-      startDate: "2026-01-01",
-      endDate: "2026-01-02",
-      weekStartDay: 1,
-    });
-
-    const days = model.weeks.flatMap((week) => week.days);
-
-    expect(days.find((d) => d.date === "2026-01-01")?.countAs).toEqual({
-      Workday: 0.5,
-      "Annual Leave": 0.5,
-    });
-    expect(days.find((d) => d.date === "2026-01-02")?.countAs).toBeUndefined();
-  });
-
-  it("returns an empty model when nothing falls in range", () => {
-    const model = buildReportModel({
-      entriesByDate: {},
-      colorsList,
-      bodiesByPath: {},
-      startDate: "2026-07-01",
-      endDate: "2026-07-07",
-      weekStartDay: 1,
-    });
-
-    expect(model.weeks).toEqual([]);
-    expect(model.summary).toEqual({
+  it("totals the days and values in range", () => {
+    expect(
+      build(
+        { "2026-07-13": { value: 8 }, "2026-07-14": { value: 5 } },
+        "2026-07-13",
+        "2026-07-14",
+      ).summary,
+    ).toEqual({ totalDays: 2, totalValue: 13 });
+    expect(build({}, "2026-07-01", "2026-07-07").summary).toEqual({
       totalDays: 0,
       totalValue: 0,
-      activeWeeks: 0,
-    });
-  });
-
-  it("computes summary totals across all included days", () => {
-    const entriesByDate: Record<string, Entry> = {
-      "2026-07-13": entry({ date: "2026-07-13", value: 8, intensity: 3 }),
-      "2026-07-14": entry({ date: "2026-07-14", value: 5, intensity: 2 }),
-    };
-
-    const model = buildReportModel({
-      entriesByDate,
-      colorsList,
-      bodiesByPath: {},
-      startDate: "2026-07-13",
-      endDate: "2026-07-14",
-      weekStartDay: 1,
-    });
-
-    expect(model.summary).toEqual({
-      totalDays: 2,
-      totalValue: 13,
-      activeWeeks: 1,
     });
   });
 
   it("resolves the day color from customColor first, then the mapped intensity", () => {
-    const entriesByDate: Record<string, Entry> = {
-      "2026-07-13": entry({
-        date: "2026-07-13",
-        value: 8,
-        intensity: 3,
-        customColor: "#d18616",
-      }),
-      "2026-07-14": entry({ date: "2026-07-14", value: 5, intensity: 2 }),
-    };
+    const [custom, mapped] = days(
+      build(
+        {
+          "2026-07-13": { intensity: 3, customColor: "#d18616" },
+          "2026-07-14": { intensity: 2 },
+        },
+        "2026-07-13",
+        "2026-07-14",
+      ),
+    );
 
-    const model = buildReportModel({
-      entriesByDate,
-      colorsList,
-      bodiesByPath: {},
-      startDate: "2026-07-13",
-      endDate: "2026-07-14",
-      weekStartDay: 1,
-    });
-
-    const days = model.weeks[0].days;
-    expect(days[0].color).toBe("#d18616");
-    expect(days[1].color).toBe(colorsList[1]); // intensity 2 -> index 1
+    expect(custom.color).toBe("#d18616");
+    expect(mapped.color).toBe(colorsList[1]); // intensity 2 -> index 1
   });
 
-  it("resolves the day body from bodiesByPath via filePath", () => {
-    const entriesByDate: Record<string, Entry> = {
-      "2026-07-13": entry({
-        date: "2026-07-13",
-        value: 8,
-        intensity: 3,
-        filePath: "Work Logs/2026-07-13.md",
-      }),
-    };
-
-    const model = buildReportModel({
-      entriesByDate,
-      colorsList,
-      bodiesByPath: { "Work Logs/2026-07-13.md": "- did a thing" },
-      startDate: "2026-07-13",
-      endDate: "2026-07-13",
-      weekStartDay: 1,
+  // `emoji` decorates the grid; `content` is the day's text. Putting a glyph
+  // in `content` (the pre-`emoji` workaround) made the exported report a
+  // column of lone "✅"s, which is what the separate field avoids.
+  it.each([
+    ["the note behind filePath", { filePath: "a.md" }, "- did a thing"],
+    [
+      "nothing for a filePath with no note",
+      { filePath: "missing.md" },
+      undefined,
+    ],
+    [
+      "its content, not its emoji",
+      { content: "5km, felt good", emoji: "🏃" },
+      "5km, felt good",
+    ],
+    ["nothing for an emoji-only day", { emoji: "🧘" }, undefined],
+  ])("takes a day's body from %s", (_, fields: Fields, body) => {
+    const model = build({ "2026-07-13": fields }, "2026-07-13", "2026-07-13", {
+      bodiesByPath: { "a.md": "- did a thing" },
     });
 
-    expect(model.weeks[0].days[0].body).toBe("- did a thing");
+    expect(days(model)[0].body).toBe(body);
   });
 
-  it("leaves body undefined when filePath has no matching body", () => {
-    const entriesByDate: Record<string, Entry> = {
-      "2026-07-13": entry({
-        date: "2026-07-13",
-        value: 8,
-        intensity: 3,
-        filePath: "Work Logs/missing.md",
-      }),
-    };
+  it("attaches the rendered HTML for the note behind each day", () => {
+    const [a, b] = days(
+      build(
+        {
+          "2026-01-05": { value: 1, filePath: "a.md" },
+          "2026-01-06": { value: 1, filePath: "b.md" },
+        },
+        "2026-01-05",
+        "2026-01-06",
+        {
+          bodiesByPath: { "a.md": "$x$", "b.md": "text" },
+          bodyHtmlByPath: { "a.md": '<span class="katex"></span>' },
+        },
+      ),
+    );
 
-    const model = buildReportModel({
-      entriesByDate,
-      colorsList,
-      bodiesByPath: {},
-      startDate: "2026-07-13",
-      endDate: "2026-07-13",
-      weekStartDay: 1,
-    });
-
-    expect(model.weeks[0].days[0].body).toBeUndefined();
+    expect(a.bodyHtml).toBe('<span class="katex"></span>');
+    expect(a.body).toBe("$x$");
+    expect(b.bodyHtml).toBeUndefined();
   });
 
-  it("falls back to string content when there is no filePath", () => {
-    const entriesByDate: Record<string, Entry> = {
-      "2026-07-13": entry({
-        date: "2026-07-13",
-        value: 8,
-        intensity: 3,
-        content: "inline note",
-      }),
-    };
+  it("carries each entry's countAs shares onto its day", () => {
+    const [shared, plain] = days(
+      build(
+        {
+          "2026-01-01": {
+            value: 3,
+            countAs: { Workday: 0.5, "Annual Leave": 0.5 },
+          },
+          "2026-01-02": { value: 8 },
+        },
+        "2026-01-01",
+        "2026-01-02",
+      ),
+    );
 
-    const model = buildReportModel({
-      entriesByDate,
-      colorsList,
-      bodiesByPath: {},
-      startDate: "2026-07-13",
-      endDate: "2026-07-13",
-      weekStartDay: 1,
-    });
-
-    expect(model.weeks[0].days[0].body).toBe("inline note");
+    expect(shared.countAs).toEqual({ Workday: 0.5, "Annual Leave": 0.5 });
+    expect(plain.countAs).toBeUndefined();
   });
 
-  describe("legend valueOverride", () => {
-    it("replaces a day's raw value with the matching legend entry's override", () => {
-      // A leave day whose entry still carries a placeholder intensity of 1
-      // (needed just to keep it colored/logged), even though no real hours
-      // were worked — the legend says "Leave" should always report as 0.
-      const entriesByDate: Record<string, Entry> = {
-        "2026-07-13": entry({
-          date: "2026-07-13",
-          value: 1,
-          intensity: 1,
-          customColor: "#8b949e",
-        }),
-      };
+  it("replaces a day's value with its legend entry's valueOverride", () => {
+    // A leave day keeps a placeholder value so it stays colored, but the
+    // legend says Leave always reports as 0.
+    const model = build(
+      { "2026-07-13": { value: 1, intensity: 1, customColor: "#8b949e" } },
+      "2026-07-13",
+      "2026-07-13",
+      { legend: [{ color: "#8b949e", label: "Leave", valueOverride: 0 }] },
+    );
 
-      const model = buildReportModel({
-        entriesByDate,
-        colorsList,
-        bodiesByPath: {},
-        startDate: "2026-07-13",
-        endDate: "2026-07-13",
-        weekStartDay: 1,
-        legend: [{ color: "#8b949e", label: "Leave", valueOverride: 0 }],
-      });
-
-      expect(model.weeks[0].days[0].value).toBe(0);
-      expect(model.summary.totalValue).toBe(0);
-    });
-
-    it("leaves the raw value alone when no legend entry matches the day's color", () => {
-      const entriesByDate: Record<string, Entry> = {
-        "2026-07-13": entry({ date: "2026-07-13", value: 8, intensity: 3 }),
-      };
-
-      const model = buildReportModel({
-        entriesByDate,
-        colorsList,
-        bodiesByPath: {},
-        startDate: "2026-07-13",
-        endDate: "2026-07-13",
-        weekStartDay: 1,
-        legend: [{ color: "#8b949e", label: "Leave", valueOverride: 0 }],
-      });
-
-      expect(model.weeks[0].days[0].value).toBe(8);
-      expect(model.summary.totalValue).toBe(8);
-    });
-
-    it("leaves the raw value alone when the matching legend entry has no override set", () => {
-      const entriesByDate: Record<string, Entry> = {
-        "2026-07-13": entry({
-          date: "2026-07-13",
-          value: 1,
-          intensity: 1,
-          customColor: "#7bc96f",
-        }),
-      };
-
-      const model = buildReportModel({
-        entriesByDate,
-        colorsList,
-        bodiesByPath: {},
-        startDate: "2026-07-13",
-        endDate: "2026-07-13",
-        weekStartDay: 1,
-        legend: [{ color: "#7bc96f", label: "Workday" }],
-      });
-
-      expect(model.weeks[0].days[0].value).toBe(1);
-    });
+    expect(days(model)[0].value).toBe(0);
+    expect(model.summary.totalValue).toBe(0);
   });
 });
 
 describe("computeDataRange", () => {
-  it("returns null when there are no entries", () => {
-    expect(computeDataRange({})).toBeNull();
-  });
+  it.each([
+    [[], null],
+    [["2026-01-01"], { start: "2026-01-01", end: "2026-01-01" }],
+    [
+      ["2026-06-01", "2026-03-15", "2026-05-20"],
+      { start: "2026-03-15", end: "2026-06-01" },
+    ],
+  ])("spans %j as %j, whatever the order", (dates, range) => {
+    const byDate = Object.fromEntries(dates.map((date) => [date, {}]));
 
-  it("returns the min/max ISO date among entries regardless of insertion order", () => {
-    const entriesByDate: Record<string, Entry> = {
-      "2026-06-01": entry({ date: "2026-06-01" }),
-      "2026-03-15": entry({ date: "2026-03-15" }),
-      "2026-05-20": entry({ date: "2026-05-20" }),
-    };
-
-    expect(computeDataRange(entriesByDate)).toEqual({
-      start: "2026-03-15",
-      end: "2026-06-01",
-    });
-  });
-
-  it("handles a single entry", () => {
-    expect(
-      computeDataRange({ "2026-01-01": entry({ date: "2026-01-01" }) }),
-    ).toEqual({
-      start: "2026-01-01",
-      end: "2026-01-01",
-    });
-  });
-});
-
-describe("buildReportModel rendered bodies", () => {
-  it("attaches the rendered HTML for the note behind each day", () => {
-    const model = buildReportModel({
-      entriesByDate: {
-        "2026-01-05": entry({ date: "2026-01-05", value: 1, filePath: "a.md" }),
-        "2026-01-06": entry({ date: "2026-01-06", value: 1, filePath: "b.md" }),
-      },
-      colorsList: ["#aaa"],
-      bodiesByPath: { "a.md": "$x$", "b.md": "text" },
-      bodyHtmlByPath: { "a.md": '<span class="katex"></span>' },
-      startDate: "2026-01-05",
-      endDate: "2026-01-06",
-      weekStartDay: 1,
-    });
-
-    const [a, b] = model.weeks[0].days;
-    expect(a.bodyHtml).toBe('<span class="katex"></span>');
-    expect(a.body).toBe("$x$");
-    expect(b.bodyHtml).toBeUndefined();
+    expect(computeDataRange(entries(byDate))).toEqual(range);
   });
 });

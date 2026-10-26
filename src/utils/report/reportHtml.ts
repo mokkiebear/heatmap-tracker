@@ -5,66 +5,27 @@ import { escapeHtml } from "src/utils/report/heatmapHtml";
 import { formatDayLabel, formatWeekLabel } from "src/utils/report/dateLabels";
 import { REPORT_BODY_CSS } from "src/utils/report/reportBodyCss";
 import {
-  LegendEntry,
-  buildGradientLegendHtml,
-  buildLegendHtml,
-  buildSummaryModel,
-} from "src/utils/report/legend";
-
-export interface ReportHtmlOptions {
-  title: string;
-  generatedAt: string;
-  /** Pre-rendered heatmap grid HTML (see buildHeatmapGridHtml), embedded verbatim. */
-  heatmapHtml: string;
-  /** Renames "Total value" in the summary line, e.g. "hours". */
-  valueLabel?: string;
-  /** Drives both the embedded legend and the summary's day-type breakdown. */
-  legend?: LegendEntry[];
-  /** "separate" (default) or "gradient" — see buildSummaryModel/buildGradientLegendHtml. */
-  legendMode?: "separate" | "gradient";
-  /** Shared label for the gradient's combined swatch strip, when legendMode is "gradient". */
-  gradientLabel?: string;
-  /** Full intensity color palette, low→high — renders the gradient strip regardless of which colors are actually used in this range. */
-  colorsList?: string[];
-  /** Omits the day-count/day-type breakdown line entirely. */
-  hideSummary?: boolean;
-  /** Omits the "Total <value label>" line. */
-  hideTotalValue?: boolean;
-  /** Omits every value — the total line and each day's own "(N)" next to its heading. */
-  hideAllValues?: boolean;
-}
+  ReportOptions,
+  buildReportHeader,
+} from "src/utils/report/reportHeader";
 
 /** Converts a note body's bullet lines into a real <ul>, plain lines into <p>. */
 function bulletsToHtml(body: string): string {
-  const lines = body
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
-
-  const html: string[] = [];
-  let inList = false;
-
-  for (const line of lines) {
-    const bulletMatch = line.match(/^[-*•]\s+(.*)$/);
-
-    if (bulletMatch) {
-      if (!inList) {
-        html.push("<ul>");
-        inList = true;
-      }
-      html.push(`<li>${escapeHtml(bulletMatch[1])}</li>`);
-    } else {
-      if (inList) {
-        html.push("</ul>");
-        inList = false;
-      }
-      html.push(`<p>${escapeHtml(line)}</p>`);
-    }
-  }
-
-  if (inList) html.push("</ul>");
-
-  return html.join("");
+  return (
+    body
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const bullet = line.match(/^[-*•]\s+(.*)$/);
+        return bullet
+          ? `<li>${escapeHtml(bullet[1])}</li>`
+          : `<p>${escapeHtml(line)}</p>`;
+      })
+      .join("")
+      // Escaped text has no "<", so each run of items is a whole list.
+      .replace(/(?:<li>[^<]*<\/li>)+/g, (items) => `<ul>${items}</ul>`)
+  );
 }
 
 function renderDay(day: ReportDay, hideAllValues: boolean): string {
@@ -89,42 +50,14 @@ function renderDay(day: ReportDay, hideAllValues: boolean): string {
  */
 export function buildReportHtml(
   model: ReportModel,
-  {
-    title,
-    generatedAt,
-    heatmapHtml,
-    valueLabel,
-    legend = [],
-    legendMode = "separate",
-    gradientLabel = "",
-    colorsList = [],
-    hideSummary,
-    hideTotalValue,
-    hideAllValues = false,
-  }: ReportHtmlOptions,
+  options: ReportOptions,
 ): string {
-  const { dayTypeParts, total } = buildSummaryModel(model, {
-    valueLabel,
-    legend,
-    legendMode,
-    gradientLabel,
-    colorsList,
-    hideSummary,
-    hideTotalValue,
-    hideAllValues,
-  });
-  const dayTypeLine = dayTypeParts
-    .map((p) => `${escapeHtml(p.label)}: ${p.value}`)
-    .join(" · ");
-  const totalLine = total ? `${escapeHtml(total.label)}: ${total.value}` : "";
-  const summaryLine =
-    dayTypeLine && totalLine
-      ? `${dayTypeLine}<br>${totalLine}`
-      : dayTypeLine || totalLine;
-  const legendHtml =
-    legendMode === "gradient"
-      ? buildGradientLegendHtml(colorsList, gradientLabel, legend)
-      : buildLegendHtml(legend);
+  const { title, generatedAt, heatmapHtml, hideAllValues = false } = options;
+  const { summaryLine, legendHtml } = buildReportHeader(
+    model,
+    options,
+    escapeHtml,
+  );
 
   const weeksHtml = model.weeks
     .map(

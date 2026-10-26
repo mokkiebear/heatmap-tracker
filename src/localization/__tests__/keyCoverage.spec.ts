@@ -2,7 +2,11 @@ import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 import i18n from "src/localization/i18n";
 import { TrackerDataSchema } from "src/schemas/trackerData.schema";
-import { BUILTIN_PRESETS } from "src/views/ExportView/rangePresets";
+import {
+  BUILTIN_PRESETS,
+  RANGE_UNITS,
+} from "src/views/ExportView/rangePresets";
+import { TOGGLE_GROUPS } from "src/views/ExportView/ExportOptionsForm";
 
 const SKIP_DIRS = new Set(["__tests__", "localization", "test-utils"]);
 
@@ -77,4 +81,22 @@ describe("keys built from a template literal", () => {
       expect(i18n.t(`report.${name}`)).not.toBe(`report.${name}`);
     },
   );
+
+  it.each(TOGGLE_GROUPS.flat())("labels the %s export toggle", (name) => {
+    expect(i18n.t(`report.${name}`)).not.toBe(`report.${name}`);
+  });
+
+  it.each([
+    ...RANGE_UNITS.flatMap((unit) => [
+      unit,
+      `${unit}sAgo`,
+      `${unit}sAgoSuffix`,
+    ]),
+    ...["from", "to"].flatMap((end) =>
+      ["", "Type", "Date", "Count"].map((suffix) => `${end}${suffix}`),
+    ),
+  ])("names the presets dialog's %s", (name) => {
+    const key = `report.presetsDialog.${name}`;
+    expect(i18n.t(key)).not.toBe(key);
+  });
 });

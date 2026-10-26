@@ -2,13 +2,16 @@ import i18n from "src/localization/i18n";
 import { App, setIcon } from "obsidian";
 import {
   LegendEntry,
-  getLegendVisibility,
   nextLegendVisibility,
   setLegendVisibility,
 } from "src/utils/report/legend";
 import { GradientWeightsModal } from "./GradientWeightsModal";
 import { RowDragController } from "./RowDragController";
-import { valueOverrideInput } from "./rowControls";
+import {
+  addColorCell,
+  applyVisibilityClasses,
+  valueOverrideInput,
+} from "./rowControls";
 import {
   VISIBILITY_ICON,
   VISIBILITY_TITLE,
@@ -27,13 +30,6 @@ export interface LegendRowContext {
   rerender: () => void;
   getGradientLabel: () => string;
   setGradientLabel: (value: string) => void;
-}
-
-/** The grip handle that arms a row's drag; returns nothing, wires itself. */
-function addDragHandle(row: HTMLElement, arm: () => void) {
-  const handle = row.createDiv({ cls: "heatmap-legend-modal__handle" });
-  setIcon(handle, "grip-vertical");
-  handle.addEventListener("mousedown", arm);
 }
 
 /** The eye button cycling shown → summary-hidden → hidden. */
@@ -61,27 +57,10 @@ function addVisibilityToggle(
   });
 }
 
-function applyVisibilityClasses(row: HTMLElement, entries: LegendEntry[]) {
-  const visibility = aggregateVisibility(entries);
-  row.toggleClass("is-excluded", visibility === "summaryHidden");
-  row.toggleClass("is-hidden", visibility === "hidden");
-}
-
 /**
- * The gradient-mode-only squashed row standing in for every palette-color
- * entry at once: a mini swatch strip (no HEX — it's several colors, not
- * one) instead of the usual single swatch, the shared label input, a gear
- * icon opening `GradientWeightsModal` for per-color weight/value, and a
- * group eye button that bulk-applies to every palette color at once.
- * Draggable via its own handle just like any other row - dropping it moves
- * `paletteBlock` (every palette-color entry, in the list's own current
- * relative order - not recomputed to intensity order) as one contiguous
- * block (see `reorderLegendEntries`). The swatch strip itself, and the
- * weights popup's own ordering, still always follow the palette's true
- * low-to-high intensity order (`paletteEntriesInOrder`) regardless of where
- * `paletteBlock` currently sits or how its members are internally ordered -
- * that's a display/data-entry concern, unrelated to this row's position
- * among the others.
+ * Gradient mode's single row for every palette color: a swatch strip in
+ * intensity order, the shared label, a gear for per-color weights and fixed
+ * values, and an eye that applies to all of them. It drags as one block.
  */
 export function renderGradientGroupRow(
   ctx: LegendRowContext,
@@ -92,7 +71,7 @@ export function renderGradientGroupRow(
 
   const row = container.createDiv({ cls: "heatmap-legend-modal__row" });
   applyVisibilityClasses(row, intensityOrder);
-  addDragHandle(row, ctx.drag.wire(row, paletteBlock));
+  ctx.drag.wire(row, paletteBlock, "heatmap-legend-modal__handle");
 
   const strip = row.createDiv({ cls: "heatmap-legend-modal__gradient-strip" });
   intensityOrder.forEach((entry) => {
@@ -125,8 +104,6 @@ export function renderGradientGroupRow(
     new GradientWeightsModal(ctx.app, intensityOrder).open();
   });
 
-  // Bulk-applies to every palette color at once - the gear icon above still
-  // lets each color's weight/value be set independently.
   addVisibilityToggle(row, intensityOrder, ctx.rerender, true);
 }
 
@@ -137,25 +114,15 @@ export function renderEntryRow(
   entry: LegendEntry,
 ) {
   const row = container.createDiv({ cls: "heatmap-legend-modal__row" });
-  row.toggleClass(
-    "is-excluded",
-    getLegendVisibility(entry) === "summaryHidden",
-  );
-  row.toggleClass("is-hidden", getLegendVisibility(entry) === "hidden");
-  addDragHandle(row, ctx.drag.wire(row, [entry]));
-
-  const swatch = row.createDiv({ cls: "heatmap-legend-modal__swatch" });
-  swatch.style.backgroundColor = entry.color;
-
-  // Colors are sourced automatically from the calendar's real palette (see
-  // the LegendModal doc comment) - never editable, so shown as plain text
-  // next to the swatch rather than a (disabled-looking) input box.
-  row.createSpan({
-    cls: "heatmap-legend-modal__color-text",
-    text: isBlankColor(entry.color)
+  applyVisibilityClasses(row, [entry]);
+  ctx.drag.wire(row, [entry], "heatmap-legend-modal__handle");
+  addColorCell(
+    row,
+    entry.color,
+    isBlankColor(entry.color)
       ? i18n.t("report.legendEditor.blank")
       : entry.color,
-  });
+  );
 
   const labelInput = row.createEl("input", {
     cls: "heatmap-legend-modal__label-input",
@@ -170,12 +137,5 @@ export function renderEntryRow(
   });
 
   valueOverrideInput(row, entry);
-
-  // Day-count weight only ever applies to palette colors being combined in
-  // gradient mode - this row is only ever rendered for a color that ISN'T in
-  // the palette (palette colors are squashed into the gradient group row
-  // instead - see `renderGradientGroupRow`/`GradientWeightsModal`), so
-  // there's nothing to weight here.
-
   addVisibilityToggle(row, [entry], ctx.rerender);
 }

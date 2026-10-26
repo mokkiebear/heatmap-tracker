@@ -14,11 +14,8 @@ import {
 const EMBED_SETTLE_TIMEOUT_MS = 1000;
 const EMBED_POLL_MS = 50;
 
-export interface RenderedBodyCache {
-  /** The source markdown a cached HTML string was rendered from. */
-  get(path: string): { body: string; html: string } | undefined;
-  set(path: string, entry: { body: string; html: string }): void;
-}
+/** Rendered HTML by note path, with the body it was rendered from. */
+export type RenderedBodyCache = Map<string, { body: string; html: string }>;
 
 /**
  * Turns Obsidian's live reading-view DOM into markup that is safe to embed in
@@ -82,10 +79,6 @@ export function insertMath(
   }
 }
 
-function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => window.setTimeout(resolve, ms));
-}
-
 /** Resolves once nothing under `root` is still loading, or after the timeout. */
 async function settle(root: HTMLElement): Promise<void> {
   for (
@@ -93,7 +86,7 @@ async function settle(root: HTMLElement): Promise<void> {
     waited < EMBED_SETTLE_TIMEOUT_MS && root.querySelector(".is-loading");
     waited += EMBED_POLL_MS
   ) {
-    await wait(EMBED_POLL_MS);
+    await new Promise((resolve) => window.setTimeout(resolve, EMBED_POLL_MS));
   }
 }
 

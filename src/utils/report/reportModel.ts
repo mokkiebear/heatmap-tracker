@@ -23,7 +23,6 @@ export interface ReportWeek {
 export interface ReportSummary {
   totalDays: number;
   totalValue: number;
-  activeWeeks: number;
 }
 
 export interface ReportModel {
@@ -54,6 +53,16 @@ export function getWeekStartDate(date: Date, weekStartDay: number): Date {
   return addDays(date, -diff);
 }
 
+/** Calendar days from `start` to `end` (ISO dates), both included. */
+export function daysInRange(start: string, end: string): number {
+  const msPerDay = 24 * 60 * 60 * 1000;
+  return (
+    Math.round(
+      (parseUTCDate(end).getTime() - parseUTCDate(start).getTime()) / msPerDay,
+    ) + 1
+  );
+}
+
 /** The earliest/latest ISO date among entries that actually have logged data. */
 export function computeDataRange(
   entriesByDate: Record<string, Entry>,
@@ -64,10 +73,8 @@ export function computeDataRange(
 }
 
 /**
- * Builds the report's day-by-day/week-by-week data from already-resolved
- * entries and note bodies. Days without an entry are skipped (a blank day
- * means nothing was logged); weeks with no days are likewise omitted. Pure
- * function — no Obsidian dependency, callers resolve entries/bodies first.
+ * The report's days, grouped by week, from already-resolved entries and note
+ * bodies. Days with nothing logged, and weeks with no such days, are left out.
  */
 export function buildReportModel({
   entriesByDate,
@@ -83,8 +90,6 @@ export function buildReportModel({
   const end = parseUTCDate(endDate);
 
   const weeks: ReportWeek[] = [];
-  const weekByKey = new Map<string, ReportWeek>();
-
   let totalDays = 0;
   let totalValue = 0;
 
@@ -93,9 +98,7 @@ export function buildReportModel({
     date.getTime() <= end.getTime();
     date = addDays(date, 1)
   ) {
-    const dateKey = formatDateToISO8601(date);
-    if (!dateKey) continue;
-
+    const dateKey = formatDateToISO8601(date) as string;
     const entry = entriesByDate[dateKey];
     if (!entry) continue;
 
@@ -120,26 +123,13 @@ export function buildReportModel({
     totalDays += 1;
     totalValue += value ?? 0;
 
-    const weekStartKey =
-      formatDateToISO8601(getWeekStartDate(date, weekStartDay)) ?? dateKey;
-
-    let week = weekByKey.get(weekStartKey);
-    if (!week) {
-      week = { weekStart: weekStartKey, days: [] };
-      weekByKey.set(weekStartKey, week);
-      weeks.push(week);
-    }
-    week.days.push(day);
+    const weekStart = formatDateToISO8601(
+      getWeekStartDate(date, weekStartDay),
+    ) as string;
+    const lastWeek = weeks[weeks.length - 1];
+    if (lastWeek?.weekStart === weekStart) lastWeek.days.push(day);
+    else weeks.push({ weekStart, days: [day] });
   }
 
-  return {
-    startDate,
-    endDate,
-    weeks,
-    summary: {
-      totalDays,
-      totalValue,
-      activeWeeks: weeks.length,
-    },
-  };
+  return { startDate, endDate, weeks, summary: { totalDays, totalValue } };
 }

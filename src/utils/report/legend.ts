@@ -1,8 +1,11 @@
-import { ReportDay, ReportModel } from "src/utils/report/reportModel";
+import {
+  ReportDay,
+  ReportModel,
+  daysInRange,
+} from "src/utils/report/reportModel";
 import { EMPTY_CELL_COLOR, escapeHtml } from "src/utils/report/heatmapHtml";
 import { normalizeColor } from "src/utils/report/legendMatch";
-import { parseUTCDate } from "src/utils/date";
-import { LegendEntry } from "src/types";
+import { LegendDisplayMode, LegendEntry } from "src/types";
 import i18n from "src/localization/i18n";
 
 export type { LegendEntry } from "src/types";
@@ -58,30 +61,20 @@ export function sumCountAs(days: ReportDay[]): SummaryPart[] {
 }
 
 /**
- * Matches each day's already-resolved color against the legend (case-
- * insensitive, trimmed). Days with no color, or a color not in the legend,
- * fall into `otherCount`. Blank days (no entry at all — never present in
- * `days`) are counted against whichever legend entry uses `EMPTY_CELL_COLOR`,
- * when `totalDaysInRange` is given. A day with its own `countAs` shares is
- * left out of the color counts entirely (see `sumCountAs`), but still counts
- * as logged, so it never inflates the blank-day count.
- *
- * Counted by color internally (not by label) and returned as one
- * `{entry, count}` pair per input entry, in input order — legend entries are
- * frequently auto-populated with a blank label before the user customizes
- * them (see `LegendModal`), so multiple entries sharing the same (blank)
- * label must not collide into a single counted bucket the way keying by
- * label would cause.
+ * Days per legend entry, in legend order, matched by color (case-insensitive,
+ * trimmed) rather than label, since several entries can share a blank label.
+ * Days matching no entry go to `otherCount`. The range's days with nothing
+ * logged count toward the `EMPTY_CELL_COLOR` entry. A day with `countAs`
+ * shares is left out (see `sumCountAs`) but still counts as logged.
  */
 export function computeDayTypeCounts(
   days: ReportDay[],
   legend: LegendEntry[],
-  totalDaysInRange?: number,
+  totalDaysInRange = days.length,
 ): { counts: DayTypeCount[]; otherCount: number } {
-  const countByColor = new Map<string, number>();
-  legend.forEach((entry) => {
-    countByColor.set(normalizeColor(entry.color), 0);
-  });
+  const countByColor = new Map(
+    legend.map((entry) => [normalizeColor(entry.color), 0]),
+  );
 
   let otherCount = 0;
   days.forEach((day) => {
@@ -94,15 +87,11 @@ export function computeDayTypeCounts(
     }
   });
 
-  if (totalDaysInRange !== undefined) {
-    const blankNormalized = normalizeColor(EMPTY_CELL_COLOR);
-    if (countByColor.has(blankNormalized)) {
-      countByColor.set(
-        blankNormalized,
-        (countByColor.get(blankNormalized) ?? 0) +
-          Math.max(0, totalDaysInRange - days.length),
-      );
-    }
+  const blank = normalizeColor(EMPTY_CELL_COLOR);
+  const blankCount = countByColor.get(blank);
+  if (blankCount !== undefined) {
+    const unlogged = Math.max(0, totalDaysInRange - days.length);
+    countByColor.set(blank, blankCount + unlogged);
   }
 
   const counts: DayTypeCount[] = legend.map((entry) => ({
@@ -114,16 +103,10 @@ export function computeDayTypeCounts(
 }
 
 /**
- * A category's three-state legend/summary visibility, cycled by the eye
- * button in `LegendModal` (unrelated to whether its color is a true
- * intensity-palette color, which is a separate "does it belong to the
- * gradient" concern — see `LegendModal.paletteEntriesInOrder`):
- * - "shown": appears in both the legend and the summary count (default).
- * - "summaryHidden": still appears in the legend, but its count is omitted
- *   from the summary line.
- * - "hidden": omitted from both entirely.
- * There's deliberately no fourth "counted but not shown" state — that
- * wouldn't make sense to a reader of the exported report.
+ * A category's visibility, cycled by the legend editor's eye button: "shown"
+ * (legend and summary, the default), "summaryHidden" (legend only) or
+ * "hidden" (neither). There is no "counted but not shown" state; it would
+ * mean nothing to a reader of the report.
  */
 export type LegendVisibility = "shown" | "summaryHidden" | "hidden";
 
@@ -138,16 +121,8 @@ export function setLegendVisibility(
   entry: LegendEntry,
   visibility: LegendVisibility,
 ): void {
-  if (visibility === "shown") {
-    entry.includeInSummary = undefined;
-    entry.includeInLegend = undefined;
-  } else if (visibility === "summaryHidden") {
-    entry.includeInSummary = false;
-    entry.includeInLegend = undefined;
-  } else {
-    entry.includeInSummary = false;
-    entry.includeInLegend = false;
-  }
+  entry.includeInSummary = visibility === "shown" ? undefined : false;
+  entry.includeInLegend = visibility === "hidden" ? false : undefined;
 }
 
 /** shown -> summaryHidden -> hidden -> shown -> ... */
@@ -159,71 +134,46 @@ export function nextLegendVisibility(
   return "shown";
 }
 
+const SWATCH_SIZE = 10;
+
+const swatchHtml = (color: string) =>
+  `<span style="display:inline-block;width:${SWATCH_SIZE}px;height:${SWATCH_SIZE}px;border-radius:2px;background-color:${escapeHtml(
+    color,
+  )};"></span>`;
+
+const legendItemHtml = (entry: LegendEntry) =>
+  `<div style="display:flex;align-items:center;gap:4px;">${swatchHtml(entry.color)}` +
+  `<span style="font-size:0.85em;">${escapeHtml(entry.label)}</span></div>`;
+
+const isListed = (entry: LegendEntry) =>
+  entry.label.trim() !== "" && entry.includeInLegend !== false;
+
 /**
- * Renders the legend as a small swatch+label list, for embedding under the
- * heatmap. Fully inline-styled (no `<style>` block / class-based CSS) for
- * the same reason as the grid itself — robust against Obsidian's own theme
- * CSS when embedded raw in a Markdown note. Entries left without a label
- * (kept in `legend` only so their color still matches/counts correctly — see
- * `LegendModal`) are skipped here, since there'd be nothing to show next to
- * the swatch — as is any entry explicitly hidden from the legend entirely
- * (`getLegendVisibility(entry) === "hidden"`).
+ * The legend as a swatch + label list under the heatmap. Inline-styled, like
+ * the grid, so Obsidian's theme CSS can't restyle it inside a Markdown note.
+ * Unlabeled entries (kept only so their color still counts) and entries
+ * hidden from the legend are skipped.
  */
 export function buildLegendHtml(legend: LegendEntry[]): string {
-  const labeled = legend.filter(
-    (entry) => entry.label.trim() !== "" && entry.includeInLegend !== false,
-  );
-  if (labeled.length === 0) return "";
-
-  const items = labeled
-    .map(
-      (entry) =>
-        `<div style="display:flex;align-items:center;gap:4px;">` +
-        `<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background-color:${escapeHtml(
-          entry.color,
-        )};"></span>` +
-        `<span style="font-size:0.85em;">${escapeHtml(entry.label)}</span></div>`,
-    )
-    .join("");
+  const items = legend.filter(isListed).map(legendItemHtml).join("");
+  if (!items) return "";
 
   return `<div style="display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 16px;">${items}</div>`;
 }
 
 /**
- * Renders the gradient-mode legend: a GitHub-contribution-graph-style swatch
- * strip covering every configured intensity color, low-to-high (including
- * ones not currently used in this range), with the shared label beside it,
- * vertically centered against the strip. (Earlier versions also tried
- * captioning the strip with "Less"/"More" underneath, but there was no font
- * size small enough to fit both words under as few as two swatches without
- * either truncating or overlapping - dropped rather than keep chasing a size
- * that doesn't reliably exist.) The swatches themselves always render in
- * `colorsList`'s own given order (the palette's true low-to-high intensity
- * order) regardless of `legend`'s order - that part is never reordered.
- *
- * `legend` is the FULL legend array (not pre-filtered) so this can place the
- * combined gradient item at the same position its palette colors actually
- * occupy there, exactly mirroring `LegendModal.renderGradientGroupRow`'s own
- * squashing - dragging the gradient group row before/after another category
- * now actually changes the exported legend's order too, not just the
- * editor's own display. Every matched color that ISN'T a true intensity-
- * palette color (the blank/background color, or a custom color used on
- * individual days outside the palette) renders as its own swatch+label item
- * at its own position, in the same flex row as the gradient strip. The whole
- * gradient item (strip + label) is omitted entirely when every palette-color
- * entry has been explicitly hidden (`includeInLegend: false` on all of
- * them - see the gradient group row's own eye button, which always applies
- * to every palette color at once); with no legend info at all for the
- * palette colors, it defaults to shown, like any other color would.
+ * The gradient-mode legend: one strip of every palette color, low→high in
+ * `colorsList` order whatever the legend's order, with the shared label
+ * beside it. The strip sits where the first palette entry sits in `legend`,
+ * so moving the gradient row in the editor moves it in the export; every
+ * other listed color is its own item. The strip is left out when every
+ * palette entry is hidden from the legend.
  */
 export function buildGradientLegendHtml(
   colorsList: string[],
   gradientLabel: string,
   legend: LegendEntry[] = [],
 ): string {
-  const SWATCH_SIZE = 10;
-  const SWATCH_GAP = 2;
-
   const blankNormalized = normalizeColor(EMPTY_CELL_COLOR);
   const intensityColors = colorsList.filter(
     (color) => normalizeColor(color) !== blankNormalized,
@@ -239,19 +189,12 @@ export function buildGradientLegendHtml(
 
   let gradientItem = "";
   if (intensityColors.length > 0 && !gradientHidden) {
-    const swatches = intensityColors
-      .map(
-        (color) =>
-          `<span style="display:inline-block;width:${SWATCH_SIZE}px;height:${SWATCH_SIZE}px;border-radius:2px;background-color:${escapeHtml(
-            color,
-          )};"></span>`,
-      )
-      .join("");
+    const swatches = intensityColors.map(swatchHtml).join("");
     const label = gradientLabel.trim();
 
     gradientItem =
       `<div style="display:flex;align-items:center;gap:8px;">` +
-      `<div style="display:flex;gap:${SWATCH_GAP}px;">${swatches}</div>` +
+      `<div style="display:flex;gap:2px;">${swatches}</div>` +
       (label
         ? `<span style="font-size:0.85em;">${escapeHtml(label)}</span>`
         : "") +
@@ -268,18 +211,9 @@ export function buildGradientLegendHtml(
       }
       return;
     }
-    if (entry.label.trim() === "" || entry.includeInLegend === false) return;
-    items.push(
-      `<div style="display:flex;align-items:center;gap:4px;">` +
-        `<span style="display:inline-block;width:${SWATCH_SIZE}px;height:${SWATCH_SIZE}px;border-radius:2px;background-color:${escapeHtml(
-          entry.color,
-        )};"></span>` +
-        `<span style="font-size:0.85em;">${escapeHtml(entry.label)}</span></div>`,
-    );
+    if (isListed(entry)) items.push(legendItemHtml(entry));
   });
-  // No palette-color entries turned up in `legend` at all (e.g. an empty
-  // legend, or the caller genuinely just wants the strip) - append rather
-  // than lose it entirely.
+  // No palette entry in `legend` to place it by: the strip still shows, last.
   if (!gradientInserted && gradientItem) items.push(gradientItem);
 
   if (items.length === 0) return "";
@@ -295,62 +229,36 @@ export interface SummaryPart {
 export interface SummaryOptions {
   valueLabel?: string;
   legend?: LegendEntry[];
-  /**
-   * "separate" (default): one summary part per non-blank legend entry.
-   * "gradient": every entry whose color is actually in `colorsList` (the
-   * configured intensity palette) is combined into one part labeled
-   * `gradientLabel`; any other matched color — the blank/background color,
-   * or a custom color used on individual days outside the palette — stays
-   * its own independent part either way.
-   */
-  legendMode?: "separate" | "gradient";
-  /** Shared label for the combined gradient part, when legendMode is "gradient". */
+  /** Default "separate". In "gradient" mode the `colorsList` colors combine into one part, `gradientLabel`. */
+  legendMode?: LegendDisplayMode;
   gradientLabel?: string;
-  /** The configured intensity palette — determines which colors count toward the gradient's combined total when legendMode is "gradient". */
   colorsList?: string[];
-  /** Omits the day-count/day-type breakdown entirely (both the legend breakdown and the no-legend "Days logged" fallback). */
+  /** Omits the day breakdown, "Days logged" included. */
   hideSummary?: boolean;
-  /** Omits the "Total <value label>" part. */
   hideTotalValue?: boolean;
-  /** Omits every value part — the total, on top of whatever `hideTotalValue` already does. */
+  /** Omits every value part, the total included. */
   hideAllValues?: boolean;
 }
 
 export interface SummaryModel {
-  /** Day-type/day-count parts (e.g. "Workday: 22", "Rest day: 1", "Other: 1"), rendered as one flat list. Empty when there's nothing to show. */
+  /** Day-type parts, e.g. "Workday: 22", "Other: 1". */
   dayTypeParts: SummaryPart[];
-  /** The "Total <value label>: N" part, or null when hidden or nothing to show. */
+  /** The "Total <value label>" part, or null when hidden. */
   total: SummaryPart | null;
 }
 
 /**
- * Builds the report's summary as a day-type breakdown plus a total, shared by
- * the Markdown and HTML serializers so the breakdown logic isn't duplicated.
- * With a legend: one part per non-blank legend entry with
- * `includeInSummary !== false` in "separate" mode, or in "gradient" mode,
- * one combined part for every entry whose color is actually in
- * `colorsList` (the true intensity palette) — any other matched color (the
- * blank/background color, or a custom color used on individual days outside
- * the palette) always stays its own independent part instead, in both
- * modes (+ "Other" for unmatched days — always shown when non-zero,
- * regardless of which specific entries are hidden). In gradient mode, each
- * palette entry's day count is scaled by its own `countWeight` (default 1)
- * before being summed — e.g. a lighter "half day" color set to 0.5
- * contributes half a day per match instead of a full one; independent
- * parts are never weighted. A day carrying its own `countAs` shares skips
- * all of that: each share is added to the shown part with the same label
- * (case-insensitive; in gradient mode a palette color's own label also names
- * the combined part), dropped if that category is hidden from the summary,
- * folded into "Other" if labeled so, and otherwise shown as a new part after
- * the legend's own. Without a legend: falls back to a flat "Days logged"
- * count, and `countAs` is ignored — with no categories to split between, its
- * shares would only restate days already counted there. Hidden entries'
- * days still count correctly toward
- * matching/`otherCount`/the gradient total — they're just not displayed as
- * their own line. `dayTypeParts` is empty (not a blank placeholder line)
- * whenever there's nothing to show — every legend entry excluded, or
- * `hideSummary` set — so callers can omit the line entirely instead of
- * rendering it blank.
+ * The report's summary: a day-type breakdown and a total.
+ * - With a legend: one part per shown, labeled entry. In gradient mode the
+ *   palette colors combine into one part, each count scaled by its
+ *   `countWeight`. Days matching no entry go to "Other", shown when non-zero.
+ *   Hidden entries still claim their days; they just get no line.
+ * - A day with `countAs` shares skips its color: each share joins the shown
+ *   part with the same label (a palette color's own label names the gradient
+ *   part), is dropped if that category is hidden, or becomes a new part.
+ * - Without a legend: a flat "Days logged" count, and `countAs` is ignored,
+ *   since its shares would only restate days already counted there.
+ * `dayTypeParts` is empty, not a blank line, when there is nothing to show.
  */
 export function buildSummaryModel(
   model: ReportModel,
@@ -367,12 +275,7 @@ export function buildSummaryModel(
   if (!options.hideSummary) {
     if (legend.length > 0) {
       const allDays = model.weeks.flatMap((week) => week.days);
-      const totalDaysInRange =
-        Math.round(
-          (parseUTCDate(model.endDate).getTime() -
-            parseUTCDate(model.startDate).getTime()) /
-            (1000 * 60 * 60 * 24),
-        ) + 1;
+      const totalDaysInRange = daysInRange(model.startDate, model.endDate);
       const { counts, otherCount } = computeDayTypeCounts(
         allDays,
         legend,
@@ -398,12 +301,8 @@ export function buildSummaryModel(
 
         let gradientTotal = 0;
         let anyPaletteIncluded = false;
-        // Where the combined part gets spliced in, once totalling is done -
-        // the position of the first palette-color entry actually encountered
-        // in `counts` (which follows the legend's own array order), so
-        // dragging the gradient group row before/after other categories (see
-        // `LegendModal.renderGradientGroupRow`) actually changes where the
-        // combined line lands, instead of it always being hardcoded first.
+        // The combined part goes where the first palette entry sits in the
+        // legend, so it follows the gradient row's place in the editor.
         let gradientPosition = -1;
         const parts: SummaryPart[] = [];
 
@@ -417,22 +316,12 @@ export function buildSummaryModel(
           } else {
             if (entry.includeInSummary === false) return;
             if (entry.label.trim() === "") return;
-            // Not a true intensity-palette color — the blank/background
-            // color, or a custom color used on individual days outside the
-            // palette — stays its own independent line instead of folding
-            // into the combined total.
             parts.push({ label: entry.label, value: count });
           }
         });
-        // Guards against float noise from non-power-of-2 weights (e.g. 0.3),
-        // not against any real precision need — a handful of summed terms.
         gradientTotal = roundCount(gradientTotal);
 
-        // Omitted entirely (not shown as "0") when nothing actually
-        // contributes - e.g. every palette color has been toggled to
-        // summary-hidden/fully-hidden via the gradient group row's eye
-        // button - mirroring how an individual excluded entry drops its
-        // whole line in separate mode, rather than showing a zero.
+        // With every palette color hidden the line goes, not shows a zero.
         if (gradientLabel && anyPaletteIncluded) {
           const insertAt =
             gradientPosition === -1 ? parts.length : gradientPosition;

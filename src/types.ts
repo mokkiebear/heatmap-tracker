@@ -84,6 +84,13 @@ export interface RangePresetSetting {
   rule?: RangeRule;
 }
 
+/**
+ * "separate": one legend/summary line per color. "gradient": the palette
+ * colors combine into one swatch strip with a shared label and count; other
+ * colors, including the blank one, keep their own lines either way.
+ */
+export type LegendDisplayMode = "separate" | "gradient";
+
 /** Remembered Export-tab preferences, persisted across sessions. */
 export interface ExportDefaults {
   orientation?: "columns" | "rows";
@@ -98,13 +105,8 @@ export interface ExportDefaults {
   skipWeekends?: boolean;
   valueLabel?: string;
   legend?: LegendEntry[];
-  /**
-   * "separate" (default): one legend/summary line per intensity color.
-   * "gradient": all non-blank intensity colors combine into a single
-   * GitHub-style swatch strip with one shared label and one combined count;
-   * the blank/background color always stays its own separate line either way.
-   */
-  legendMode?: "separate" | "gradient";
+  /** Default "separate". */
+  legendMode?: LegendDisplayMode;
   /** Shared label shown next to the gradient swatch strip when legendMode is "gradient". */
   gradientLabel?: string;
   exportFolder?: string;

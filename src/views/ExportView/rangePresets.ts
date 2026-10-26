@@ -25,62 +25,37 @@ const periods = (unit: RangeUnit, from: number, to: number): RangeRule => ({
   to,
 });
 
+const builtin = (
+  id: string,
+  labelKey: string,
+  rule: RangeRule,
+  visible = true,
+): BuiltinPreset => ({ id, labelKey, rule, visible });
+
 /** In default display order. A built-in's rule lives here, never in settings. */
 export const BUILTIN_PRESETS: BuiltinPreset[] = [
-  {
-    id: "logged",
-    labelKey: "presetAllLoggedData",
-    rule: { kind: "logged" },
-    visible: true,
-  },
-  {
-    id: "lastWeek",
-    labelKey: "presetLastWeek",
-    rule: periods("week", 1, 1),
-    visible: true,
-  },
-  {
-    id: "weekToDate",
-    labelKey: "presetWeekToDate",
-    rule: periods("week", 0, 0),
-    visible: true,
-  },
-  {
-    id: "lastMonth",
-    labelKey: "presetLastMonth",
-    rule: periods("month", 1, 1),
-    visible: true,
-  },
-  {
-    id: "monthToDate",
-    labelKey: "presetMonthToDate",
-    rule: periods("month", 0, 0),
-    visible: true,
-  },
-  {
-    id: "lastQuarter",
-    labelKey: "presetLastQuarter",
-    rule: periods("quarter", 1, 1),
-    visible: false,
-  },
-  {
-    id: "quarterToDate",
-    labelKey: "presetQuarterToDate",
-    rule: periods("quarter", 0, 0),
-    visible: false,
-  },
-  {
-    id: "lastYear",
-    labelKey: "presetLastYear",
-    rule: periods("year", 1, 1),
-    visible: false,
-  },
-  {
-    id: "yearToDate",
-    labelKey: "presetYearToDate",
-    rule: periods("year", 0, 0),
-    visible: false,
-  },
+  builtin("logged", "presetAllLoggedData", { kind: "logged" }),
+  builtin("lastWeek", "presetLastWeek", periods("week", 1, 1)),
+  builtin("weekToDate", "presetWeekToDate", periods("week", 0, 0)),
+  builtin("lastMonth", "presetLastMonth", periods("month", 1, 1)),
+  builtin("monthToDate", "presetMonthToDate", periods("month", 0, 0)),
+  builtin("lastQuarter", "presetLastQuarter", periods("quarter", 1, 1), false),
+  builtin(
+    "quarterToDate",
+    "presetQuarterToDate",
+    periods("quarter", 0, 0),
+    false,
+  ),
+  builtin("lastYear", "presetLastYear", periods("year", 1, 1), false),
+  builtin("yearToDate", "presetYearToDate", periods("year", 0, 0), false),
+];
+
+export const RANGE_UNITS: RangeUnit[] = [
+  "day",
+  "week",
+  "month",
+  "quarter",
+  "year",
 ];
 
 const BUILTIN_BY_ID = new Map(BUILTIN_PRESETS.map((p) => [p.id, p]));
@@ -133,50 +108,21 @@ export function presetRule(preset: RangePresetSetting): RangeRule | undefined {
   return BUILTIN_BY_ID.get(preset.id)?.rule ?? preset.rule;
 }
 
-/** The preset's own name if it has one, else what a blank name falls back to. */
+/**
+ * The preset's own name if it has one, else what a blank name falls back to:
+ * a built-in's translated name, or a custom preset's rule description.
+ */
 export function presetLabel(
   preset: RangePresetSetting,
   t: Translate = i18n.t,
 ): string {
-  return preset.label?.trim() || defaultPresetLabel(preset, t);
+  const rule = presetRule(preset);
+  return preset.label?.trim() || (rule ? describeRule(rule, t) : "");
 }
 
-/** A built-in's translated name, or a custom preset's rule description. */
-export function defaultPresetLabel(
-  preset: RangePresetSetting,
-  t: Translate = i18n.t,
-): string {
-  const builtin = BUILTIN_BY_ID.get(preset.id);
-  if (builtin) return t(`report.${builtin.labelKey}`);
-  return preset.rule ? describeRule(preset.rule, t) : "";
-}
-
-// One function per unit rather than a built key, so the key-coverage test
-// sees every key. "Months ago" is phrased as a label before a number, which
-// needs no plural agreement in any language.
-export const UNITS_AGO: Record<RangeUnit, (t: Translate) => string> = {
-  day: (t) => t("report.presetsDialog.daysAgo"),
-  week: (t) => t("report.presetsDialog.weeksAgo"),
-  month: (t) => t("report.presetsDialog.monthsAgo"),
-  quarter: (t) => t("report.presetsDialog.quartersAgo"),
-  year: (t) => t("report.presetsDialog.yearsAgo"),
-};
-
-const LAST_PERIOD: Record<RangeUnit, (t: Translate) => string> = {
-  day: (t) => t("report.presetYesterday"),
-  week: (t) => t("report.presetLastWeek"),
-  month: (t) => t("report.presetLastMonth"),
-  quarter: (t) => t("report.presetLastQuarter"),
-  year: (t) => t("report.presetLastYear"),
-};
-
-const CURRENT_PERIOD: Record<RangeUnit, (t: Translate) => string> = {
-  day: (t) => t("report.presetToday"),
-  week: (t) => t("report.presetWeekToDate"),
-  month: (t) => t("report.presetMonthToDate"),
-  quarter: (t) => t("report.presetQuarterToDate"),
-  year: (t) => t("report.presetYearToDate"),
-};
+/** "Weeks ago" etc.: a label before a number, so no plural agreement is needed. */
+const unitsAgo = (unit: RangeUnit, t: Translate = i18n.t) =>
+  t(`report.presetsDialog.${unit}sAgo`);
 
 const formatBoundDate = (date: string) => (date ? formatWeekLabel(date) : "…");
 
@@ -189,8 +135,17 @@ export function describeRule(rule: RangeRule, t: Translate = i18n.t): string {
   if (rule.kind === "logged") return t("report.presetAllLoggedData");
 
   const { unit, from, to } = rule;
-  if (from === 1 && to === 1) return LAST_PERIOD[unit](t);
-  if (from === 0 && to === 0) return CURRENT_PERIOD[unit](t);
+  const builtin = BUILTIN_PRESETS.find(
+    (preset) =>
+      preset.rule.kind === "periods" &&
+      preset.rule.unit === unit &&
+      preset.rule.from === from &&
+      preset.rule.to === to,
+  );
+  if (builtin) return t(`report.${builtin.labelKey}`);
+  if (unit === "day" && from === to && (from === 0 || from === 1)) {
+    return from === 1 ? t("report.presetYesterday") : t("report.presetToday");
+  }
   if (typeof from === "string" && to === 0) {
     return t("report.presetSince", { date: formatBoundDate(from) });
   }
@@ -211,14 +166,14 @@ export function describeRuleLogic(
   if (rule.kind === "logged") return t("report.presetsDialog.loggedLogic");
 
   const { unit, from, to } = rule;
-  const unitsAgo = UNITS_AGO[unit](t);
+  const label = unitsAgo(unit, t);
   if (typeof from === "number" && typeof to === "number") {
-    return t("report.presetsDialog.logic", { unitsAgo, from, to });
+    return t("report.presetsDialog.logic", { unitsAgo: label, from, to });
   }
   const bound = (value: RangeBound) =>
     typeof value === "string"
       ? formatBoundDate(value)
-      : t("report.presetsDialog.logicBound", { unitsAgo, count: value });
+      : t("report.presetsDialog.logicBound", { unitsAgo: label, count: value });
   return `${bound(from)} → ${bound(to)}`;
 }
 
@@ -244,23 +199,4 @@ export function newCustomPreset(
     .toString(36)
     .slice(2, 6)}`;
   return { id, visible: true, label: label.trim() || undefined, rule };
-}
-
-/** Moves `draggedId` to sit immediately before `targetId`, or last for `null`. */
-export function reorderPresets(
-  presets: RangePresetSetting[],
-  draggedId: string,
-  targetId: string | null,
-): RangePresetSetting[] {
-  const dragged = presets.find((preset) => preset.id === draggedId);
-  if (!dragged || draggedId === targetId) return presets;
-
-  const rest = presets.filter((preset) => preset.id !== draggedId);
-  const insertIndex =
-    targetId === null
-      ? rest.length
-      : rest.findIndex((preset) => preset.id === targetId);
-  if (insertIndex === -1) return presets;
-
-  return [...rest.slice(0, insertIndex), dragged, ...rest.slice(insertIndex)];
 }

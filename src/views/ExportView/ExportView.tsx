@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "src/localization/useTranslation";
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
 import { useAppContext } from "src/context/app/app.context";
@@ -68,35 +68,24 @@ function ExportView() {
       generatedAt: formatGeneratedAt(new Date()),
     });
 
-  const resolveRule = useCallback(
-    (rule: RangeRule) =>
-      resolveRangeRule(rule, {
-        today: getToday(),
-        weekStartDay: options.weekStartDay,
-        entriesByDate,
-      }),
-    [options.weekStartDay, entriesByDate],
-  );
+  const resolveRule = (rule: RangeRule) =>
+    resolveRangeRule(rule, {
+      today: getToday(),
+      weekStartDay: options.weekStartDay,
+      entriesByDate,
+    });
+  const labelFor = (preset: RangePresetSetting) => presetLabel(preset, t);
 
-  const labelFor = useCallback(
-    (preset: RangePresetSetting) => presetLabel(preset, t),
-    [t],
-  );
-
-  const presets = useMemo<PresetButton[]>(
-    () =>
-      options.rangePresets
-        .filter((preset) => preset.visible)
-        .map((preset) => ({
-          id: preset.id,
-          label: labelFor(preset),
-          span: () => {
-            const rule = presetRule(preset);
-            return rule ? resolveRule(rule) : null;
-          },
-        })),
-    [options.rangePresets, labelFor, resolveRule],
-  );
+  const presets: PresetButton[] = options.rangePresets
+    .filter((preset) => preset.visible)
+    .map((preset) => ({
+      id: preset.id,
+      label: labelFor(preset),
+      span: () => {
+        const rule = presetRule(preset);
+        return rule ? resolveRule(rule) : null;
+      },
+    }));
 
   function handleConfigurePresets() {
     new RangePresetsModal(
@@ -110,46 +99,31 @@ function ExportView() {
 
   async function handleSaveMarkdown() {
     if (!model) return;
-
     const file = await writeExportFile(app, {
-      folder: options.exportFolder,
+      ...options,
       title,
-      startDate: options.startDate,
-      endDate: options.endDate,
       extension: "md",
       content: buildReportMarkdown(model, reportOptions),
     });
-
     await openFileInLeaf(app, file);
     notify(t("report.savedMarkdown", { path: file.path }));
   }
 
   async function handleSaveHtml() {
     if (!reportHtmlDoc) return;
-
     const file = await writeExportFile(app, {
-      folder: options.exportFolder,
+      ...options,
       title,
-      startDate: options.startDate,
-      endDate: options.endDate,
       extension: "html",
       content: reportHtmlDoc,
     });
-
     notify(t("report.savedHtml", { path: file.path }));
   }
 
   function handleEditLegend() {
-    // Whole-calendar-scoped, not just the export's currently selected date
-    // range, so every color the calendar can ever show is available to
-    // populate from/reset/refresh back to - regardless of whether any of its
-    // days happen to fall within the range selected right now.
     const baseline = buildRefreshBaseline(entriesByDate, colorsList);
-    // Only auto-populate from the baseline on true first-time entry (nothing
-    // saved yet) - once the legend exists, reopening the editor shows
-    // exactly what was last saved, untouched. Re-syncing against the palette
-    // (new colors, dropped stale ones) only happens when the user explicitly
-    // clicks "Refresh" or "Reset" inside the modal.
+    // The baseline seeds only a first-ever legend; after that the editor shows
+    // what was saved, and re-syncs only on Refresh or Reset.
     const initialEntries =
       options.legend.length > 0 ? options.legend : baseline;
     new LegendModal(
@@ -174,11 +148,7 @@ function ExportView() {
         onEditLegend={handleEditLegend}
       />
 
-      {!rangeValid && (
-        <p className="heatmap-export__error">{t("report.invalidRange")}</p>
-      )}
-
-      {rangeValid && (
+      {rangeValid ? (
         <>
           <div className="heatmap-export__summary">
             {isLoading
@@ -190,12 +160,8 @@ function ExportView() {
                     options.valueLabel.trim() ||
                     t("report.valueLabelPlaceholder"),
                 })}
-            {bandCount > 1 && (
-              <>
-                {" · "}
-                {t("report.bandHint", { count: bandCount })}
-              </>
-            )}
+            {bandCount > 1 &&
+              ` · ${t("report.bandHint", { count: bandCount })}`}
           </div>
 
           <div className="heatmap-export__actions">
@@ -227,6 +193,8 @@ function ExportView() {
             sandbox=""
           />
         </>
+      ) : (
+        <p className="heatmap-export__error">{t("report.invalidRange")}</p>
       )}
     </div>
   );

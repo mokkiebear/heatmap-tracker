@@ -15,6 +15,8 @@ const custom: RangePresetSetting = {
   rule: { kind: "periods", unit: "day", from: "2026-09-01", to: 0 },
 };
 
+const withCustom = () => [...mergePresets(undefined), custom];
+
 function open(presets = mergePresets(undefined)) {
   const onSave = jest.fn();
   const modal = new RangePresetsModal(
@@ -50,25 +52,26 @@ function open(presets = mergePresets(undefined)) {
     );
   const row = (label: string) =>
     rows().find((r) => r.textContent!.includes(label))!;
-  const button = (text: string) =>
-    Array.from(el.querySelectorAll("button")).find(
-      (b) => b.textContent === text,
+  /** The button with this text, or this aria-label, inside `scope`. */
+  const button = (name: string, scope: HTMLElement = el) =>
+    Array.from(scope.querySelectorAll("button")).find(
+      (b) => b.textContent === name || b.getAttribute("aria-label") === name,
     )!;
+  const press = (name: string, scope?: HTMLElement) =>
+    button(name, scope).click();
   const done = () => {
-    button("Done").click();
+    press("Done");
     return onSave.mock.calls[0][0] as RangePresetSetting[];
   };
-  const select = (ariaLabel: string, value: string) => {
-    const input = el.querySelector<HTMLSelectElement>(
-      `select[aria-label="${ariaLabel}"]`,
-    )!;
-    input.value = value;
-    input.dispatchEvent(new Event("change"));
+  const input = <T extends HTMLElement = HTMLInputElement>(label: string) =>
+    el.querySelector<T>(`[aria-label="${label}"]`)!;
+  const select = (label: string, value: string) => {
+    input<HTMLSelectElement>(label).value = value;
+    input(label).dispatchEvent(new Event("change"));
   };
-  const type = (selector: string, value: string) => {
-    const input = el.querySelector<HTMLInputElement>(selector)!;
-    input.value = value;
-    input.dispatchEvent(new Event("input"));
+  const type = (label: string, value: string) => {
+    input(label).value = value;
+    input(label).dispatchEvent(new Event("input"));
   };
   const drag = (from: HTMLElement, to: HTMLElement) => {
     from
@@ -82,24 +85,27 @@ function open(presets = mergePresets(undefined)) {
     modal,
     el,
     onSave,
-    rows,
     labels,
     row,
     button,
+    press,
     done,
+    input,
     select,
     type,
     drag,
   };
 }
 
+type Opened = ReturnType<typeof open>;
+
 afterEach(() => {
   document.body.innerHTML = "";
 });
 
 describe("RangePresetsModal", () => {
-  it("lists every preset, hidden ones included, with its rule and what it covers today", () => {
-    const { labels, row } = open();
+  it("lists every preset, hidden ones included, with its rule, what it covers today and its actions", () => {
+    const { labels, row } = open(withCustom());
 
     expect(labels()).toEqual([
       "presetAllLoggedData",
@@ -111,6 +117,7 @@ describe("RangePresetsModal", () => {
       "presetQuarterToDate",
       "presetLastYear",
       "presetYearToDate",
+      "Semester",
     ]);
     expect(row("presetLastQuarter").classList).toContain("is-hidden");
     expect(row("presetWeekToDate").classList).not.toContain("is-hidden");
@@ -126,71 +133,38 @@ describe("RangePresetsModal", () => {
     expect(row("presetAllLoggedData").textContent).toContain(
       "First → last logged day · No logged data",
     );
-  });
-
-  it("shows a custom preset's rule the same way, fixed dates included", () => {
-    const { row } = open([custom]);
-
     expect(
       row("Semester").querySelector(".heatmap-range-presets-modal__detail")!
         .textContent,
     ).toBe("Sep 1, 2026 → Days ago: 0 · Sep 1, 2026 – Oct 7, 2026");
-  });
 
-  it("offers rename/edit on every preset, and delete only on custom ones", () => {
-    const { row } = open([...mergePresets(undefined), custom]);
-
-    expect(
-      row("presetLastYear").querySelector('[aria-label="Rename"]'),
-    ).not.toBeNull();
-    expect(
-      row("presetLastYear").querySelector('[aria-label="Delete"]'),
-    ).toBeNull();
-    expect(row("Semester").querySelector('[aria-label="Edit"]')).not.toBeNull();
-    expect(
-      row("Semester").querySelector('[aria-label="Delete"]'),
-    ).not.toBeNull();
-  });
-
-  it("explains the From → To counts with examples under the form", () => {
-    const { el } = open();
-    const hint = el.querySelector(".heatmap-range-presets-modal__hint")!;
-
-    expect(hint.textContent).toBe(
-      "0 means the current period, through today; 1 means the previous complete period." +
-        "Examples: Last week (Weeks ago: 1 → 1), Last 7 days (Days ago: 6 → 0).",
-    );
-    expect(hint.querySelector("br")).not.toBeNull();
+    // Rename/edit on every preset, delete only on custom ones.
+    const action = (label: string, name: string) =>
+      row(label).querySelector(`[aria-label="${name}"]`);
+    expect(action("presetLastYear", "Rename")).not.toBeNull();
+    expect(action("presetLastYear", "Delete")).toBeNull();
+    expect(action("Semester", "Edit")).not.toBeNull();
+    expect(action("Semester", "Delete")).not.toBeNull();
   });
 
   it("toggles visibility with the eye button", () => {
-    const { row, done } = open();
+    const { row, press, done } = open();
 
-    row("presetLastQuarter")
-      .querySelector<HTMLButtonElement>(
-        '[aria-label="Hidden. Click to show."]',
-      )!
-      .click();
+    press("Hidden. Click to show.", row("presetLastQuarter"));
 
     expect(done().find((p) => p.id === "lastQuarter")?.visible).toBe(true);
   });
 
-  it("reorders by dragging a row's handle onto another row", () => {
-    const { row, labels, drag } = open();
+  it("reorders by dragging a row's handle onto another row, or past the last one", () => {
+    const { el, row, labels, drag } = open();
 
     drag(row("presetLastWeek"), row("presetAllLoggedData"));
-
     expect(labels()[0]).toBe("presetLastWeek");
-  });
-
-  it("moves a row to the end when dropped after the last row", () => {
-    const { el, row, labels, drag } = open();
 
     drag(
       row("presetAllLoggedData"),
       el.querySelector<HTMLElement>(".heatmap-range-presets-modal__drop-end")!,
     );
-
     expect(last(labels())).toBe("presetAllLoggedData");
   });
 
@@ -205,40 +179,29 @@ describe("RangePresetsModal", () => {
   });
 
   it("builds a rule from a unit and two ends, each relative or a fixed date", () => {
-    const { el, select } = open();
-    const options = (ariaLabel: string) =>
-      Array.from(
-        el.querySelectorAll(`select[aria-label="${ariaLabel}"] option`),
-      ).map((o) => o.textContent);
+    const { el, select, input } = open();
 
-    expect(options("Unit")).toEqual([
-      "Day",
-      "Week",
-      "Month",
-      "Quarter",
-      "Year",
-    ]);
-    expect(options("From type")).toEqual(["Relative", "Fixed date"]);
-    expect(el.textContent).toContain("Weeks ago");
+    // The count reads as part of a phrase: "1 weeks ago".
+    expect(input("From periods ago").nextElementSibling?.textContent).toBe(
+      "weeks ago",
+    );
 
     select("From type", "fixed");
-    expect(el.querySelector('input[aria-label="From date"]')).not.toBeNull();
-    expect(el.querySelector('input[aria-label="From periods ago"]')).toBeNull();
-    expect(
-      el.querySelector('input[aria-label="To periods ago"]'),
-    ).not.toBeNull();
+    expect(el.querySelector('[aria-label="From date"]')).not.toBeNull();
+    expect(el.querySelector('[aria-label="From periods ago"]')).toBeNull();
+    expect(el.querySelector('[aria-label="To periods ago"]')).not.toBeNull();
   });
 
   it("adds a custom preset from the form, shown by default, with an accent button", () => {
-    const { el, select, type, button, labels, done } = open();
+    const { el, select, type, button, press, labels, done } = open();
 
     select("Unit", "month");
-    type('input[aria-label="From periods ago"]', "2");
-    type('input[aria-label="To periods ago"]', "0");
-    type('input[aria-label="Label"]', "Quarter so far");
+    type("From periods ago", "2");
+    type("To periods ago", "0");
+    type("Label", "Quarter so far");
     expect(el.textContent).toContain("Aug 1, 2026 – Oct 7, 2026");
     expect(button("Add preset").classList).toContain("mod-cta");
-    button("Add preset").click();
+    press("Add preset");
 
     expect(last(labels())).toBe("Quarter so far");
     expect(last(done())).toMatchObject({
@@ -249,15 +212,12 @@ describe("RangePresetsModal", () => {
   });
 
   it("defaults an unnamed custom preset's label to its rule", () => {
-    const { el, type, button, labels } = open();
+    const { input, type, press, labels } = open();
 
-    type('input[aria-label="From periods ago"]', "1");
-    type('input[aria-label="To periods ago"]', "0");
-    expect(
-      el.querySelector<HTMLInputElement>('input[aria-label="Label"]')!
-        .placeholder,
-    ).toBe("Weeks ago: 1 → 0");
-    button("Add preset").click();
+    type("From periods ago", "1");
+    type("To periods ago", "0");
+    expect(input("Label").placeholder).toBe("Weeks ago: 1 → 0");
+    press("Add preset");
 
     expect(last(labels())).toBe("Weeks ago: 1 → 0");
   });
@@ -272,55 +232,46 @@ describe("RangePresetsModal", () => {
       el.querySelector(".heatmap-range-presets-modal__preview")!.classList,
     ).toContain("is-invalid");
 
-    type('input[aria-label="From date"]', "2026-10-08");
-    type('input[aria-label="To periods ago"]', "0");
+    type("From date", "2026-10-08");
+    type("To periods ago", "0");
     expect(button("Add preset").disabled).toBe(true);
     expect(el.textContent).toContain("From comes after To.");
 
-    type('input[aria-label="From date"]', "2026-09-01");
+    type("From date", "2026-09-01");
     expect(button("Add preset").disabled).toBe(false);
 
-    type('input[aria-label="To periods ago"]', "-1");
+    type("To periods ago", "-1");
     expect(el.textContent).toContain(
       "Periods ago must be a whole number, 0 or more.",
     );
   });
 
   it("edits a custom preset in place", () => {
-    const { row, type, button, done } = open([custom]);
+    const { row, type, button, press, done } = open([custom]);
 
-    row("Semester")
-      .querySelector<HTMLButtonElement>('[aria-label="Edit"]')!
-      .click();
+    press("Edit", row("Semester"));
     expect(row("Semester").classList).toContain("is-editing");
-    type('input[aria-label="From date"]', "2026-08-25");
+    type("From date", "2026-08-25");
     expect(button("Save changes").classList).toContain("mod-cta");
-    button("Save changes").click();
+    press("Save changes");
 
-    const saved = done().find((p) => p.id === "custom-a");
-    expect(saved?.rule).toEqual({
-      kind: "periods",
-      unit: "day",
-      from: "2026-08-25",
-      to: 0,
-    });
-    expect(saved?.label).toBe("Semester");
+    expect(done()).toEqual([
+      {
+        ...custom,
+        rule: { kind: "periods", unit: "day", from: "2026-08-25", to: 0 },
+      },
+    ]);
   });
 
   it("renames a built-in without touching its rule", () => {
-    const { el, row, type, button, labels, done } = open();
+    const { el, row, input, type, press, labels, done } = open();
 
-    row("presetLastMonth")
-      .querySelector<HTMLButtonElement>('[aria-label="Rename"]')!
-      .click();
+    press("Rename", row("presetLastMonth"));
     expect(el.textContent).toContain("Months ago: 1 → 1");
-    expect(el.querySelector('select[aria-label="Unit"]')).toBeNull();
-    expect(
-      el.querySelector<HTMLInputElement>('input[aria-label="Label"]')!
-        .placeholder,
-    ).toBe("presetLastMonth");
-    type('input[aria-label="Label"]', "Prior month");
-    button("Save changes").click();
+    expect(el.querySelector('[aria-label="Unit"]')).toBeNull();
+    expect(input("Label").placeholder).toBe("presetLastMonth");
+    type("Label", "Prior month");
+    press("Save changes");
 
     expect(labels()[3]).toBe("Prior month");
     expect(done().find((p) => p.id === "lastMonth")).toEqual({
@@ -331,25 +282,21 @@ describe("RangePresetsModal", () => {
   });
 
   it("restores a built-in's own name when renamed to blank", () => {
-    const { row, type, button, labels } = open([
+    const { row, type, press, labels } = open([
       { id: "lastMonth", visible: true, label: "Prior month" },
     ]);
 
-    row("Prior month")
-      .querySelector<HTMLButtonElement>('[aria-label="Rename"]')!
-      .click();
-    type('input[aria-label="Label"]', "  ");
-    button("Save changes").click();
+    press("Rename", row("Prior month"));
+    type("Label", "  ");
+    press("Save changes");
 
     expect(labels()).toEqual(["presetLastMonth"]);
   });
 
   it("deletes a custom preset", () => {
-    const { row, done } = open([...mergePresets(undefined), custom]);
+    const { row, press, done } = open(withCustom());
 
-    row("Semester")
-      .querySelector<HTMLButtonElement>('[aria-label="Delete"]')!
-      .click();
+    press("Delete", row("Semester"));
 
     expect(done().some((p) => p.id === "custom-a")).toBe(false);
   });
@@ -358,83 +305,86 @@ describe("RangePresetsModal", () => {
     const presets = mergePresets(undefined).map((preset) =>
       preset.id === "lastMonth" ? { ...preset, label: "Prior month" } : preset,
     );
-    const { row, button, drag, done } = open([...presets, custom]);
+    const { row, press, drag, done } = open([...presets, custom]);
 
     drag(row("presetLastWeek"), row("presetAllLoggedData"));
-    button("Reset").click();
+    press("Reset");
 
-    expect(done()).toEqual([...mergePresets(undefined), custom]);
+    expect(done()).toEqual(withCustom());
   });
 
-  it("saves nothing when closed without Done", () => {
-    const { modal, row, onSave } = open();
+  it("closes a built-in's rename form on Reset, which replaces the built-ins", () => {
+    const { el, row, press } = open();
 
-    row("presetLastQuarter")
-      .querySelector<HTMLButtonElement>(
-        '[aria-label="Hidden. Click to show."]',
-      )!
-      .click();
-    modal.close();
+    press("Rename", row("presetLastMonth"));
+    press("Reset");
 
-    expect(onSave).not.toHaveBeenCalled();
+    expect(el.textContent).toContain("New custom preset");
+    expect(el.querySelector(".is-editing")).toBeNull();
   });
 
-  it("saves once on Done, and writes nothing when nothing changed", () => {
-    const changed = open();
-    changed.drag(
-      changed.row("presetLastWeek"),
-      changed.row("presetAllLoggedData"),
+  it.each<[string, (m: Opened) => void]>([
+    [
+      "closed without Done",
+      (m) => {
+        m.press("Hidden. Click to show.", m.row("presetLastQuarter"));
+        m.modal.close();
+      },
+    ],
+    ["Done changes nothing", (m) => m.press("Done")],
+    [
+      "an open custom edit is invalid",
+      (m) => {
+        m.press("Edit", m.row("Semester"));
+        m.type("From date", "2026-10-08");
+        m.press("Done");
+      },
+    ],
+    [
+      "a new preset was never added",
+      (m) => {
+        m.type("Label", "Draft");
+        m.press("Done");
+      },
+    ],
+  ])("saves nothing when %s", (_, act) => {
+    const opened = open(withCustom());
+
+    act(opened);
+
+    expect(opened.onSave).not.toHaveBeenCalled();
+  });
+
+  it.each<[string, (m: Opened) => void, Partial<RangePresetSetting>]>([
+    [
+      "rename",
+      (m) => {
+        m.press("Rename", m.row("presetLastMonth"));
+        m.type("Label", "Prior month");
+      },
+      { id: "lastMonth", label: "Prior month" },
+    ],
+    [
+      "valid custom edit",
+      (m) => {
+        m.press("Edit", m.row("Semester"));
+        m.type("From date", "2026-08-25");
+      },
+      {
+        id: "custom-a",
+        rule: { kind: "periods", unit: "day", from: "2026-08-25", to: 0 },
+      },
+    ],
+  ])("saves once on Done, applying an open %s", (_, act, expected) => {
+    const opened = open(withCustom());
+
+    act(opened);
+    opened.press("Done");
+
+    expect(opened.onSave).toHaveBeenCalledTimes(1);
+    expect(opened.onSave.mock.calls[0][0]).toContainEqual(
+      expect.objectContaining(expected),
     );
-    changed.button("Done").click();
-    expect(changed.onSave).toHaveBeenCalledTimes(1);
-
-    const untouched = open();
-    untouched.button("Done").click();
-    expect(untouched.onSave).not.toHaveBeenCalled();
-  });
-
-  it("applies an open rename on Done, without Save changes first", () => {
-    const { row, type, done } = open();
-
-    row("presetLastMonth")
-      .querySelector<HTMLButtonElement>('[aria-label="Rename"]')!
-      .click();
-    type('input[aria-label="Label"]', "Prior month");
-
-    expect(done().find((p) => p.id === "lastMonth")?.label).toBe("Prior month");
-  });
-
-  it("applies an open custom edit on Done, but only if it is valid", () => {
-    const valid = open([custom]);
-    valid
-      .row("Semester")
-      .querySelector<HTMLButtonElement>('[aria-label="Edit"]')!
-      .click();
-    valid.type('input[aria-label="From date"]', "2026-08-25");
-    expect(valid.done()[0].rule).toEqual({
-      kind: "periods",
-      unit: "day",
-      from: "2026-08-25",
-      to: 0,
-    });
-
-    const invalid = open([custom]);
-    invalid
-      .row("Semester")
-      .querySelector<HTMLButtonElement>('[aria-label="Edit"]')!
-      .click();
-    invalid.type('input[aria-label="From date"]', "2026-10-08");
-    invalid.button("Done").click();
-    expect(invalid.onSave).not.toHaveBeenCalled();
-  });
-
-  it("doesn't add an unsubmitted new preset on Done", () => {
-    const { type, button, onSave } = open();
-
-    type('input[aria-label="Label"]', "Draft");
-    button("Done").click();
-
-    expect(onSave).not.toHaveBeenCalled();
   });
 
   it("keeps Reset and Done outside the scrolling body", () => {
@@ -453,17 +403,5 @@ describe("RangePresetsModal", () => {
       Array.from(footer.querySelectorAll("button")).map((b) => b.textContent),
     ).toEqual(["Reset", "Done"]);
     expect(footer.querySelector("button")!.classList).toContain("mod-warning");
-  });
-
-  it("closes a built-in's rename form on Reset, which replaces the built-ins", () => {
-    const { el, row, button } = open();
-
-    row("presetLastMonth")
-      .querySelector<HTMLButtonElement>('[aria-label="Rename"]')!
-      .click();
-    button("Reset").click();
-
-    expect(el.textContent).toContain("New custom preset");
-    expect(el.querySelector(".is-editing")).toBeNull();
   });
 });

@@ -39,26 +39,24 @@ function renderForm(presets: PresetButton[]) {
 }
 
 describe("ExportOptionsForm presets", () => {
-  it("renders the given preset buttons and applies a preset's range", () => {
-    const { setOption } = renderForm([
+  it("applies a preset's range, skips one with none, and opens the configuration", () => {
+    const { setOption, onConfigurePresets } = renderForm([
       {
         id: "lastWeek",
         label: "Last week",
         span: () => ({ start: "2026-09-28", end: "2026-10-04" }),
       },
+      { id: "logged", label: "Logged", span: () => null },
     ]);
 
-    fireEvent.click(screen.getByText("Last week"));
+    fireEvent.click(screen.getByText("Logged"));
+    expect(setOption).not.toHaveBeenCalled();
 
+    fireEvent.click(screen.getByText("Last week"));
     expect(setOption).toHaveBeenCalledWith("startDate", "2026-09-28");
     expect(setOption).toHaveBeenCalledWith("endDate", "2026-10-04");
-  });
-
-  it("opens the preset configuration from the gear button", () => {
-    const { onConfigurePresets } = renderForm([]);
 
     fireEvent.click(screen.getByLabelText("Configure range presets"));
-
     expect(onConfigurePresets).toHaveBeenCalled();
   });
 });

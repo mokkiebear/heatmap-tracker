@@ -1,5 +1,6 @@
 import i18n from "src/localization/i18n";
 import { LegendEntry } from "src/utils/report/legend";
+import { aggregateVisibility } from "./legendEntries";
 
 /** A number input bound to an optional numeric field of a legend entry. */
 export function numberInput(
@@ -45,4 +46,21 @@ export function valueOverrideInput(
       entry.valueOverride = value;
     },
   });
+}
+
+/** Dims a row by its entries' shared visibility (see `aggregateVisibility`). */
+export function applyVisibilityClasses(
+  row: HTMLElement,
+  entries: LegendEntry[],
+) {
+  const visibility = aggregateVisibility(entries);
+  row.toggleClass("is-excluded", visibility === "summaryHidden");
+  row.toggleClass("is-hidden", visibility === "hidden");
+}
+
+/** A color's swatch and its read-only name: colors come from the calendar, so they aren't editable. */
+export function addColorCell(row: HTMLElement, color: string, name: string) {
+  const swatch = row.createDiv({ cls: "heatmap-legend-modal__swatch" });
+  swatch.style.backgroundColor = color;
+  row.createSpan({ cls: "heatmap-legend-modal__color-text", text: name });
 }

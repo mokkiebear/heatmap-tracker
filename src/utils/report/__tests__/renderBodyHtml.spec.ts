@@ -1,5 +1,6 @@
 import { App, MarkdownRenderer } from "obsidian";
 import {
+  RenderedBodyCache,
   cleanRenderedDom,
   insertMath,
   renderBodiesToHtml,
@@ -7,6 +8,9 @@ import {
 } from "../renderBodyHtml";
 
 const app = new App();
+
+beforeEach(() => jest.spyOn(MarkdownRenderer, "render"));
+afterEach(() => jest.restoreAllMocks());
 
 function dom(html: string): HTMLElement {
   const root = document.createElement("div");
@@ -90,10 +94,7 @@ describe("insertMath", () => {
 });
 
 describe("renderBodyToHtml", () => {
-  beforeEach(() => jest.spyOn(MarkdownRenderer, "render"));
-  afterEach(() => jest.restoreAllMocks());
-
-  it("renders with the app's renderer against the note's own path", async () => {
+  it("renders with the app's renderer against the note's own path, leaving nothing behind", async () => {
     const html = await renderBodyToHtml(app, "hello", "Daily/2026-07-13.md");
 
     expect(html).toBe("<p>hello</p>");
@@ -104,6 +105,7 @@ describe("renderBodyToHtml", () => {
       "Daily/2026-07-13.md",
       expect.anything(),
     );
+    expect(document.body.querySelector(".markdown-rendered")).toBeNull();
   });
 
   it("hands Obsidian the note with math swapped out, then renders it with KaTeX", async () => {
@@ -119,18 +121,9 @@ describe("renderBodyToHtml", () => {
     expect(html).toContain('class="katex"');
     expect(html).not.toContain("HTPMATH");
   });
-
-  it("leaves nothing behind in the document", async () => {
-    await renderBodyToHtml(app, "hello", "a.md");
-
-    expect(document.body.querySelector(".markdown-rendered")).toBeNull();
-  });
 });
 
 describe("renderBodiesToHtml", () => {
-  beforeEach(() => jest.spyOn(MarkdownRenderer, "render"));
-  afterEach(() => jest.restoreAllMocks());
-
   it("keys the rendered HTML by note path", async () => {
     const out = await renderBodiesToHtml(app, { "a.md": "one", "b.md": "two" });
 
@@ -138,7 +131,7 @@ describe("renderBodiesToHtml", () => {
   });
 
   it("leaves out a note that fails to render so its day can fall back to text", async () => {
-    const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+    jest.spyOn(console, "warn").mockImplementation(() => {});
     jest
       .spyOn(MarkdownRenderer, "render")
       .mockRejectedValueOnce(new Error("boom"));
@@ -146,15 +139,10 @@ describe("renderBodiesToHtml", () => {
     const out = await renderBodiesToHtml(app, { "a.md": "one", "b.md": "two" });
 
     expect(out).toEqual({ "b.md": "<p>two</p>" });
-    warn.mockRestore();
   });
 
   it("reuses cached HTML for an unchanged body and re-renders a changed one", async () => {
-    const store = new Map<string, { body: string; html: string }>();
-    const cache = {
-      get: (p: string) => store.get(p),
-      set: (p: string, e: { body: string; html: string }) => store.set(p, e),
-    };
+    const cache: RenderedBodyCache = new Map();
 
     await renderBodiesToHtml(app, { "a.md": "one" }, { cache });
     await renderBodiesToHtml(app, { "a.md": "one" }, { cache });

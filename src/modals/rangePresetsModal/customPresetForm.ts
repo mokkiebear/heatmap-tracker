@@ -7,7 +7,7 @@ import {
 import i18n from "src/localization/i18n";
 import { DateSpan, isPeriodsAgo } from "src/views/ExportView/exportRange";
 import {
-  UNITS_AGO,
+  RANGE_UNITS,
   describeRule,
   describeRuleLogic,
   describeSpan,
@@ -15,34 +15,11 @@ import {
 
 const t = i18n.t;
 
-const UNIT_NAMES: Record<RangeUnit, () => string> = {
-  day: () => t("report.presetsDialog.day"),
-  week: () => t("report.presetsDialog.week"),
-  month: () => t("report.presetsDialog.month"),
-  quarter: () => t("report.presetsDialog.quarter"),
-  year: () => t("report.presetsDialog.year"),
-};
-
 type BoundMode = "relative" | "fixed";
 
 const MODE_NAMES: Record<BoundMode, () => string> = {
   relative: () => t("report.presetsDialog.relative"),
   fixed: () => t("report.presetsDialog.fixedDate"),
-};
-
-const BOUND_TEXT = {
-  from: {
-    name: () => t("report.presetsDialog.from"),
-    type: () => t("report.presetsDialog.fromType"),
-    date: () => t("report.presetsDialog.fromDate"),
-    count: () => t("report.presetsDialog.fromCount"),
-  },
-  to: {
-    name: () => t("report.presetsDialog.to"),
-    type: () => t("report.presetsDialog.toType"),
-    date: () => t("report.presetsDialog.toDate"),
-    count: () => t("report.presetsDialog.toCount"),
-  },
 };
 
 interface BoundState {
@@ -66,28 +43,21 @@ function boundState(bound: RangeBound): BoundState {
 }
 
 function initialState(preset: RangePresetSetting | undefined): FormState {
-  const rule = preset?.rule;
-  if (rule?.kind === "periods") {
-    return {
-      unit: rule.unit,
-      from: boundState(rule.from),
-      to: boundState(rule.to),
-      label: preset?.label ?? "",
-    };
-  }
   // A new preset starts out as last week, a valid range to adjust from.
+  const rule = preset?.rule?.kind === "periods" ? preset.rule : undefined;
+  const { unit, from, to } = rule ?? { unit: "week", from: 1, to: 1 };
   return {
-    unit: "week",
-    from: boundState(1),
-    to: boundState(1),
-    label: "",
+    unit,
+    from: boundState(from),
+    to: boundState(to),
+    label: preset?.label ?? "",
   };
 }
 
 const toBound = (bound: BoundState): RangeBound =>
   bound.mode === "fixed" ? bound.date : bound.periodsAgo;
 
-export function stateToRule(state: FormState): RangeRule {
+function stateToRule(state: FormState): RangeRule {
   return {
     kind: "periods",
     unit: state.unit,
@@ -95,19 +65,6 @@ export function stateToRule(state: FormState): RangeRule {
     to: toBound(state.to),
   };
 }
-
-const EXAMPLE_LAST_WEEK: RangeRule = {
-  kind: "periods",
-  unit: "week",
-  from: 1,
-  to: 1,
-};
-const EXAMPLE_LAST_SEVEN_DAYS: RangeRule = {
-  kind: "periods",
-  unit: "day",
-  from: 6,
-  to: 0,
-};
 
 /** Why a rule doesn't resolve, in the form's own terms. */
 function invalidReason(state: FormState): string {
@@ -192,8 +149,11 @@ export function renderCustomPresetForm(
       cls: "dropdown",
       attr: { "aria-label": unitLabel },
     });
-    Object.entries(UNIT_NAMES).forEach(([value, name]) =>
-      unitSelect.createEl("option", { value, text: name() }),
+    RANGE_UNITS.forEach((value) =>
+      unitSelect.createEl("option", {
+        value,
+        text: t(`report.presetsDialog.${value}`),
+      }),
     );
     unitSelect.value = state.unit;
     unitSelect.addEventListener("change", () => {
@@ -202,13 +162,14 @@ export function renderCustomPresetForm(
     });
 
     const drawBound = (end: "from" | "to", bound: BoundState) => {
-      const text = BOUND_TEXT[end];
-      const cell = field(grid, text.name());
+      // from, fromType, fromDate, fromCount; to, toType, toDate, toCount.
+      const text = (suffix = "") => t(`report.presetsDialog.${end}${suffix}`);
+      const cell = field(grid, text());
       cell.addClass("heatmap-range-presets-modal__bound");
 
       const modeSelect = cell.createEl("select", {
         cls: "dropdown",
-        attr: { "aria-label": text.type() },
+        attr: { "aria-label": text("Type") },
       });
       Object.entries(MODE_NAMES).forEach(([value, name]) =>
         modeSelect.createEl("option", { value, text: name() }),
@@ -221,7 +182,7 @@ export function renderCustomPresetForm(
 
       if (bound.mode === "fixed") {
         const dateInput = cell.createEl("input", {
-          attr: { type: "date", "aria-label": text.date() },
+          attr: { type: "date", "aria-label": text("Date") },
           value: bound.date,
         });
         dateInput.addEventListener("input", () => {
@@ -231,25 +192,23 @@ export function renderCustomPresetForm(
         return;
       }
 
-      // "Weeks ago" reads as a label before the count, which needs no
-      // plural agreement ("1 weeks ago") in any language.
-      cell.createSpan({
-        cls: "heatmap-range-presets-modal__units-ago",
-        text: UNITS_AGO[state.unit](t),
-      });
       const countInput = cell.createEl("input", {
         cls: "heatmap-range-presets-modal__count",
         attr: {
           type: "number",
           min: "0",
           step: "1",
-          "aria-label": text.count(),
+          "aria-label": text("Count"),
         },
         value: String(bound.periodsAgo),
       });
       countInput.addEventListener("input", () => {
         bound.periodsAgo = Number(countInput.value);
         refresh();
+      });
+      cell.createSpan({
+        cls: "heatmap-range-presets-modal__units-ago",
+        text: t(`report.presetsDialog.${state.unit}sAgoSuffix`),
       });
     };
     drawBound("from", state.from);
@@ -272,8 +231,18 @@ export function renderCustomPresetForm(
       t("report.presetsDialog.hintMeaning"),
       createEl("br"),
       t("report.presetsDialog.hintExamples", {
-        lastWeek: describeRuleLogic(EXAMPLE_LAST_WEEK),
-        lastSevenDays: describeRuleLogic(EXAMPLE_LAST_SEVEN_DAYS),
+        lastWeek: describeRuleLogic({
+          kind: "periods",
+          unit: "week",
+          from: 1,
+          to: 1,
+        }),
+        lastSevenDays: describeRuleLogic({
+          kind: "periods",
+          unit: "day",
+          from: 6,
+          to: 0,
+        }),
       }),
     );
 
@@ -331,7 +300,6 @@ export function renderRenameBuiltinForm(
     onCancel: () => void;
   },
 ): () => void {
-  let label = options.preset.label ?? "";
   container.empty();
 
   container.createDiv({
@@ -360,18 +328,16 @@ export function renderRenameBuiltinForm(
       "aria-label": labelText,
       placeholder: options.defaultLabel,
     },
-    value: label,
+    value: options.preset.label ?? "",
   });
-  labelInput.addEventListener("input", () => {
-    label = labelInput.value;
-  });
+  const submit = () => options.onSubmit(labelInput.value);
 
   submitButtons(
     container,
     t("report.actions.saveChanges"),
-    () => options.onSubmit(label),
+    submit,
     options.onCancel,
   );
 
-  return () => options.onSubmit(label);
+  return submit;
 }

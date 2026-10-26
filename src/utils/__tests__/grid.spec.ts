@@ -1,6 +1,5 @@
 import { countWeeks, placeDays } from "../grid";
 import { getBoxes } from "../core";
-import { countWeeksInRange } from "../report/heatmapHtml";
 import {
   formatDateToISO8601,
   getFirstDayOfYear,
@@ -73,6 +72,29 @@ describe("placeDays", () => {
   });
 });
 
+describe("countWeeks", () => {
+  const weeks = (start: string, end: string, separate = false) =>
+    countWeeks(placeDays(d(start), d(end), 1, separate));
+
+  it.each([
+    ["2026-07-13", "2026-07-15", false, 1],
+    ["2026-07-13", "2026-07-20", false, 2],
+    // Jul 1 is mid-week: the split cuts that week in two, adding one slot.
+    ["2026-06-29", "2026-07-05", true, 2],
+  ])(
+    "%s to %s, separateMonths %s: %i week-slots",
+    (start, end, separate, n) => {
+      expect(weeks(start, end, separate)).toBe(n);
+    },
+  );
+
+  it("counts the gap slots a month split inserts", () => {
+    expect(weeks("2026-06-01", "2026-07-19", true)).toBeGreaterThan(
+      weeks("2026-06-01", "2026-07-19"),
+    );
+  });
+});
+
 describe("the live grid and the exported grid agree", () => {
   const colors: ColorsList = ["#1", "#2", "#3", "#4", "#5"];
 
@@ -119,14 +141,7 @@ describe("the live grid and the exported grid agree", () => {
       expect(dated).toBe(placements.length);
 
       // And both agree on how many week columns the year needs.
-      expect(
-        countWeeksInRange(
-          formatDateToISO8601(getFirstDayOfYear(year)) as string,
-          formatDateToISO8601(getLastDayOfYear(year)) as string,
-          weekStartDay,
-          separate,
-        ),
-      ).toBe(Math.ceil(boxes.length / 7));
+      expect(countWeeks(placements)).toBe(Math.ceil(boxes.length / 7));
     },
   );
 });

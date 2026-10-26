@@ -1,7 +1,12 @@
 import { App, Modal, Setting } from "obsidian";
 import i18n from "src/localization/i18n";
-import { LegendEntry, getLegendVisibility } from "src/utils/report/legend";
-import { numberInput, valueOverrideInput } from "./rowControls";
+import { LegendEntry } from "src/utils/report/legend";
+import {
+  addColorCell,
+  applyVisibilityClasses,
+  numberInput,
+  valueOverrideInput,
+} from "./rowControls";
 
 /**
  * Per-palette-color fixed value and day-count weight, which don't fit in the
@@ -47,17 +52,8 @@ export class GradientWeightsModal extends Modal {
 
     this.entries.forEach((entry) => {
       const row = container.createDiv({ cls: "heatmap-legend-modal__row" });
-      const visibility = getLegendVisibility(entry);
-      row.toggleClass("is-excluded", visibility === "summaryHidden");
-      row.toggleClass("is-hidden", visibility === "hidden");
-
-      const swatch = row.createDiv({ cls: "heatmap-legend-modal__swatch" });
-      swatch.style.backgroundColor = entry.color;
-
-      row.createSpan({
-        cls: "heatmap-legend-modal__color-text",
-        text: entry.color,
-      });
+      applyVisibilityClasses(row, [entry]);
+      addColorCell(row, entry.color, entry.color);
 
       valueOverrideInput(row, entry);
 

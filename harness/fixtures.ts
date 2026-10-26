@@ -285,7 +285,8 @@ export const fixtures: Fixture[] = [
   {
     id: "export-range-presets",
     title: "Export tab: range presets",
-    note: "The default preset buttons next to the date fields (Last quarter, QTD, Last year and YTD ship hidden), ending in the gear that opens the preset dialog.",
+    note: "At Obsidian's default readable line width (700px): the date fields and the default preset buttons (Last quarter, QTD, Last year and YTD ship hidden) fit on one line, ending in the gear that opens the preset dialog.",
+    maxWidth: 700,
     trackerData: {
       year: 2025,
       heatmapTitle: "Export",

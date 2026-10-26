@@ -20,7 +20,7 @@ async function ensureFolder(app: App, folderPath: string): Promise<void> {
 export async function writeExportFile(
   app: App,
   args: {
-    folder: string;
+    exportFolder: string;
     title: string;
     startDate: string;
     endDate: string;
@@ -29,9 +29,10 @@ export async function writeExportFile(
   },
 ): Promise<TFile> {
   const filename = `${sanitizeFilename(args.title)} ${args.startDate} – ${args.endDate}.${args.extension}`;
-  await ensureFolder(app, args.folder);
-  const path = nextAvailablePath(joinPath(args.folder, filename), (candidate) =>
-    Boolean(app.vault.getAbstractFileByPath(candidate)),
+  await ensureFolder(app, args.exportFolder);
+  const path = nextAvailablePath(
+    joinPath(args.exportFolder, filename),
+    (candidate) => Boolean(app.vault.getAbstractFileByPath(candidate)),
   );
   return app.vault.create(path, args.content);
 }

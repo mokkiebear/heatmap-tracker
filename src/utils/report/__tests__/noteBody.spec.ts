@@ -6,100 +6,69 @@ jest.mock("obsidian", () => ({
   TFile: jest.fn(),
 }));
 
+/** An app whose vault holds `raw` at every path but "missing.md". */
+function makeApp(raw: string, frontmatterEnd?: number) {
+  const vault = {
+    getAbstractFileByPath: jest.fn((path: string) =>
+      path === "missing.md" ? null : new TFile(),
+    ),
+    cachedRead: jest.fn().mockResolvedValue(raw),
+  };
+  const metadataCache = {
+    getFileCache: jest
+      .fn()
+      .mockReturnValue(
+        frontmatterEnd === undefined
+          ? null
+          : { frontmatterPosition: { end: { offset: frontmatterEnd } } },
+      ),
+  };
+  return { app: { vault, metadataCache } as unknown as App, vault };
+}
+
 describe("readNoteBody", () => {
-  let app: App;
-  let mockVault: any;
-  let mockMetadataCache: any;
-
-  beforeEach(() => {
-    mockVault = {
-      getAbstractFileByPath: jest.fn(),
-      cachedRead: jest.fn(),
-    };
-    mockMetadataCache = {
-      getFileCache: jest.fn(),
-    };
-    app = {
-      vault: mockVault,
-      metadataCache: mockMetadataCache,
-    } as unknown as App;
-  });
-
   it("returns undefined when the path does not resolve to a TFile", async () => {
-    mockVault.getAbstractFileByPath.mockReturnValue(null);
+    const { app, vault } = makeApp("");
 
-    const body = await readNoteBody(app, "missing.md");
-
-    expect(body).toBeUndefined();
-    expect(mockVault.cachedRead).not.toHaveBeenCalled();
+    expect(await readNoteBody(app, "missing.md")).toBeUndefined();
+    expect(vault.cachedRead).not.toHaveBeenCalled();
   });
 
-  it("strips frontmatter using metadataCache's frontmatterPosition when available", async () => {
-    const frontmatter = "---\ndate: 2026-07-15\nwork_hours: 8\n---\n";
-    const raw = `${frontmatter}- meeting\n- did stuff`;
-    const file = new TFile();
+  const frontmatter = "---\ndate: 2026-07-15\nwork_hours: 8\n---\n";
 
-    mockVault.getAbstractFileByPath.mockReturnValue(file);
-    mockVault.cachedRead.mockResolvedValue(raw);
-    mockMetadataCache.getFileCache.mockReturnValue({
-      frontmatterPosition: {
-        start: { line: 0, col: 0, offset: 0 },
-        end: { line: 3, col: 3, offset: frontmatter.length },
-      },
-    });
-
-    const body = await readNoteBody(app, "2026-07-15.md");
-
-    expect(body).toBe("- meeting\n- did stuff");
-  });
-
-  it("falls back to a regex strip when metadataCache has no frontmatterPosition", async () => {
-    const file = new TFile();
-    mockVault.getAbstractFileByPath.mockReturnValue(file);
-    mockVault.cachedRead.mockResolvedValue(
+  it.each([
+    [
+      "at metadataCache's frontmatterPosition",
+      `${frontmatter}- meeting\n- did stuff`,
+      frontmatter.length,
+      "- meeting\n- did stuff",
+    ],
+    [
+      "by pattern when metadataCache has no position",
       "---\ndate: 2026-07-15\n---\n- bullet one",
-    );
-    mockMetadataCache.getFileCache.mockReturnValue(null);
-
-    const body = await readNoteBody(app, "2026-07-15.md");
-
-    expect(body).toBe("- bullet one");
-  });
-
-  it("returns the trimmed raw text when there is no frontmatter at all", async () => {
-    const file = new TFile();
-    mockVault.getAbstractFileByPath.mockReturnValue(file);
-    mockVault.cachedRead.mockResolvedValue(
+      undefined,
+      "- bullet one",
+    ],
+    [
+      "not at all when there is none, only trimming",
       "  - just a bullet, no frontmatter  ",
+      undefined,
+      "- just a bullet, no frontmatter",
+    ],
+  ])("strips frontmatter %s", async (_, raw, frontmatterEnd, body) => {
+    expect(await readNoteBody(makeApp(raw, frontmatterEnd).app, "a.md")).toBe(
+      body,
     );
-    mockMetadataCache.getFileCache.mockReturnValue(null);
-
-    const body = await readNoteBody(app, "no-frontmatter.md");
-
-    expect(body).toBe("- just a bullet, no frontmatter");
   });
 });
 
 describe("readNoteBodies", () => {
   it("dedupes paths and only includes resolved bodies", async () => {
-    const file = new TFile();
-    const mockVault = {
-      getAbstractFileByPath: jest.fn((path: string) =>
-        path === "a.md" ? file : null,
-      ),
-      cachedRead: jest
-        .fn()
-        .mockResolvedValue("---\ndate: 2026-07-15\n---\nbody text"),
-    };
-    const mockMetadataCache = { getFileCache: jest.fn().mockReturnValue(null) };
-    const app = {
-      vault: mockVault,
-      metadataCache: mockMetadataCache,
-    } as unknown as App;
+    const { app, vault } = makeApp("---\ndate: 2026-07-15\n---\nbody text");
 
-    const bodies = await readNoteBodies(app, ["a.md", "a.md", "b.md"]);
+    const bodies = await readNoteBodies(app, ["a.md", "a.md", "missing.md"]);
 
-    expect(mockVault.getAbstractFileByPath).toHaveBeenCalledTimes(2);
+    expect(vault.getAbstractFileByPath).toHaveBeenCalledTimes(2);
     expect(bodies).toEqual({ "a.md": "body text" });
   });
 });

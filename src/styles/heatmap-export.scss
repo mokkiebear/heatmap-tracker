@@ -19,6 +19,15 @@
     }
   }
 
+  // Tighter, so the date fields and preset buttons share one line.
+  &__controls--range {
+    column-gap: 0.5em;
+  }
+
+  &__week-start {
+    min-width: 9em;
+  }
+
   &__presets-config {
     align-self: center;
   }
@@ -27,19 +36,41 @@
     display: flex;
     gap: 0.3em;
     flex-wrap: wrap;
+
+    button {
+      padding-inline: 10px;
+    }
   }
 
+  // Fills the rest of the save row: vault paths are long.
   &__folder-label {
     display: inline-flex;
+    flex: 1 1 16em;
+    max-width: 36em;
     align-items: center;
     gap: 0.5em;
+
+    input {
+      flex: 1;
+      min-width: 0;
+    }
   }
 
-  &__toggle {
-    display: flex;
-    flex-direction: row !important;
+  // More room between options than within one, so each label reads as
+  // belonging to its own checkbox rather than to the next one.
+  &__controls--toggles {
+    column-gap: 1.5em;
+  }
+
+  // Outranks the `&__controls label` column layout.
+  &__controls &__toggle {
+    flex-direction: row;
     align-items: center;
-    gap: 0.4em !important;
+    gap: 0.5em;
+
+    input {
+      margin: 0;
+    }
   }
 
   &__summary {
@@ -52,6 +83,8 @@
 
   &__actions {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 0.5em;
   }
 
@@ -61,6 +94,20 @@
     border: var(--border-width) solid var(--background-modifier-border);
     border-radius: var(--radius-s);
     background: var(--background-primary);
+  }
+}
+
+// Sized to the date itself: most of a date input's dead space is the picker
+// icon's default leading margin, tightened here. Content-box so the padding
+// can't squeeze the date.
+.heatmap-export input.heatmap-export__date {
+  box-sizing: content-box;
+  width: 7.5em;
+  padding-inline: 6px 4px;
+
+  &::-webkit-calendar-picker-indicator {
+    margin-inline-start: 2px;
+    padding: 0;
   }
 }
 
@@ -94,9 +141,14 @@
 }
 
 .heatmap-legend-modal {
-  &__hint {
+  &__hint,
+  &__empty,
+  &__color-text {
     color: var(--text-muted);
     font-size: var(--font-ui-small);
+  }
+
+  &__hint {
     margin-bottom: 0.75em;
 
     &--italic {
@@ -123,11 +175,8 @@
     align-items: center;
     gap: 0.5em;
     border-radius: var(--radius-s);
-    // Reserved (transparent) so lighting up border-top-color below doesn't
-    // shift layout - a highlighted box around the whole row left it
-    // ambiguous whether the drop would land above or below it; a line
-    // is unambiguous, since a drop always lands immediately before
-    // whichever row it's shown on.
+    // The drop indicator: a line above the row a drop lands before, reserved
+    // so lighting it up doesn't shift the layout.
     border-top: 3px solid transparent;
     transition:
       opacity 0.15s ease,
@@ -152,35 +201,31 @@
     }
   }
 
-  &__include-toggle {
+  &__include-toggle,
+  &__gear-button,
+  &__mode-select {
     flex-shrink: 0;
   }
 
   &__handle {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    color: var(--text-faint);
-    cursor: grab;
+    @include drag-handle;
+  }
 
-    &:active {
-      cursor: grabbing;
-    }
+  &__swatch,
+  &__gradient-strip-swatch {
+    height: 20px;
+    border-radius: var(--radius-s);
+    border: var(--border-width) solid var(--background-modifier-border);
   }
 
   &__swatch {
     width: 20px;
-    height: 20px;
-    border-radius: var(--radius-s);
     flex-shrink: 0;
-    border: var(--border-width) solid var(--background-modifier-border);
   }
 
   &__color-text {
     width: 100px;
     flex-shrink: 0;
-    color: var(--text-muted);
-    font-size: var(--font-ui-small);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -194,32 +239,16 @@
 
   &__gradient-strip-swatch {
     width: 14px;
-    height: 20px;
-    border-radius: var(--radius-s);
-    border: var(--border-width) solid var(--background-modifier-border);
-  }
-
-  &__gear-button {
-    flex-shrink: 0;
   }
 
   &__label-input {
     flex: 1;
   }
 
-  &__value-input {
-    width: 56px;
-    flex-shrink: 0;
-  }
-
+  &__value-input,
   &__weight-input {
     width: 56px;
     flex-shrink: 0;
-  }
-
-  &__empty {
-    color: var(--text-muted);
-    font-size: var(--font-ui-small);
   }
 
   &__button-row {
@@ -228,10 +257,6 @@
     gap: 0.5em;
     margin-bottom: 0.75em;
     flex-wrap: wrap;
-  }
-
-  &__mode-select {
-    flex-shrink: 0;
   }
 }
 
@@ -253,13 +278,17 @@
     overflow-y: auto;
   }
 
-  &__intro {
-    margin: 0 0 var(--size-4-3);
+  &__intro,
+  &__field-label,
+  &__units-ago {
     color: var(--text-muted);
     font-size: var(--font-ui-small);
   }
 
-  // The preset list: one bordered card, rows highlighted on hover.
+  &__intro {
+    margin: 0 0 var(--size-4-3);
+  }
+
   &__list {
     display: flex;
     flex-direction: column;
@@ -342,7 +371,6 @@
     font-variant-numeric: tabular-nums;
   }
 
-  // The add/edit form: a filled card under the list.
   &__form {
     margin-top: var(--size-4-4);
     padding: var(--size-4-3) var(--size-4-4) var(--size-4-4);
@@ -362,11 +390,6 @@
     gap: var(--size-4-2) var(--size-4-4);
   }
 
-  &__field-label {
-    color: var(--text-muted);
-    font-size: var(--font-ui-small);
-  }
-
   &__bound {
     display: flex;
     flex-wrap: wrap;
@@ -376,11 +399,6 @@
 
   &__count {
     width: 4.5em;
-  }
-
-  &__units-ago {
-    color: var(--text-muted);
-    font-size: var(--font-ui-small);
   }
 
   // The live result, as a chip so it reads as output rather than a field.

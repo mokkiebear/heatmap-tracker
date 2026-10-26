@@ -1,10 +1,10 @@
 import { setIcon } from "obsidian";
 
 /**
- * Drag-to-reorder for modal rows. Each row carries a payload (a legend row's
- * entries, a preset's id) handed to `onDrop` with the payload of the row it
- * landed before. One controller per rendered list, since the payload being
- * dragged is shared across its rows.
+ * Drag-to-reorder for modal rows. Each row carries a payload (the items it
+ * stands for) handed to `onDrop` with the payload of the row it landed
+ * before. One controller per rendered list, since the payload being dragged
+ * is shared across its rows.
  */
 export class RowDragController<T> {
   private dragPayload: T | null = null;
@@ -12,13 +12,12 @@ export class RowDragController<T> {
   constructor(private onDrop: (dragged: T, target: T) => void) {}
 
   /**
-   * Wires `row` up as both a drag source and a drop target for `payload`.
-   * Returns an `arm()` callback to wire to the row's own grip handle's
-   * `mousedown` — a drag may only start if the initiating mousedown was on
-   * that handle, so clicking/selecting text in the label or number inputs
-   * elsewhere in the row can't accidentally start reordering.
+   * Wires `row` up as both a drag source and a drop target for `payload`, and
+   * adds a grip with class `handleCls`. A drag only starts from the grip, so
+   * selecting text or using an input elsewhere in the row can't start one.
+   * Without `handleCls` the row is only a drop target.
    */
-  wire(row: HTMLElement, payload: T): () => void {
+  wire(row: HTMLElement, payload: T, handleCls?: string): void {
     row.setAttribute("draggable", "true");
     let dragArmed = false;
 
@@ -63,15 +62,33 @@ export class RowDragController<T> {
       this.onDrop(dragged, payload);
     });
 
-    return () => {
-      dragArmed = true;
-    };
+    if (handleCls) {
+      const handle = row.createDiv({ cls: handleCls });
+      setIcon(handle, "grip-vertical");
+      handle.addEventListener("mousedown", () => {
+        dragArmed = true;
+      });
+    }
   }
 }
 
-/** The grip that arms a row's drag; only a drag started here reorders. */
-export function addDragHandle(row: HTMLElement, arm: () => void, cls: string) {
-  const handle = row.createDiv({ cls });
-  setIcon(handle, "grip-vertical");
-  handle.addEventListener("mousedown", arm);
+/**
+ * Moves `dragged` (one item, or a block such as the gradient row's colors) to
+ * just before the first item of `target` that isn't itself being dragged, or
+ * to the end when there is none. Unchanged when dropped onto itself. Works by
+ * identity, so a whole block moves as easily as one item.
+ */
+export function reorder<T>(items: T[], dragged: T[], target: T[]): T[] {
+  const draggedSet = new Set(dragged);
+  if (target.some((item) => draggedSet.has(item))) return items;
+
+  const rest = items.filter((item) => !draggedSet.has(item));
+  const anchor = target.find((item) => rest.includes(item));
+  const insertIndex = anchor === undefined ? rest.length : rest.indexOf(anchor);
+
+  return [
+    ...rest.slice(0, insertIndex),
+    ...dragged,
+    ...rest.slice(insertIndex),
+  ];
 }
