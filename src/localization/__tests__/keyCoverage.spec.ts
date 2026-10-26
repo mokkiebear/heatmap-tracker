@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 import i18n from "src/localization/i18n";
 import { TrackerDataSchema } from "src/schemas/trackerData.schema";
+import { BUILTIN_PRESETS } from "src/views/ExportView/rangePresets";
 
 const SKIP_DIRS = new Set(["__tests__", "localization", "test-utils"]);
 
@@ -70,13 +71,10 @@ describe("keys built from a template literal", () => {
     },
   );
 
-  it.each([
-    "presetAllLoggedData",
-    "presetLastYear",
-    "presetYearToDate",
-    "presetLastMonth",
-    "presetMonthToDate",
-  ])("labels the %s export preset", (name) => {
-    expect(i18n.t(`report.${name}`)).not.toBe(`report.${name}`);
-  });
+  it.each(BUILTIN_PRESETS.map((preset) => preset.labelKey))(
+    "labels the %s export preset",
+    (name) => {
+      expect(i18n.t(`report.${name}`)).not.toBe(`report.${name}`);
+    },
+  );
 });

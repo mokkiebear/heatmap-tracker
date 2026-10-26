@@ -51,7 +51,7 @@ export {
 export class LegendModal extends Modal {
   private entries: LegendEntry[];
   private listEl: HTMLElement | null = null;
-  private drag = new RowDragController((dragged, target) => {
+  private drag = new RowDragController<LegendEntry[]>((dragged, target) => {
     this.entries = reorderLegendEntries(this.entries, dragged, target);
     this.renderRows();
   });

@@ -21,7 +21,7 @@ export interface LegendRowContext {
   app: App;
   entries: LegendEntry[];
   colorsList: string[];
-  drag: RowDragController;
+  drag: RowDragController<LegendEntry[]>;
   /** Re-renders the whole list after a visibility change. */
   rerender: () => void;
   getGradientLabel: () => string;

@@ -282,4 +282,15 @@ export const fixtures: Fixture[] = [
       entries: [],
     },
   },
+  {
+    id: "export-range-presets",
+    title: "Export tab: range presets",
+    note: "The default preset buttons next to the date fields (Last quarter, QTD, Last year and YTD ship hidden), ending in the gear that opens the preset dialog.",
+    trackerData: {
+      year: 2025,
+      heatmapTitle: "Export",
+      ui: { defaultView: "export" },
+      entries: entries(2025),
+    },
+  },
 ];

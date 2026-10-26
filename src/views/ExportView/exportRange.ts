@@ -1,11 +1,15 @@
-import { Entry } from "src/types";
+import { Entry, RangeBound, RangeRule, RangeUnit } from "src/types";
 import {
+  addDays,
   formatDateToISO8601,
   getFirstDayOfYear,
   getLastDayOfYear,
-  getToday,
+  parseUTCDate,
 } from "src/utils/date";
-import { computeDataRange } from "src/utils/report/reportModel";
+import {
+  computeDataRange,
+  getWeekStartDate,
+} from "src/utils/report/reportModel";
 
 export interface DateSpan {
   start: string;
@@ -13,7 +17,7 @@ export interface DateSpan {
 }
 
 /** A `DateSpan` from two dates, blank when either fails to format. */
-export function span(start: Date, end: Date): DateSpan {
+function span(start: Date, end: Date): DateSpan {
   return {
     start: formatDateToISO8601(start) ?? "",
     end: formatDateToISO8601(end) ?? "",
@@ -40,59 +44,94 @@ export function defaultRange(
   return span(getFirstDayOfYear(currentYear), getLastDayOfYear(currentYear));
 }
 
-export interface RangePreset {
-  key: string;
-  span: () => DateSpan | null;
+function startOfUnit(date: Date, unit: RangeUnit, weekStartDay: number): Date {
+  switch (unit) {
+    case "day":
+      return date;
+    case "week":
+      return getWeekStartDate(date, weekStartDay);
+    case "month":
+      return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
+    case "quarter": {
+      const month = date.getUTCMonth();
+      return new Date(Date.UTC(date.getUTCFullYear(), month - (month % 3), 1));
+    }
+    case "year":
+      return getFirstDayOfYear(date.getUTCFullYear());
+  }
+}
+
+const MONTHS_PER_UNIT = { month: 1, quarter: 3, year: 12 } as const;
+
+/** Moves a period's first day (from `startOfUnit`) by `count` periods. */
+function shiftByUnits(periodStart: Date, unit: RangeUnit, count: number): Date {
+  if (unit === "day") return addDays(periodStart, count);
+  if (unit === "week") return addDays(periodStart, 7 * count);
+
+  const month = periodStart.getUTCMonth() + MONTHS_PER_UNIT[unit] * count;
+  return new Date(Date.UTC(periodStart.getUTCFullYear(), month, 1));
+}
+
+export const isPeriodsAgo = (bound: number) =>
+  Number.isInteger(bound) && bound >= 0;
+
+function parseFixedDate(value: string): Date | null {
+  const date = parseUTCDate(value);
+  return isNaN(date.getTime()) ? null : date;
+}
+
+interface BoundContext {
+  unit: RangeUnit;
+  today: Date;
+  weekStartDay: number;
+}
+
+/** A range's first day: the start of the period `bound` ago, or the fixed date. */
+function boundStart(
+  bound: RangeBound,
+  { unit, today, weekStartDay }: BoundContext,
+): Date | null {
+  if (typeof bound === "string") return parseFixedDate(bound);
+  if (!isPeriodsAgo(bound)) return null;
+  return shiftByUnits(startOfUnit(today, unit, weekStartDay), unit, -bound);
+}
+
+/** A range's last day: today for the current period, the end of the period `bound` ago, or the fixed date. */
+function boundEnd(
+  bound: RangeBound,
+  { unit, today, weekStartDay }: BoundContext,
+): Date | null {
+  if (typeof bound === "string") return parseFixedDate(bound);
+  if (!isPeriodsAgo(bound)) return null;
+  if (bound === 0) return today;
+  const nextStart = shiftByUnits(
+    startOfUnit(today, unit, weekStartDay),
+    unit,
+    1 - bound,
+  );
+  return addDays(nextStart, -1);
 }
 
 /**
- * Date-relative presets anchor to the real current date, not the heatmap's
- * (possibly year-navigated) `currentYear` — "last year"/"last month" only
- * make sense relative to today.
+ * The range a preset rule covers as of `today`, or null when it isn't a
+ * valid range (a bad date, or a start after the end). Relative ends anchor to
+ * the real current date, not the heatmap's (possibly year-navigated) year.
  */
-export function buildPresets(
-  entriesByDate: Record<string, Entry>,
-): RangePreset[] {
-  return [
-    {
-      key: "presetAllLoggedData",
-      span: () => computeDataRange(entriesByDate),
-    },
-    {
-      key: "presetLastYear",
-      span: () => {
-        const lastYear = getToday().getUTCFullYear() - 1;
-        return span(getFirstDayOfYear(lastYear), getLastDayOfYear(lastYear));
-      },
-    },
-    {
-      key: "presetYearToDate",
-      span: () => {
-        const today = getToday();
-        return span(getFirstDayOfYear(today.getUTCFullYear()), today);
-      },
-    },
-    {
-      key: "presetLastMonth",
-      span: () => {
-        const today = getToday();
-        return span(
-          new Date(
-            Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 1, 1),
-          ),
-          new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 0)),
-        );
-      },
-    },
-    {
-      key: "presetMonthToDate",
-      span: () => {
-        const today = getToday();
-        return span(
-          new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1)),
-          today,
-        );
-      },
-    },
-  ];
+export function resolveRangeRule(
+  rule: RangeRule,
+  context: {
+    today: Date;
+    weekStartDay: number;
+    entriesByDate: Record<string, Entry>;
+  },
+): DateSpan | null {
+  if (rule.kind === "logged") {
+    return computeDataRange(context.entriesByDate);
+  }
+
+  const bounds = { ...context, unit: rule.unit };
+  const start = boundStart(rule.from, bounds);
+  const end = boundEnd(rule.to, bounds);
+  if (!start || !end || start > end) return null;
+  return span(start, end);
 }

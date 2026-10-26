@@ -54,6 +54,36 @@ export interface LegendEntry {
   countWeight?: number;
 }
 
+export type RangeUnit = "day" | "week" | "month" | "quarter" | "year";
+
+/**
+ * One end of a preset's range. A number counts whole periods back from the
+ * current one — 0 is the current period, 1 the previous complete one — and a
+ * string is a fixed date (YYYY-MM-DD).
+ */
+export type RangeBound = number | string;
+
+/** How a date-range preset turns today into a range (see `resolveRangeRule`). */
+export type RangeRule =
+  | { kind: "logged" }
+  /**
+   * From the start of the `from` period to the end of the `to` period, both
+   * included, in calendar `unit`s (days are single days). A relative `to` of
+   * 0 ends today, not at the end of the current period. Last month is
+   * `{ unit: "month", from: 1, to: 1 }`; month to date is `from: 0, to: 0`.
+   */
+  | { kind: "periods"; unit: RangeUnit; from: RangeBound; to: RangeBound };
+
+/** One Export-tab range preset, in display order. A built-in's rule lives in code, not here. */
+export interface RangePresetSetting {
+  id: string;
+  visible: boolean;
+  /** The button's name. Blank falls back to a built-in's translated name, or a custom preset's rule description. */
+  label?: string;
+  /** Custom presets only. */
+  rule?: RangeRule;
+}
+
 /** Remembered Export-tab preferences, persisted across sessions. */
 export interface ExportDefaults {
   orientation?: "columns" | "rows";
@@ -84,6 +114,7 @@ export interface ExportDefaults {
   hideTotalValue?: boolean;
   /** Omits every value — the total line and each day's own value in the write-up. */
   hideAllValues?: boolean;
+  rangePresets?: RangePresetSetting[];
 }
 
 export interface TrackerSettings {

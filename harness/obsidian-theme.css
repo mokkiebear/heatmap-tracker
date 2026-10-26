@@ -179,6 +179,25 @@ button:hover {
   color: var(--text-normal);
 }
 
+/*
+ * Obsidian styles form fields everywhere, not only in settings rows, so a
+ * plugin's own panel or dialog gets the same fields. Without this the harness
+ * drew those as bare browser controls and their layout couldn't be judged.
+ */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
+  font: inherit;
+  font-size: var(--font-ui-small);
+  height: var(--input-height);
+  padding: 0 var(--size-4-2);
+  border-radius: var(--radius-s);
+  border: var(--border-width) solid var(--background-modifier-border);
+  background: var(--background-primary);
+  color: var(--text-normal);
+}
+
 .setting-item-control button,
 button.mod-cta {
   background: var(--interactive-normal, var(--background-secondary));
@@ -190,6 +209,16 @@ button.mod-cta {
   color: var(--text-on-accent);
   border-color: transparent;
   font-weight: var(--font-semibold);
+}
+
+/* Obsidian's destructive button: solid red, as on its own delete confirmations. */
+button.mod-warning {
+  background: rgb(var(--background-modifier-error-rgb));
+  color: var(--text-on-accent);
+}
+
+button.mod-warning:hover {
+  background: rgba(var(--background-modifier-error-rgb), 0.85);
 }
 
 button:disabled {

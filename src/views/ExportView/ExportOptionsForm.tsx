@@ -1,7 +1,15 @@
 import { useTranslation } from "src/localization/useTranslation";
 import { HeatmapOrientation } from "src/utils/report/heatmapHtml";
+import { SettingsIcon } from "src/components/icons/SettingsIcon";
 import { ExportOptions } from "./useExportOptions";
-import { RangePreset } from "./exportRange";
+import { DateSpan } from "./exportRange";
+
+/** A visible preset button, already labelled. */
+export interface PresetButton {
+  id: string;
+  label: string;
+  span: () => DateSpan | null;
+}
 
 // Only these two conventions are common enough to offer; anything else is
 // normalized to Monday (see `initialOptions`).
@@ -31,7 +39,8 @@ interface Props {
     key: K,
     value: ExportOptions[K],
   ) => void;
-  presets: RangePreset[];
+  presets: PresetButton[];
+  onConfigurePresets: () => void;
   onEditLegend: () => void;
 }
 
@@ -39,11 +48,12 @@ function ExportOptionsForm({
   options,
   setOption,
   presets,
+  onConfigurePresets,
   onEditLegend,
 }: Props) {
   const { t } = useTranslation();
 
-  function applyPreset(preset: RangePreset) {
+  function applyPreset(preset: PresetButton) {
     const range = preset.span();
     if (!range) return;
     setOption("startDate", range.start);
@@ -73,10 +83,17 @@ function ExportOptionsForm({
         </label>
         <div className="heatmap-export__presets">
           {presets.map((preset) => (
-            <button key={preset.key} onClick={() => applyPreset(preset)}>
-              {t(`report.${preset.key}`)}
+            <button key={preset.id} onClick={() => applyPreset(preset)}>
+              {preset.label}
             </button>
           ))}
+          <button
+            className="clickable-icon heatmap-export__presets-config"
+            aria-label={t("report.configurePresets")}
+            onClick={onConfigurePresets}
+          >
+            <SettingsIcon />
+          </button>
         </div>
       </div>
 

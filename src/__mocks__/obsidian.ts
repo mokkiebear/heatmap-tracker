@@ -168,6 +168,10 @@ export class ButtonComponent {
     this.buttonEl.classList.add("mod-cta");
     return this;
   }
+  setTooltip(tooltip: string) {
+    this.buttonEl.setAttribute("aria-label", tooltip);
+    return this;
+  }
   setDisabled(disabled: boolean) {
     this.buttonEl.disabled = disabled;
     return this;
@@ -363,6 +367,12 @@ const ICON_PATHS: Record<string, string> = {
   "alert-triangle":
     "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3M12 9v4M12 17h.01",
   info: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20M12 16v-4M12 8h.01",
+  "grip-vertical": "M9 5h.01M9 12h.01M9 19h.01M15 5h.01M15 12h.01M15 19h.01",
+  eye: "M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0M9 12a3 3 0 1 0 6 0 3 3 0 1 0-6 0",
+  "eye-off":
+    "M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49M14.084 14.158a3 3 0 0 1-4.242-4.242M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143M2 2l20 20",
+  "trash-2":
+    "M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2M10 11v6M14 11v6",
 };
 
 export function setIcon(element: HTMLElement, iconId: string): void {

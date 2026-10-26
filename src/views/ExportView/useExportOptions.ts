@@ -1,9 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Entry, ExportDefaults, TrackerData, TrackerSettings } from "src/types";
+import {
+  Entry,
+  ExportDefaults,
+  RangePresetSetting,
+  TrackerData,
+  TrackerSettings,
+} from "src/types";
 import { HeatmapOrientation } from "src/utils/report/heatmapHtml";
 import { LegendEntry } from "src/utils/report/legend";
 import { LegendDisplayMode } from "src/modals/LegendModal";
 import { defaultRange } from "./exportRange";
+import { mergePresets } from "./rangePresets";
 
 const SETTINGS_SAVE_DEBOUNCE_MS = 500;
 
@@ -25,6 +32,7 @@ export interface ExportOptions {
   legendMode: LegendDisplayMode;
   gradientLabel: string;
   exportFolder: string;
+  rangePresets: RangePresetSetting[];
 }
 
 /**
@@ -64,6 +72,7 @@ function initialOptions(
     legendMode: saved?.legendMode ?? "separate",
     gradientLabel: saved?.gradientLabel ?? "",
     exportFolder: saved?.exportFolder ?? "",
+    rangePresets: mergePresets(saved?.rangePresets),
   };
 }
 

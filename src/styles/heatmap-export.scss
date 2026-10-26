@@ -19,6 +19,10 @@
     }
   }
 
+  &__presets-config {
+    align-self: center;
+  }
+
   &__presets {
     display: flex;
     gap: 0.3em;
@@ -57,6 +61,19 @@
     border: var(--border-width) solid var(--background-modifier-border);
     border-radius: var(--radius-s);
     background: var(--background-primary);
+  }
+}
+
+/// The grip a list row is dragged by.
+@mixin drag-handle {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  color: var(--text-faint);
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
   }
 }
 
@@ -215,5 +232,213 @@
 
   &__mode-select {
     flex-shrink: 0;
+  }
+}
+
+.heatmap-range-presets-modal {
+  // Same cap as the create modal. Inside it only the body scrolls, so Reset
+  // and Done stay in view however long the preset list grows.
+  max-height: 85vh;
+
+  .modal-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  &__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  &__intro {
+    margin: 0 0 var(--size-4-3);
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+  }
+
+  // The preset list: one bordered card, rows highlighted on hover.
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: var(--size-4-1);
+    border: var(--border-width) solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    padding: 3px var(--size-4-2);
+    border-radius: var(--radius-s);
+    line-height: 1.35;
+    // Same drop indicator as the legend editor, a line above the row a drop
+    // lands before — drawn as an inset shadow so it takes no height.
+    box-shadow: inset 0 3px 0 transparent;
+    transition:
+      background-color 0.1s ease,
+      opacity 0.15s ease,
+      box-shadow 0.15s ease;
+
+    &:hover,
+    &.is-editing {
+      background-color: var(--background-modifier-hover);
+    }
+
+    &.is-dragging {
+      opacity: 0.4;
+    }
+
+    &.is-drag-over {
+      box-shadow: inset 0 3px 0 var(--interactive-accent);
+    }
+
+    &.is-hidden .heatmap-range-presets-modal__text {
+      opacity: 0.45;
+    }
+  }
+
+  &__drop-end {
+    height: var(--size-4-1);
+    border-top: 3px solid transparent;
+
+    &.is-drag-over {
+      border-top-color: var(--interactive-accent);
+    }
+  }
+
+  &__handle {
+    @include drag-handle;
+  }
+
+  &__icon-button {
+    flex-shrink: 0;
+
+    &.is-destructive:hover {
+      color: var(--text-error);
+    }
+  }
+
+  &__text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__label {
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-medium, 500);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__detail {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    font-variant-numeric: tabular-nums;
+  }
+
+  // The add/edit form: a filled card under the list.
+  &__form {
+    margin-top: var(--size-4-4);
+    padding: var(--size-4-3) var(--size-4-4) var(--size-4-4);
+    border-radius: var(--radius-m);
+    background-color: var(--background-secondary);
+  }
+
+  &__form-heading {
+    margin-bottom: var(--size-4-3);
+    font-weight: var(--font-semibold);
+  }
+
+  &__form-grid {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: center;
+    gap: var(--size-4-2) var(--size-4-4);
+  }
+
+  &__field-label {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+  }
+
+  &__bound {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-2);
+  }
+
+  &__count {
+    width: 4.5em;
+  }
+
+  &__units-ago {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+  }
+
+  // The live result, as a chip so it reads as output rather than a field.
+  &__preview {
+    justify-self: start;
+    padding: 2px var(--size-4-2);
+    border-radius: var(--radius-s);
+    background-color: var(--background-primary);
+    font-size: var(--font-ui-small);
+    font-variant-numeric: tabular-nums;
+
+    // An error is plain text, not a result.
+    &.is-invalid {
+      padding-inline: 0;
+      background-color: transparent;
+      color: var(--text-error);
+    }
+  }
+
+  &__rule {
+    font-size: var(--font-ui-small);
+  }
+
+  &__label-input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  &__hint {
+    margin-top: var(--size-4-3);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    line-height: 1.5;
+  }
+
+  &__form-buttons,
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--size-4-2);
+  }
+
+  &__form-buttons {
+    margin-top: var(--size-4-3);
+  }
+
+  // Pinned under the scrolling body. Reset is secondary and sits apart on
+  // the left; Done saves and closes on the right.
+  &__footer {
+    flex: none;
+    margin-top: var(--size-4-3);
+    // The bottom padding keeps the buttons' shadows clear of the content's
+    // `overflow: hidden`.
+    padding: var(--size-4-3) 0 2px;
+    border-top: var(--border-width) solid var(--background-modifier-border);
+
+    > :first-child {
+      margin-inline-end: auto;
+    }
   }
 }

@@ -24,6 +24,13 @@ import {
 
 import { fixtures, harnessSettings } from "./fixtures";
 import { HeatmapModal } from "../src/modals/HeatmapModal";
+import { RangePresetsModal } from "../src/modals/RangePresetsModal";
+import { parseUTCDate } from "../src/utils/date";
+import { resolveRangeRule } from "../src/views/ExportView/exportRange";
+import {
+  defaultPresets,
+  presetLabel,
+} from "../src/views/ExportView/rangePresets";
 
 const app = new App();
 const root = document.getElementById("fixtures");
@@ -131,6 +138,45 @@ const messages: {
 
 for (const message of messages) {
   message.render(addSection(message.title, message.note, message.id));
+}
+
+/**
+ * The export tab's range preset dialog, mounted inline so it is screenshotted
+ * like a fixture. "Today" is pinned so the date ranges it shows never drift.
+ */
+{
+  const modal = new RangePresetsModal(
+    app,
+    [
+      ...defaultPresets(),
+      {
+        id: "custom-semester",
+        visible: true,
+        label: "Semester",
+        rule: { kind: "periods", unit: "day", from: "2026-09-01", to: 0 },
+      },
+    ],
+    (rule) =>
+      resolveRangeRule(rule, {
+        today: parseUTCDate("2026-10-07"),
+        weekStartDay: 1,
+        entriesByDate: {},
+      }),
+    (preset) => presetLabel(preset),
+    () => {},
+  );
+  modal.open();
+  addSection(
+    "Export: range preset dialog",
+    "Opened from the gear next to the presets, with today pinned to Wed 2026-10-07. Built-ins run week, month, quarter, year: Logged, Last week, WTD, Last month and MTD show by default; Last quarter, QTD, Last year and YTD are hidden. Under each row, its rule in From → To terms, then the dates it covers. Every row has a pencil (rename for built-ins, edit for custom presets); only Semester, a custom preset, can be deleted.",
+    "range-presets-dialog",
+  ).append(modal.modalEl);
+  // Inline, the dialog needs neither the full-screen backdrop `open()` added
+  // (it dimmed every fixture) nor the 85vh cap that clipped its form.
+  modal.containerEl.remove();
+  modal.modalEl.style.maxHeight = "none";
+  // Obsidian's default --dialog-width, so the layout is judged at real size.
+  modal.modalEl.style.width = "560px";
 }
 
 const themeButton = document.getElementById("toggle-theme");

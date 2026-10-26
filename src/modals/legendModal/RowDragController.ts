@@ -1,18 +1,15 @@
-import { LegendEntry } from "src/utils/report/legend";
+import { setIcon } from "obsidian";
 
 /**
- * Drag-to-reorder for legend rows. A row's "identity" for reordering is a
- * payload of entries — one for a normal row, every palette-color entry at
- * once for the gradient group row (see `reorderLegendEntries`). The payload
- * currently being dragged is shared across rows, hence one controller per
- * rendered list.
+ * Drag-to-reorder for modal rows. Each row carries a payload (a legend row's
+ * entries, a preset's id) handed to `onDrop` with the payload of the row it
+ * landed before. One controller per rendered list, since the payload being
+ * dragged is shared across its rows.
  */
-export class RowDragController {
-  private dragPayload: LegendEntry[] | null = null;
+export class RowDragController<T> {
+  private dragPayload: T | null = null;
 
-  constructor(
-    private onDrop: (dragged: LegendEntry[], target: LegendEntry[]) => void,
-  ) {}
+  constructor(private onDrop: (dragged: T, target: T) => void) {}
 
   /**
    * Wires `row` up as both a drag source and a drop target for `payload`.
@@ -21,7 +18,7 @@ export class RowDragController {
    * that handle, so clicking/selecting text in the label or number inputs
    * elsewhere in the row can't accidentally start reordering.
    */
-  wire(row: HTMLElement, payload: LegendEntry[]): () => void {
+  wire(row: HTMLElement, payload: T): () => void {
     row.setAttribute("draggable", "true");
     let dragArmed = false;
 
@@ -70,4 +67,11 @@ export class RowDragController {
       dragArmed = true;
     };
   }
+}
+
+/** The grip that arms a row's drag; only a drag started here reorders. */
+export function addDragHandle(row: HTMLElement, arm: () => void, cls: string) {
+  const handle = row.createDiv({ cls });
+  setIcon(handle, "grip-vertical");
+  handle.addEventListener("mousedown", arm);
 }

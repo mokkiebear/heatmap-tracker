@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "src/localization/useTranslation";
 import { useHeatmapContext } from "src/context/heatmap/heatmap.context";
 import { useAppContext } from "src/context/app/app.context";
@@ -9,8 +9,12 @@ import { formatGeneratedAt } from "src/utils/report/dateLabels";
 import { buildReportMarkdown } from "src/utils/report/reportMarkdown";
 import { notify } from "src/utils/notify";
 import { LegendModal } from "src/modals/LegendModal";
-import ExportOptionsForm from "./ExportOptionsForm";
-import { buildPresets } from "./exportRange";
+import { RangePresetsModal } from "src/modals/RangePresetsModal";
+import { RangePresetSetting, RangeRule } from "src/types";
+import { getToday } from "src/utils/date";
+import ExportOptionsForm, { PresetButton } from "./ExportOptionsForm";
+import { resolveRangeRule } from "./exportRange";
+import { presetLabel, presetRule } from "./rangePresets";
 import { buildRefreshBaseline } from "./exportLegendDefaults";
 import { useExportOptions } from "./useExportOptions";
 import { useReportPreview } from "./useReportPreview";
@@ -64,7 +68,45 @@ function ExportView() {
       generatedAt: formatGeneratedAt(new Date()),
     });
 
-  const presets = useMemo(() => buildPresets(entriesByDate), [entriesByDate]);
+  const resolveRule = useCallback(
+    (rule: RangeRule) =>
+      resolveRangeRule(rule, {
+        today: getToday(),
+        weekStartDay: options.weekStartDay,
+        entriesByDate,
+      }),
+    [options.weekStartDay, entriesByDate],
+  );
+
+  const labelFor = useCallback(
+    (preset: RangePresetSetting) => presetLabel(preset, t),
+    [t],
+  );
+
+  const presets = useMemo<PresetButton[]>(
+    () =>
+      options.rangePresets
+        .filter((preset) => preset.visible)
+        .map((preset) => ({
+          id: preset.id,
+          label: labelFor(preset),
+          span: () => {
+            const rule = presetRule(preset);
+            return rule ? resolveRule(rule) : null;
+          },
+        })),
+    [options.rangePresets, labelFor, resolveRule],
+  );
+
+  function handleConfigurePresets() {
+    new RangePresetsModal(
+      app,
+      options.rangePresets,
+      resolveRule,
+      labelFor,
+      (rangePresets) => setOption("rangePresets", rangePresets),
+    ).open();
+  }
 
   async function handleSaveMarkdown() {
     if (!model) return;
@@ -128,6 +170,7 @@ function ExportView() {
         options={options}
         setOption={setOption}
         presets={presets}
+        onConfigurePresets={handleConfigurePresets}
         onEditLegend={handleEditLegend}
       />
 
