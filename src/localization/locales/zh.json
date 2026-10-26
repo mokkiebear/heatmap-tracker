@@ -239,7 +239,7 @@
     "linkExamples": "示例库 —— 每个参数一篇笔记",
     "linkWebsite": "网站与指南",
     "params": {
-      "entries": "要绘制的日期。每个条目需要 `date`；`intensity`、`value`、`customColor`、`emoji`、`content` 和 `filePath` 为可选。",
+      "entries": "要绘制的日期。每个条目需要 `date`；`intensity`、`value`、`customColor`、`emoji`、`countAs`、`content` 和 `filePath` 为可选。",
       "year": "显示哪一年。默认为当前年份。",
       "heatmapTitle": "显示在热力图上方的标题。",
       "heatmapSubtitle": "标题下方的小字行，用于描述。",

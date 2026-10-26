@@ -239,7 +239,7 @@
     "linkExamples": "उदाहरण वॉल्ट — हर पैरामीटर के लिए एक नोट",
     "linkWebsite": "वेबसाइट और गाइड",
     "params": {
-      "entries": "दिखाए जाने वाले दिन। हर प्रविष्टि के लिए `date` ज़रूरी है; `intensity`, `value`, `customColor`, `emoji`, `content` और `filePath` वैकल्पिक हैं।",
+      "entries": "दिखाए जाने वाले दिन। हर प्रविष्टि के लिए `date` ज़रूरी है; `intensity`, `value`, `customColor`, `emoji`, `countAs`, `content` और `filePath` वैकल्पिक हैं।",
       "year": "कौन सा वर्ष दिखाना है। डिफ़ॉल्ट रूप से वर्तमान वर्ष।",
       "heatmapTitle": "हीटमैप के ऊपर दिखाया जाने वाला शीर्षक।",
       "heatmapSubtitle": "शीर्षक के नीचे छोटी पंक्ति, विवरण के लिए।",

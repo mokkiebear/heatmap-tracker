@@ -239,7 +239,7 @@
     "linkExamples": "Almacén de ejemplo — una nota por parámetro",
     "linkWebsite": "Sitio web y guías",
     "params": {
-      "entries": "Los días que se dibujarán. Cada entrada necesita una `date`; `intensity`, `value`, `customColor`, `emoji`, `content` y `filePath` son opcionales.",
+      "entries": "Los días que se dibujarán. Cada entrada necesita una `date`; `intensity`, `value`, `customColor`, `emoji`, `countAs`, `content` y `filePath` son opcionales.",
       "year": "Qué año mostrar. Por defecto, el año actual.",
       "heatmapTitle": "Título que se muestra sobre el mapa de calor.",
       "heatmapSubtitle": "Línea más pequeña bajo el título, para una descripción.",

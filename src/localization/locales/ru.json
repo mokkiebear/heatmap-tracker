@@ -141,7 +141,7 @@
     "linkExamples": "Тестовое хранилище — по заметке на параметр",
     "linkWebsite": "Сайт и руководства",
     "params": {
-      "entries": "Дни, которые нужно отрисовать. У записи обязателен `date`; `intensity`, `value`, `customColor`, `emoji`, `content` и `filePath` — по желанию.",
+      "entries": "Дни, которые нужно отрисовать. У записи обязателен `date`; `intensity`, `value`, `customColor`, `emoji`, `countAs`, `content` и `filePath` — по желанию.",
       "year": "Какой год показывать. По умолчанию текущий.",
       "heatmapTitle": "Заголовок над картой.",
       "heatmapSubtitle": "Строка помельче под заголовком, для описания.",

@@ -239,7 +239,7 @@
     "linkExamples": "Example vault — one note per parameter",
     "linkWebsite": "Website and guides",
     "params": {
-      "entries": "The days to draw. Each entry needs a `date`; `intensity`, `value`, `customColor`, `emoji`, `content` and `filePath` are optional.",
+      "entries": "The days to draw. Each entry needs a `date`; `intensity`, `value`, `customColor`, `emoji`, `countAs`, `content` and `filePath` are optional.",
       "year": "Which year to show. Defaults to the current one.",
       "heatmapTitle": "Title shown above the heatmap.",
       "heatmapSubtitle": "Smaller line under the title, for a description.",

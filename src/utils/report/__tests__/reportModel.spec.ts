@@ -142,6 +142,33 @@ describe("buildReportModel", () => {
     expect(days.find((d) => d.date === "2026-01-02")?.body).toBeUndefined();
   });
 
+  it("carries each entry's countAs shares onto its day", () => {
+    const model = buildReportModel({
+      entriesByDate: {
+        "2026-01-01": entry({
+          date: "2026-01-01",
+          value: 3,
+          intensity: 1,
+          countAs: { Workday: 0.5, "Annual Leave": 0.5 },
+        }),
+        "2026-01-02": entry({ date: "2026-01-02", value: 8, intensity: 3 }),
+      },
+      colorsList,
+      bodiesByPath: {},
+      startDate: "2026-01-01",
+      endDate: "2026-01-02",
+      weekStartDay: 1,
+    });
+
+    const days = model.weeks.flatMap((week) => week.days);
+
+    expect(days.find((d) => d.date === "2026-01-01")?.countAs).toEqual({
+      Workday: 0.5,
+      "Annual Leave": 0.5,
+    });
+    expect(days.find((d) => d.date === "2026-01-02")?.countAs).toBeUndefined();
+  });
+
   it("returns an empty model when nothing falls in range", () => {
     const model = buildReportModel({
       entriesByDate: {},

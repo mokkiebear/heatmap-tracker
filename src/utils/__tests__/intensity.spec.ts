@@ -131,6 +131,62 @@ describe("fillEntriesWithIntensity", () => {
     expect(laterSurvives[1].emoji).toBe("🏃");
   });
 
+  it("adds up countAs shares label by label when several entries land on the same day", () => {
+    const colors: ColorsList = ["#111", "#222", "#333"];
+    const config = createConfig({ defaultIntensity: 1 });
+
+    const filled = fillEntriesWithIntensityByDate(
+      [
+        { date: "2024-01-01", intensity: 2, countAs: { Workday: 0.5 } },
+        {
+          date: "2024-01-01",
+          intensity: 1,
+          countAs: { Workday: 0.25, "Annual Leave": 0.25 },
+        },
+        { date: "2024-01-02", intensity: 1, countAs: { "Sick Leave": 1 } },
+      ],
+      config,
+      colors,
+    );
+
+    expect(filled["2024-01-01"].countAs).toEqual({
+      Workday: 0.75,
+      "Annual Leave": 0.25,
+    });
+    expect(filled["2024-01-02"].countAs).toEqual({ "Sick Leave": 1 });
+  });
+
+  it("keeps the one countAs present when only one of a day's entries has it", () => {
+    // The entry without countAs loses its implicit whole day: the day is
+    // counted by the shares it does carry, as documented on Entry.countAs.
+    const colors: ColorsList = ["#111", "#222", "#333"];
+    const filled = fillEntriesWithIntensityByDate(
+      [
+        { date: "2024-01-01", intensity: 1 },
+        { date: "2024-01-01", intensity: 1, countAs: { Done: 0.5 } },
+      ],
+      createConfig(),
+      colors,
+    );
+
+    expect(filled["2024-01-01"].countAs).toEqual({ Done: 0.5 });
+  });
+
+  it("adds unvalidated string shares numerically instead of joining them", () => {
+    // Data that failed validation is still rendered as-is.
+    const colors: ColorsList = ["#111", "#222", "#333"];
+    const filled = fillEntriesWithIntensityByDate(
+      [
+        { date: "2024-01-01", intensity: 1, countAs: { A: "0.5" } },
+        { date: "2024-01-01", intensity: 1, countAs: { A: "0.5", B: "x" } },
+      ] as unknown as Entry[],
+      createConfig(),
+      colors,
+    );
+
+    expect(filled["2024-01-01"].countAs).toEqual({ A: 1, B: 0 });
+  });
+
   it("should map entries to the generated intensity buckets and keep original values", () => {
     const colors: ColorsList = ["#111", "#222", "#333"];
     const config = createConfig({ defaultIntensity: 50 });

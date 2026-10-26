@@ -239,7 +239,7 @@
     "linkExamples": "Przykładowy skarbiec — jedna notatka na parametr",
     "linkWebsite": "Strona i poradniki",
     "params": {
-      "entries": "Dni do narysowania. Każdy wpis wymaga `date`; `intensity`, `value`, `customColor`, `emoji`, `content` i `filePath` są opcjonalne.",
+      "entries": "Dni do narysowania. Każdy wpis wymaga `date`; `intensity`, `value`, `customColor`, `emoji`, `countAs`, `content` i `filePath` są opcjonalne.",
       "year": "Który rok pokazać. Domyślnie bieżący.",
       "heatmapTitle": "Tytuł wyświetlany nad mapą cieplną.",
       "heatmapSubtitle": "Mniejszy wiersz pod tytułem, na opis.",

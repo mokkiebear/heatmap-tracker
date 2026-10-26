@@ -239,7 +239,7 @@
     "linkExamples": "Coffre d’exemples — une note par paramètre",
     "linkWebsite": "Site web et guides",
     "params": {
-      "entries": "Les jours à dessiner. Chaque entrée nécessite une `date` ; `intensity`, `value`, `customColor`, `emoji`, `content` et `filePath` sont facultatifs.",
+      "entries": "Les jours à dessiner. Chaque entrée nécessite une `date` ; `intensity`, `value`, `customColor`, `emoji`, `countAs`, `content` et `filePath` sont facultatifs.",
       "year": "L’année à afficher. Par défaut, l’année en cours.",
       "heatmapTitle": "Titre affiché au-dessus de la carte thermique.",
       "heatmapSubtitle": "Ligne plus petite sous le titre, pour une description.",

@@ -8,6 +8,7 @@ import {
   getLegendVisibility,
   nextLegendVisibility,
   setLegendVisibility,
+  sumCountAs,
   LegendEntry,
 } from "../legend";
 import { EMPTY_CELL_COLOR } from "../heatmapHtml";
@@ -751,6 +752,258 @@ describe("buildSummaryModel", () => {
           colorsList: ["#196127", "#8b949e"],
         }).dayTypeParts,
       ).toEqual([]);
+    });
+  });
+});
+
+describe("countAs", () => {
+  const GREEN = "#196127";
+  const GRAY = "#8b95a5";
+  const PURPLE = "#a371f7";
+
+  /** One week, Mon 2026-07-13 .. Fri 2026-07-17, every day logged. */
+  function weekOf(days: ReportDay[]): ReportModel {
+    return {
+      startDate: "2026-07-13",
+      endDate: "2026-07-17",
+      weeks: [{ weekStart: "2026-07-13", days }],
+      summary: { totalDays: days.length, totalValue: 0, activeWeeks: 1 },
+    };
+  }
+
+  // A work log: a normal day, two half days of leave that stay green, a
+  // full day of annual leave counted by its gray, and a full sick day that
+  // carries its own countAs.
+  const workLog = weekOf([
+    day({ date: "2026-07-13", color: GREEN, value: 8 }),
+    day({
+      date: "2026-07-14",
+      color: GREEN,
+      value: 3,
+      countAs: { Workday: 0.5, "Annual Leave": 0.5 },
+    }),
+    day({ date: "2026-07-15", color: GRAY, value: 0 }),
+    day({
+      date: "2026-07-16",
+      color: PURPLE,
+      value: 0,
+      countAs: { "Sick Leave": 1 },
+    }),
+    day({
+      date: "2026-07-17",
+      color: GREEN,
+      value: 4,
+      countAs: { Workday: 0.5, "sick leave": 0.5 },
+    }),
+  ]);
+
+  describe("computeDayTypeCounts", () => {
+    it("leaves a day with countAs out of the color counts and Other", () => {
+      const { counts, otherCount } = computeDayTypeCounts(
+        workLog.weeks[0].days,
+        [{ color: GREEN, label: "Workday" }],
+      );
+
+      expect(countFor(counts, GREEN)).toBe(1);
+      // The gray day is unmatched; the purple one is counted by its countAs.
+      expect(otherCount).toBe(1);
+    });
+
+    it("still treats a countAs day as logged when counting blank days", () => {
+      const days = [
+        day({ date: "2026-07-13", color: GREEN, countAs: { Workday: 0.5 } }),
+      ];
+      const { counts } = computeDayTypeCounts(
+        days,
+        [{ color: EMPTY_CELL_COLOR, label: "Rest day" }],
+        5,
+      );
+
+      expect(countFor(counts, EMPTY_CELL_COLOR)).toBe(4);
+    });
+
+    it("counts a day by color when its countAs has no usable share", () => {
+      const days = [
+        day({ date: "2026-07-13", color: GREEN, countAs: {} }),
+        day({ date: "2026-07-14", color: GREEN, countAs: { Leave: 0 } }),
+        day({ date: "2026-07-15", color: GREEN, countAs: { "  ": 1 } }),
+        day({
+          date: "2026-07-16",
+          color: GREEN,
+          countAs: { Leave: undefined },
+        }),
+      ];
+      const { counts } = computeDayTypeCounts(days, [
+        { color: GREEN, label: "Workday" },
+      ]);
+
+      expect(countFor(counts, GREEN)).toBe(4);
+    });
+  });
+
+  describe("sumCountAs", () => {
+    it("totals shares case-insensitively, keeping the first-seen label and order", () => {
+      expect(sumCountAs(workLog.weeks[0].days)).toEqual([
+        { label: "Workday", value: 1 },
+        { label: "Annual Leave", value: 0.5 },
+        { label: "Sick Leave", value: 1.5 },
+      ]);
+    });
+
+    it("trims labels, skips blank ones and non-numbers, and rounds float noise", () => {
+      const days = [
+        day({ date: "2026-07-13", countAs: { " Done ": 0.1, "": 1 } }),
+        day({
+          date: "2026-07-14",
+          countAs: { done: "0.2", Bad: "x" } as unknown as ReportDay["countAs"],
+        }),
+      ];
+
+      expect(sumCountAs(days)).toEqual([{ label: "Done", value: 0.3 }]);
+    });
+  });
+
+  describe("buildSummaryModel", () => {
+    it("splits half days between work and leave in gradient mode", () => {
+      const legend: LegendEntry[] = [
+        { color: "#7bc96f", label: "" },
+        { color: GREEN, label: "" },
+        { color: GRAY, label: "Annual Leave", valueOverride: 0 },
+        { color: PURPLE, label: "Sick Leave", valueOverride: 0 },
+      ];
+
+      expect(
+        buildSummaryModel(workLog, {
+          legend,
+          legendMode: "gradient",
+          gradientLabel: "Workday",
+          colorsList: ["#7bc96f", GREEN],
+        }).dayTypeParts,
+      ).toEqual([
+        { label: "Workday", value: 2 },
+        { label: "Annual Leave", value: 1.5 },
+        { label: "Sick Leave", value: 1.5 },
+      ]);
+    });
+
+    it("adds shares to the separate-mode line of the same label, case-insensitively", () => {
+      const legend: LegendEntry[] = [
+        { color: GREEN, label: "workday" },
+        { color: GRAY, label: "Annual leave" },
+        { color: PURPLE, label: "Sick Leave" },
+      ];
+
+      expect(buildSummaryModel(workLog, { legend }).dayTypeParts).toEqual([
+        { label: "workday", value: 2 },
+        { label: "Annual leave", value: 1.5 },
+        { label: "Sick Leave", value: 1.5 },
+      ]);
+    });
+
+    it("appends a label the legend lacks after the legend's own lines, before Other", () => {
+      const legend: LegendEntry[] = [{ color: GREEN, label: "Workday" }];
+
+      expect(buildSummaryModel(workLog, { legend }).dayTypeParts).toEqual([
+        { label: "Workday", value: 2 },
+        { label: "Annual Leave", value: 0.5 },
+        { label: "Sick Leave", value: 1.5 },
+        { label: "Other", value: 1 },
+      ]);
+    });
+
+    it("drops the shares of a category hidden from the summary", () => {
+      const legend: LegendEntry[] = [
+        { color: GREEN, label: "Workday" },
+        { color: GRAY, label: "Annual Leave" },
+        { color: PURPLE, label: "Sick Leave", includeInSummary: false },
+      ];
+
+      expect(buildSummaryModel(workLog, { legend }).dayTypeParts).toEqual([
+        { label: "Workday", value: 2 },
+        { label: "Annual Leave", value: 1.5 },
+      ]);
+    });
+
+    it("prefers a shown line over a hidden entry with the same label", () => {
+      const legend: LegendEntry[] = [
+        { color: GREEN, label: "Workday" },
+        { color: "#000000", label: "Sick Leave", includeInSummary: false },
+        { color: PURPLE, label: "Sick Leave" },
+        { color: GRAY, label: "Annual Leave" },
+      ];
+
+      expect(
+        buildSummaryModel(workLog, { legend }).dayTypeParts.find(
+          (part) => part.label === "Sick Leave",
+        ),
+      ).toEqual({ label: "Sick Leave", value: 1.5 });
+    });
+
+    it("folds a share named after a palette color's own label into the gradient line", () => {
+      const model = weekOf([
+        day({ date: "2026-07-13", color: GREEN }),
+        day({ date: "2026-07-14", color: GREEN, countAs: { Worked: 0.5 } }),
+      ]);
+      const legend: LegendEntry[] = [{ color: GREEN, label: "Worked" }];
+
+      expect(
+        buildSummaryModel(model, {
+          legend,
+          legendMode: "gradient",
+          gradientLabel: "Workday",
+          colorsList: [GREEN],
+        }).dayTypeParts,
+      ).toEqual([{ label: "Workday", value: 1.5 }]);
+    });
+
+    it("drops shares for the gradient label when every palette color is hidden", () => {
+      const legend: LegendEntry[] = [
+        { color: GREEN, label: "", includeInSummary: false },
+        { color: GRAY, label: "Annual Leave" },
+      ];
+
+      expect(
+        buildSummaryModel(workLog, {
+          legend,
+          legendMode: "gradient",
+          gradientLabel: "Workday",
+          colorsList: [GREEN],
+        }).dayTypeParts,
+      ).toEqual([
+        { label: "Annual Leave", value: 1.5 },
+        { label: "Sick Leave", value: 1.5 },
+      ]);
+    });
+
+    it("adds a share labeled Other to the Other line rather than a second one", () => {
+      const model = weekOf([
+        day({ date: "2026-07-13", color: GRAY }),
+        day({ date: "2026-07-14", color: GREEN, countAs: { other: 0.5 } }),
+      ]);
+      const legend: LegendEntry[] = [{ color: GREEN, label: "Workday" }];
+
+      expect(buildSummaryModel(model, { legend }).dayTypeParts).toEqual([
+        { label: "Workday", value: 0 },
+        { label: "Other", value: 1.5 },
+      ]);
+    });
+
+    it("rounds float noise left by adding shares to a line", () => {
+      const model = weekOf([
+        day({ date: "2026-07-13", color: GREEN, countAs: { Done: 0.1 } }),
+        day({ date: "2026-07-14", color: GREEN, countAs: { Done: 0.2 } }),
+      ]);
+      const legend: LegendEntry[] = [{ color: GRAY, label: "Done" }];
+
+      expect(buildSummaryModel(model, { legend }).dayTypeParts).toEqual([
+        { label: "Done", value: 0.3 },
+      ]);
+    });
+
+    it("ignores countAs without a legend, where every logged day is already counted", () => {
+      expect(buildSummaryModel(workLog, {}).dayTypeParts).toEqual([
+        { label: "Days logged", value: 5 },
+      ]);
     });
   });
 });

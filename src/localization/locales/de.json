@@ -239,7 +239,7 @@
     "linkExamples": "Beispiel-Vault – eine Notiz pro Parameter",
     "linkWebsite": "Website und Anleitungen",
     "params": {
-      "entries": "Die darzustellenden Tage. Jeder Eintrag benötigt ein `date`; `intensity`, `value`, `customColor`, `emoji`, `content` und `filePath` sind optional.",
+      "entries": "Die darzustellenden Tage. Jeder Eintrag benötigt ein `date`; `intensity`, `value`, `customColor`, `emoji`, `countAs`, `content` und `filePath` sind optional.",
       "year": "Welches Jahr angezeigt wird. Standard ist das aktuelle Jahr.",
       "heatmapTitle": "Titel über der Heatmap.",
       "heatmapSubtitle": "Kleinere Zeile unter dem Titel, für eine Beschreibung.",

@@ -11,12 +11,59 @@ export interface DayTypeCount {
   count: number;
 }
 
+function normalizeLabel(label: string): string {
+  return label.trim().toLowerCase();
+}
+
+/** Strips float noise from summed fractional counts (0.1 + 0.2), nothing more. */
+function roundCount(count: number): number {
+  return Math.round(count * 100) / 100;
+}
+
+/**
+ * A day's usable `countAs` shares: trimmed, non-blank labels with a finite,
+ * non-zero count. Shares go through `Number()` because data that failed
+ * validation is still rendered as-is. A day with none of these is counted by
+ * its color as usual — so `{ "Sick Leave": page.sick_leave }` on a note
+ * without that property doesn't make the day vanish from the breakdown.
+ */
+function countAsShares(day: ReportDay): SummaryPart[] {
+  return Object.entries(day.countAs ?? {}).flatMap(([label, share]) => {
+    const value = Number(share);
+    return label.trim() !== "" && Number.isFinite(value) && value !== 0
+      ? [{ label: label.trim(), value }]
+      : [];
+  });
+}
+
+/**
+ * Totals every day's `countAs` shares by label (case-insensitive, trimmed),
+ * keeping each label as first written, in the order first seen.
+ */
+export function sumCountAs(days: ReportDay[]): SummaryPart[] {
+  const totals = new Map<string, SummaryPart>();
+  days.forEach((day) => {
+    countAsShares(day).forEach(({ label, value }) => {
+      const key = normalizeLabel(label);
+      const total = totals.get(key);
+      if (total) total.value += value;
+      else totals.set(key, { label, value });
+    });
+  });
+  return [...totals.values()].map((total) => ({
+    ...total,
+    value: roundCount(total.value),
+  }));
+}
+
 /**
  * Matches each day's already-resolved color against the legend (case-
  * insensitive, trimmed). Days with no color, or a color not in the legend,
  * fall into `otherCount`. Blank days (no entry at all — never present in
  * `days`) are counted against whichever legend entry uses `EMPTY_CELL_COLOR`,
- * when `totalDaysInRange` is given.
+ * when `totalDaysInRange` is given. A day with its own `countAs` shares is
+ * left out of the color counts entirely (see `sumCountAs`), but still counts
+ * as logged, so it never inflates the blank-day count.
  *
  * Counted by color internally (not by label) and returned as one
  * `{entry, count}` pair per input entry, in input order — legend entries are
@@ -37,6 +84,7 @@ export function computeDayTypeCounts(
 
   let otherCount = 0;
   days.forEach((day) => {
+    if (countAsShares(day).length > 0) return;
     const normalized = day.color ? normalizeColor(day.color) : undefined;
     if (normalized !== undefined && countByColor.has(normalized)) {
       countByColor.set(normalized, (countByColor.get(normalized) ?? 0) + 1);
@@ -288,8 +336,15 @@ export interface SummaryModel {
  * palette entry's day count is scaled by its own `countWeight` (default 1)
  * before being summed — e.g. a lighter "half day" color set to 0.5
  * contributes half a day per match instead of a full one; independent
- * parts are never weighted. Without a legend: falls back to a flat "Days
- * logged" count. Hidden entries' days still count correctly toward
+ * parts are never weighted. A day carrying its own `countAs` shares skips
+ * all of that: each share is added to the shown part with the same label
+ * (case-insensitive; in gradient mode a palette color's own label also names
+ * the combined part), dropped if that category is hidden from the summary,
+ * folded into "Other" if labeled so, and otherwise shown as a new part after
+ * the legend's own. Without a legend: falls back to a flat "Days logged"
+ * count, and `countAs` is ignored — with no categories to split between, its
+ * shares would only restate days already counted there. Hidden entries'
+ * days still count correctly toward
  * matching/`otherCount`/the gradient total — they're just not displayed as
  * their own line. `dayTypeParts` is empty (not a blank placeholder line)
  * whenever there's nothing to show — every legend entry excluded, or
@@ -320,6 +375,17 @@ export function buildSummaryModel(
         legend,
         totalDaysInRange,
       );
+      // Where a `countAs` share lands besides a part carrying its exact label
+      // (see the merge below): `aliases` maps other names for a part onto it,
+      // `hiddenLabels` holds categories the user hid from the summary, whose
+      // shares are dropped with them rather than resurfacing as a new line.
+      const aliases = new Map<string, SummaryPart>();
+      const hiddenLabels = new Set<string>();
+      legend.forEach((entry) => {
+        if (entry.includeInSummary === false && entry.label.trim() !== "") {
+          hiddenLabels.add(normalizeLabel(entry.label));
+        }
+      });
 
       if (legendMode === "gradient") {
         const paletteColors = new Set(
@@ -357,7 +423,7 @@ export function buildSummaryModel(
         });
         // Guards against float noise from non-power-of-2 weights (e.g. 0.3),
         // not against any real precision need — a handful of summed terms.
-        gradientTotal = Math.round(gradientTotal * 100) / 100;
+        gradientTotal = roundCount(gradientTotal);
 
         // Omitted entirely (not shown as "0") when nothing actually
         // contributes - e.g. every palette color has been toggled to
@@ -367,10 +433,22 @@ export function buildSummaryModel(
         if (gradientLabel && anyPaletteIncluded) {
           const insertAt =
             gradientPosition === -1 ? parts.length : gradientPosition;
-          parts.splice(insertAt, 0, {
-            label: gradientLabel,
-            value: gradientTotal,
+          const gradientPart = { label: gradientLabel, value: gradientTotal };
+          parts.splice(insertAt, 0, gradientPart);
+          // A palette color's own label (left over from separate mode, say)
+          // names the combined line it folds into here.
+          counts.forEach(({ entry }) => {
+            if (
+              paletteColors.has(normalizeColor(entry.color)) &&
+              entry.includeInSummary !== false &&
+              entry.label.trim() !== ""
+            ) {
+              aliases.set(normalizeLabel(entry.label), gradientPart);
+            }
           });
+        } else if (gradientLabel && gradientPosition !== -1) {
+          // Every palette color is hidden, so the combined line is too.
+          hiddenLabels.add(normalizeLabel(gradientLabel));
         }
         dayTypeParts.push(...parts);
       } else {
@@ -380,8 +458,31 @@ export function buildSummaryModel(
           dayTypeParts.push({ label: entry.label, value: count });
         });
       }
-      if (otherCount > 0) {
-        dayTypeParts.push({ label: "Other", value: otherCount });
+
+      // Days with their own `countAs` shares were left out of the color
+      // counts above; their shares join the line of the same label, so half
+      // a day of leave lands on the same "Annual Leave" line as the
+      // full-day leave counted by color. Shares are never `countWeight`ed.
+      let other = otherCount;
+      sumCountAs(allDays).forEach((share) => {
+        const key = normalizeLabel(share.label);
+        const part =
+          dayTypeParts.find((p) => normalizeLabel(p.label) === key) ??
+          aliases.get(key);
+        if (part) {
+          part.value = roundCount(part.value + share.value);
+        } else if (hiddenLabels.has(key)) {
+          return;
+        } else if (key === "other") {
+          other += share.value;
+        } else {
+          dayTypeParts.push(share);
+        }
+      });
+      other = roundCount(other);
+
+      if (other > 0) {
+        dayTypeParts.push({ label: "Other", value: other });
       }
     } else {
       dayTypeParts.push({

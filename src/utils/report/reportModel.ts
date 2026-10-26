@@ -11,6 +11,8 @@ export interface ReportDay {
   body?: string;
   /** `body` rendered by Obsidian's Markdown renderer (math, code, callouts); the HTML report prefers it over `body`. */
   bodyHtml?: string;
+  /** The entry's own `countAs` shares, which replace its color-based day count in the summary (see `buildSummaryModel`). */
+  countAs?: Entry["countAs"];
 }
 
 export interface ReportWeek {
@@ -112,6 +114,7 @@ export function buildReportModel({
       color,
       body,
       bodyHtml: entry.filePath ? bodyHtmlByPath[entry.filePath] : undefined,
+      countAs: entry.countAs,
     };
 
     totalDays += 1;
