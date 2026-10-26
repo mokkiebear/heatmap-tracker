@@ -107,7 +107,11 @@ export function useExportOptions(args: {
     [],
   );
 
-  const saveTimerRef = useRef<number | null>(null);
+  // The latest edit not yet written. Leaving the tab mid-debounce must flush
+  // it rather than drop it with the cancelled timer.
+  const pendingRef = useRef<ExportOptions | null>(null);
+  const updateSettingsRef = useRef(updateSettings);
+  updateSettingsRef.current = updateSettings;
   const hasMountedRef = useRef(false);
 
   useEffect(() => {
@@ -116,19 +120,22 @@ export function useExportOptions(args: {
       return;
     }
 
-    if (saveTimerRef.current !== null) {
-      window.clearTimeout(saveTimerRef.current);
-    }
-    saveTimerRef.current = window.setTimeout(() => {
-      updateSettings({ exportDefaults: options });
+    pendingRef.current = options;
+    const timer = window.setTimeout(() => {
+      pendingRef.current = null;
+      updateSettingsRef.current({ exportDefaults: options });
     }, SETTINGS_SAVE_DEBOUNCE_MS);
-
-    return () => {
-      if (saveTimerRef.current !== null) {
-        window.clearTimeout(saveTimerRef.current);
-      }
-    };
+    return () => window.clearTimeout(timer);
   }, [options]);
+
+  useEffect(
+    () => () => {
+      if (pendingRef.current) {
+        updateSettingsRef.current({ exportDefaults: pendingRef.current });
+      }
+    },
+    [],
+  );
 
   const rangeValid = useMemo(
     () =>
