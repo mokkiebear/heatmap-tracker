@@ -168,13 +168,22 @@ describe("RangePresetsModal", () => {
     expect(last(labels())).toBe("presetAllLoggedData");
   });
 
-  it("doesn't start a drag from anywhere but the handle", () => {
+  it("doesn't start a drag from anywhere but the handle, or after a click on it", () => {
     const { row, labels } = open();
     const before = labels();
+    const dragByText = () => {
+      row("presetLastWeek").dispatchEvent(new Event("dragstart"));
+      row("presetAllLoggedData").dispatchEvent(new Event("drop"));
+    };
 
-    row("presetLastWeek").dispatchEvent(new Event("dragstart"));
-    row("presetAllLoggedData").dispatchEvent(new Event("drop"));
+    dragByText();
+    expect(labels()).toEqual(before);
 
+    row("presetLastWeek")
+      .querySelector(".heatmap-range-presets-modal__handle")!
+      .dispatchEvent(new Event("mousedown"));
+    document.dispatchEvent(new Event("mouseup"));
+    dragByText();
     expect(labels()).toEqual(before);
   });
 

@@ -67,6 +67,15 @@ export class RowDragController<T> {
       setIcon(handle, "grip-vertical");
       handle.addEventListener("mousedown", () => {
         dragArmed = true;
+        // A drag has started by the time the button is released, if it ever
+        // will; disarm so a plain click doesn't leave the whole row draggable.
+        row.ownerDocument.addEventListener(
+          "mouseup",
+          () => {
+            dragArmed = false;
+          },
+          { once: true },
+        );
       });
     }
   }
