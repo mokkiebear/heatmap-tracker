@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [2.16.0] - 2026-10-31
+
 ### Added
 - Drop-in compatibility with the unmaintained [heatmap-calendar](https://github.com/Richardsl/heatmap-calendar-obsidian) plugin: `renderHeatmapCalendar()` is now provided by Heatmap Tracker, so existing `dataviewjs` blocks render as-is once the old plugin is disabled — no note edits needed. Its named palettes are read from its plugin data so `colors: "blue"` keeps resolving. Per-entry `color` is ignored; those days use the main palette. Left alone if the old plugin is still enabled, so running both side by side doesn't race over which one wins the global.
 - `countAs` entry field: count a day toward several summary categories, fractionally if needed — e.g. `{ "Workday": 0.5, "Annual Leave": 0.5 }` for a half day of leave that still shows the hours worked.
