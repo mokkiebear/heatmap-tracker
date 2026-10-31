@@ -19,6 +19,7 @@ import { DEFAULT_TRACKER_DATA } from "src/constants/defaultTrackerData";
 import { AppContext } from "src/context/app/app.context";
 import { HeatmapProvider } from "src/context/heatmap/heatmap.context";
 import { Entry, TrackerData, TrackerSettings } from "src/types";
+import { ReportDay, ReportModel } from "src/utils/report/reportModel";
 
 /**
  * `Partial<TrackerData>` is not enough: the grouped fields are objects, so a
@@ -49,6 +50,27 @@ export function makeTrackerData(
       ...overrides.colorScheme,
     },
     ui: { ...DEFAULT_TRACKER_DATA.ui, ...overrides.ui },
+  };
+}
+
+/**
+ * A report model with every day in one week and its summary taken from the
+ * days. The range runs from the first day to the last unless `end` extends it,
+ * which adds unlogged days.
+ */
+export function makeReportModel(
+  days: ReportDay[],
+  { end }: { end?: string } = {},
+): ReportModel {
+  const startDate = days[0].date;
+  return {
+    startDate,
+    endDate: end ?? days[days.length - 1].date,
+    weeks: [{ weekStart: startDate, days }],
+    summary: {
+      totalDays: days.length,
+      totalValue: days.reduce((sum, day) => sum + (day.value ?? 0), 0),
+    },
   };
 }
 

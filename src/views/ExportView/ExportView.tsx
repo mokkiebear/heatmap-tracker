@@ -9,8 +9,12 @@ import { formatGeneratedAt } from "src/utils/report/dateLabels";
 import { buildReportMarkdown } from "src/utils/report/reportMarkdown";
 import { notify } from "src/utils/notify";
 import { LegendModal } from "src/modals/LegendModal";
-import ExportOptionsForm from "./ExportOptionsForm";
-import { buildPresets } from "./exportRange";
+import { RangePresetsModal } from "src/modals/RangePresetsModal";
+import { RangePresetSetting, RangeRule } from "src/types";
+import { getToday } from "src/utils/date";
+import ExportOptionsForm, { PresetButton } from "./ExportOptionsForm";
+import { resolveRangeRule } from "./exportRange";
+import { presetLabel, presetRule } from "./rangePresets";
 import { buildRefreshBaseline } from "./exportLegendDefaults";
 import { useExportOptions } from "./useExportOptions";
 import { useReportPreview } from "./useReportPreview";
@@ -64,50 +68,62 @@ function ExportView() {
       generatedAt: formatGeneratedAt(new Date()),
     });
 
-  const presets = useMemo(() => buildPresets(entriesByDate), [entriesByDate]);
+  const resolveRule = (rule: RangeRule) =>
+    resolveRangeRule(rule, {
+      today: getToday(),
+      weekStartDay: options.weekStartDay,
+      entriesByDate,
+    });
+  const labelFor = (preset: RangePresetSetting) => presetLabel(preset, t);
+
+  const presets: PresetButton[] = options.rangePresets
+    .filter((preset) => preset.visible)
+    .map((preset) => ({
+      id: preset.id,
+      label: labelFor(preset),
+      span: () => {
+        const rule = presetRule(preset);
+        return rule ? resolveRule(rule) : null;
+      },
+    }));
+
+  function handleConfigurePresets() {
+    new RangePresetsModal(
+      app,
+      options.rangePresets,
+      resolveRule,
+      labelFor,
+      (rangePresets) => setOption("rangePresets", rangePresets),
+    ).open();
+  }
 
   async function handleSaveMarkdown() {
     if (!model) return;
-
     const file = await writeExportFile(app, {
-      folder: options.exportFolder,
+      ...options,
       title,
-      startDate: options.startDate,
-      endDate: options.endDate,
       extension: "md",
       content: buildReportMarkdown(model, reportOptions),
     });
-
     await openFileInLeaf(app, file);
     notify(t("report.savedMarkdown", { path: file.path }));
   }
 
   async function handleSaveHtml() {
     if (!reportHtmlDoc) return;
-
     const file = await writeExportFile(app, {
-      folder: options.exportFolder,
+      ...options,
       title,
-      startDate: options.startDate,
-      endDate: options.endDate,
       extension: "html",
       content: reportHtmlDoc,
     });
-
     notify(t("report.savedHtml", { path: file.path }));
   }
 
   function handleEditLegend() {
-    // Whole-calendar-scoped, not just the export's currently selected date
-    // range, so every color the calendar can ever show is available to
-    // populate from/reset/refresh back to - regardless of whether any of its
-    // days happen to fall within the range selected right now.
     const baseline = buildRefreshBaseline(entriesByDate, colorsList);
-    // Only auto-populate from the baseline on true first-time entry (nothing
-    // saved yet) - once the legend exists, reopening the editor shows
-    // exactly what was last saved, untouched. Re-syncing against the palette
-    // (new colors, dropped stale ones) only happens when the user explicitly
-    // clicks "Refresh" or "Reset" inside the modal.
+    // The baseline seeds only a first-ever legend; after that the editor shows
+    // what was saved, and re-syncs only on Refresh or Reset.
     const initialEntries =
       options.legend.length > 0 ? options.legend : baseline;
     new LegendModal(
@@ -128,14 +144,11 @@ function ExportView() {
         options={options}
         setOption={setOption}
         presets={presets}
+        onConfigurePresets={handleConfigurePresets}
         onEditLegend={handleEditLegend}
       />
 
-      {!rangeValid && (
-        <p className="heatmap-export__error">{t("report.invalidRange")}</p>
-      )}
-
-      {rangeValid && (
+      {rangeValid ? (
         <>
           <div className="heatmap-export__summary">
             {isLoading
@@ -143,14 +156,12 @@ function ExportView() {
               : t("report.summary", {
                   days: model?.summary.totalDays ?? 0,
                   value: model?.summary.totalValue ?? 0,
-                  valueLabel: options.valueLabel.trim() || "value",
+                  valueLabel:
+                    options.valueLabel.trim() ||
+                    t("report.valueLabelPlaceholder"),
                 })}
-            {bandCount > 1 && (
-              <>
-                {" · "}
-                {t("report.bandHint", { count: bandCount })}
-              </>
-            )}
+            {bandCount > 1 &&
+              ` · ${t("report.bandHint", { count: bandCount })}`}
           </div>
 
           <div className="heatmap-export__actions">
@@ -182,6 +193,8 @@ function ExportView() {
             sandbox=""
           />
         </>
+      ) : (
+        <p className="heatmap-export__error">{t("report.invalidRange")}</p>
       )}
     </div>
   );

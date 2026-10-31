@@ -1,6 +1,7 @@
+import i18n from "src/localization/i18n";
 import { ColorsList, Entry, LegendEntry } from "src/types";
 import { getEntryColor } from "src/utils/colors";
-import { countWeeks, placeDays } from "src/utils/grid";
+import { DayPlacement, countWeeks, placeDays } from "src/utils/grid";
 import {
   formatDateToISO8601,
   getShiftedWeekdays,
@@ -21,40 +22,21 @@ export function escapeHtml(value: string): string {
 export type HeatmapOrientation = "columns" | "rows";
 
 /**
- * Max week-slots rendered in a single band before wrapping into a new one —
- * ~1 year, matching the native plugin's normal per-year width (a typical
- * single-year export is exactly one band, unchanged from a non-wrapped
- * grid). Used as the band-wrapping unit when `splitByMonth` is off (there's
- * no clean "whole month" grouping to band by instead — see
- * `MAX_MONTHS_PER_BAND_COLUMNS`/`_ROWS` for when it's on). Columns mode
- * (weeks as columns) stacks extra bands vertically — a new horizontal line
- * below; rows mode (weeks as rows) stacks them horizontally — a new
- * vertical line alongside.
+ * Week-slots per band when the grid isn't split by month: about a year, so a
+ * one-year export is one band. Extra bands stack below in columns mode and
+ * alongside in rows mode.
  */
 export const MAX_WEEKS_PER_BAND = 53;
 
 /**
- * Max whole months rendered in a single band when `splitByMonth` is on.
- * Under that option every month lands on its own, non-straddling run of
- * week-slots (see `placeDays`'s +7 jump), so bands can be — and read much
- * better when — apportioned by month count instead of raw week-slot count.
- * Columns mode stacks extra bands vertically (adding height is cheap), so it
- * tolerates a bigger band; rows mode stacks them horizontally, where a long
- * export would otherwise grow uncomfortably wide, so it gets a smaller cap
- * — see `MAX_BANDS_ROWS` below for the other half of that constraint.
+ * Months per band when split by month, where each month has its own run of
+ * week-slots. Rows mode stacks bands sideways, where width is scarce, so it
+ * gets fewer months per band and at most `MAX_BANDS_ROWS` bands; past that,
+ * each band takes more months instead.
  */
-export const MAX_MONTHS_PER_BAND_COLUMNS = 8;
-export const MAX_MONTHS_PER_BAND_ROWS = 6;
-
-/**
- * Hard cap on the total *number* of bands for rows mode. Columns mode has
- * no such cap — stacking more bands just adds height, which is cheap — but
- * rows mode stacks bands horizontally, side by side, and beyond a handful
- * they'd overflow/overlap the page instead of just growing taller. Past
- * this cap, band *count* stays fixed at 4 and per-band month count grows
- * beyond `MAX_MONTHS_PER_BAND_ROWS` instead (still spread evenly).
- */
-export const MAX_BANDS_ROWS = 4;
+const MAX_MONTHS_PER_BAND_COLUMNS = 8;
+const MAX_MONTHS_PER_BAND_ROWS = 6;
+const MAX_BANDS_ROWS = 4;
 
 /** Fallback color for an in-range day with no entry — matches an empty/blank cell in the live heatmap. */
 export const EMPTY_CELL_COLOR = "var(--background-modifier-border, #ebedf0)";
@@ -75,94 +57,85 @@ export interface HeatmapGridOptions {
   skipWeekends?: boolean;
   /** When a day's color matches an entry with `valueOverride` set, that fixed value replaces the day's own raw value in its tooltip. */
   legend?: LegendEntry[];
-  cellSize?: number;
 }
 
-const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-// Rows mode uses weekdays as column headers above narrow day-cells, where a
-// 3-letter label would force each column wider than the cell itself; columns
-// mode uses them in the leading label column (unconstrained), so it keeps
-// the full abbreviation, matching the native plugin's own look.
-const WEEKDAY_LABELS_SHORT = ["S", "M", "T", "W", "T", "F", "S"];
-const MONTH_LABELS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
+const CELL_SIZE = 12;
+
+const WEEKDAYS = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
   "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
-// `min-width:0` overrides the grid item default of `min-width:auto`, which
-// would otherwise let a header label's own text width force its track wider
-// than the fixed-size day-cell tracks below/beside it — the label must stay
-// pinned to the exact same column/row size as its cells, even if its text
-// has to overflow that size visually to stay readable. Used for labels that
-// sit inside a fixed-size (cellSize) track: month runs and (in columns mode)
-// the week-start-date row.
+const monthLabel = (date: Date) =>
+  i18n.t(`monthsShort.${MONTHS[date.getUTCMonth()]}`);
+
+/**
+ * Weekday labels from Sunday, in the plugin language. Rows mode heads narrow
+ * day-cells with them, where a 3-letter label would force each column wider
+ * than the cell, so it takes the one-letter form.
+ */
+function weekdayLabels(orientation: HeatmapOrientation): string[] {
+  if (orientation === "rows") {
+    const narrow = new Intl.DateTimeFormat(i18n.language, {
+      weekday: "narrow",
+      timeZone: "UTC",
+    });
+    // 2023-01-01 was a Sunday.
+    return WEEKDAYS.map((_, i) => narrow.format(Date.UTC(2023, 0, 1 + i)));
+  }
+  return WEEKDAYS.map((day) => i18n.t(`weekdaysShort.${day}`));
+}
+
+// For labels in a cell-sized track. `min-width:0` stops the text from
+// widening the track past its day-cells; the text overflows instead.
 const LABEL_STYLE =
   "font-size:10px;color:var(--text-muted,#6b7280);white-space:nowrap;display:flex;align-items:center;justify-content:center;text-align:center;min-width:0;";
 
-// The label column/row that sits directly beside the color grid — weekday
-// names in columns mode, the week-start-date column in rows mode — is
-// right-aligned with a bit of extra margin so it reads close to its own
-// row/column but doesn't crowd the actual cells. These sit in an `auto`-sized
-// track (grows to fit), so no `min-width:0` guard is needed here. `justify-
-// self:end` is required on top of the inner flexbox alignment — the grid
-// container sets `justify-items:center`, which otherwise centers this whole
-// (content-sized) box within its track and leaves no slack for the inner
-// `justify-content:flex-end` to actually shift the text by.
+// For the labels right beside the grid, right-aligned. `justify-self:end` is
+// needed because the grid's `justify-items:center` would otherwise center the
+// box and leave the flex alignment nothing to shift.
 const LEADING_LABEL_STYLE =
   "font-size:10px;color:var(--text-muted,#6b7280);white-space:nowrap;display:flex;align-items:center;justify-content:flex-end;text-align:right;margin-right:4px;justify-self:end;";
 
-// The year column in rows mode spans many week-rows (potentially a whole
-// band's worth) but sits in its own leading column, one per band stacked
-// side by side. A 4-digit year rendered as ordinary horizontal, centered
-// text (LABEL_STYLE) would force the column (and so every band) noticeably
-// wider. Rotating the text vertical keeps the column about as narrow as a
-// single character, with the label becoming a full-height strip running the
-// whole span instead of one wide line of text. `margin-right` gives it
-// breathing room from whichever column is next. The month column
-// (SPANNING_LABEL_STYLE below) has the same multi-row span and centering,
-// just without the rotation - a year run can cover many months, too long to
-// stay narrow if written normally, while a month name is short enough not
-// to need it.
+// The rows-mode year column, rotated so it stays one character wide.
 const VERTICAL_LABEL_STYLE =
   "font-size:10px;color:var(--text-muted,#6b7280);white-space:nowrap;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;text-orientation:mixed;margin-right:4px;";
 
-// The month column in rows mode, like the year column above, spans many
-// week-rows in its own leading column - but a month name is short enough to
-// read normally (horizontal) instead of needing to be rotated. Centered
-// (align-items:center) across the whole span, exactly mirroring how columns
-// mode centers its own month header horizontally across the week-columns it
-// spans (LABEL_STYLE) - here just the other axis. Sits in an `auto`-sized
-// column like LEADING_LABEL_STYLE (so no `min-width:0` guard), but centered
-// rather than right-aligned, since there's no adjacent fixed-size track it
-// needs to read flush against the way the week-start-date column does.
+// The rows-mode month column, centered across the rows it spans.
 const SPANNING_LABEL_STYLE =
   "font-size:10px;color:var(--text-muted,#6b7280);white-space:nowrap;display:flex;align-items:center;justify-content:center;margin-right:4px;";
 
-/** How many week-slots (columns in columns mode, rows in rows mode) a range needs. */
-export function countWeeksInRange(
-  startDate: string,
-  endDate: string,
-  weekStartDay: number,
-  splitByMonth = false,
-): number {
-  return countWeeks(
-    placeDays(
-      parseUTCDate(startDate),
-      parseUTCDate(endDate),
-      weekStartDay,
-      splitByMonth,
-    ),
-  );
+/** For each week-slot, `pick` applied to the first day placed in it. */
+function perWeekSlot<T>(
+  slots: DayPlacement[],
+  weekCount: number,
+  pick: (date: Date) => T,
+): (T | null)[] {
+  const values: (T | null)[] = new Array(weekCount).fill(null);
+  slots.forEach((slot) => {
+    if (values[slot.weekIndex] === null)
+      values[slot.weekIndex] = pick(slot.date);
+  });
+  return values;
 }
 
 interface RunEntry {
@@ -171,36 +144,21 @@ interface RunEntry {
   label: string | null;
 }
 
-/** Groups a (possibly sparse) array of per-index labels into contiguous same-label runs; null is always its own span-1 run. */
+/** Groups per-index labels into contiguous same-label runs; null is always its own span-1 run. */
 function computeRuns(labels: (string | null)[]): RunEntry[] {
   const runs: RunEntry[] = [];
-  let i = 0;
-
-  while (i < labels.length) {
-    const label = labels[i];
-    let span = 1;
-    while (
-      label !== null &&
-      i + span < labels.length &&
-      labels[i + span] === label
-    ) {
-      span += 1;
-    }
-    runs.push({ start: i, span, label });
-    i += span;
-  }
-
+  labels.forEach((label, start) => {
+    const last = runs[runs.length - 1];
+    if (label !== null && last?.label === label) last.span += 1;
+    else runs.push({ start, span: 1, label });
+  });
   return runs;
 }
 
 /**
- * Splits `totalUnits` into the fewest bands that keep each one at or under
- * `maxPerBand` (capped at `maxBands` if given), then spreads units evenly
- * across exactly that many bands — instead of greedily filling earlier
- * bands to the max and dumping whatever is left over into a small, lopsided
- * final band. When the `maxBands` cap is what actually limits the band
- * count (rather than `maxPerBand`), per-band count grows past `maxPerBand`
- * as needed — the band-count cap always wins.
+ * Splits `totalUnits` into the fewest bands of at most `maxPerBand` (at most
+ * `maxBands` bands, which wins over `maxPerBand`), spread evenly rather than
+ * leaving a small leftover band.
  */
 function computeEvenBandRanges(
   totalUnits: number,
@@ -222,32 +180,20 @@ function computeEvenBandRanges(
 }
 
 /**
- * Band ranges as [firstWeekIndex, lastWeekIndex] pairs. When `splitByMonth`
- * is off, bands are apportioned by week-slot count (`MAX_WEEKS_PER_BAND`).
- * When it's on, every month occupies its own contiguous run of week-slots
- * (see `placeDays`), so bands are apportioned by whole-month count instead —
- * using the orientation-specific month cap — with each band's week-slot
- * range widened out to cover its months' full span. The blank gap slot
- * `placeDays` inserts between two months (a `null`-labeled run) is not
- * itself a month, so it's excluded from the count. Rows mode additionally
- * caps the total band count at `MAX_BANDS_ROWS`.
+ * Band ranges as [firstWeekIndex, lastWeekIndex] pairs, by week-slot count,
+ * or by whole months when split by month (every month then has its own run
+ * of week-slots; the blank gap between months doesn't count as one).
  */
 function computeBandRanges(
-  maxWeekIndex: number,
+  weekCount: number,
   monthLabelByWeekIndex: (string | null)[],
   orientation: HeatmapOrientation,
   splitByMonth: boolean,
 ): Array<[number, number]> {
-  if (maxWeekIndex === -1) return [];
-
   const maxBands = orientation === "rows" ? MAX_BANDS_ROWS : undefined;
 
   if (!splitByMonth) {
-    return computeEvenBandRanges(
-      maxWeekIndex + 1,
-      MAX_WEEKS_PER_BAND,
-      maxBands,
-    );
+    return computeEvenBandRanges(weekCount, MAX_WEEKS_PER_BAND, maxBands);
   }
 
   const monthRuns = computeRuns(monthLabelByWeekIndex).filter(
@@ -269,42 +215,50 @@ function computeBandRanges(
 }
 
 /**
- * Groups a band's month runs into year runs, one per calendar year present.
- * Built from the month runs (not `computeRuns` directly on year labels)
- * because the blank gap slot between two months would otherwise fracture a
- * single year's label into multiple pieces around it; going via non-gap
- * month runs merges across those gaps so the year's span stays continuous.
+ * A band's month runs grouped by year. Built from the month runs rather than
+ * the year labels, so the blank gap between months doesn't split a year.
  */
 function computeYearRunsFromMonthRuns(
   monthRuns: RunEntry[],
   yearLabelByWeekIndex: (string | null)[],
 ): RunEntry[] {
-  const realMonthRuns = monthRuns.filter((run) => run.label !== null);
   const runs: RunEntry[] = [];
-  let i = 0;
-
-  while (i < realMonthRuns.length) {
-    const year = yearLabelByWeekIndex[realMonthRuns[i].start];
-    let span = 1;
-    while (
-      i + span < realMonthRuns.length &&
-      yearLabelByWeekIndex[realMonthRuns[i + span].start] === year
-    ) {
-      span += 1;
-    }
-    const lastRun = realMonthRuns[i + span - 1];
-    runs.push({
-      start: realMonthRuns[i].start,
-      span: lastRun.start + lastRun.span - realMonthRuns[i].start,
-      label: year,
-    });
-    i += span;
-  }
-
+  monthRuns.forEach((month) => {
+    if (month.label === null) return;
+    const year = yearLabelByWeekIndex[month.start];
+    const last = runs[runs.length - 1];
+    if (last?.label === year) last.span = month.start + month.span - last.start;
+    else runs.push({ start: month.start, span: month.span, label: year });
+  });
   return runs;
 }
 
-/** How many bands a range will render as, matching `buildHeatmapGridHtml`'s own band-wrapping. */
+/** The range's days placed on the grid, each week-slot's month, and its bands. */
+function layOut(
+  startDate: string,
+  endDate: string,
+  weekStartDay: number,
+  orientation: HeatmapOrientation,
+  splitByMonth: boolean,
+) {
+  const slots = placeDays(
+    parseUTCDate(startDate),
+    parseUTCDate(endDate),
+    weekStartDay,
+    splitByMonth,
+  );
+  const weekCount = countWeeks(slots);
+  const monthLabels = perWeekSlot(slots, weekCount, monthLabel);
+  const bands = computeBandRanges(
+    weekCount,
+    monthLabels,
+    orientation,
+    splitByMonth,
+  );
+  return { slots, weekCount, monthLabels, bands };
+}
+
+/** How many bands a range will render as, matching `buildHeatmapGridHtml`. */
 export function countBandsInRange(
   startDate: string,
   endDate: string,
@@ -312,51 +266,17 @@ export function countBandsInRange(
   orientation: HeatmapOrientation,
   splitByMonth = false,
 ): number {
-  const slots = placeDays(
-    parseUTCDate(startDate),
-    parseUTCDate(endDate),
-    weekStartDay,
-    splitByMonth,
-  );
-  const maxWeekIndex =
-    slots.length === 0 ? -1 : Math.max(...slots.map((s) => s.weekIndex));
-
-  const monthLabelByWeekIndex: (string | null)[] = new Array(
-    maxWeekIndex + 1,
-  ).fill(null);
-  if (splitByMonth) {
-    slots.forEach((slot) => {
-      if (monthLabelByWeekIndex[slot.weekIndex] === null) {
-        monthLabelByWeekIndex[slot.weekIndex] =
-          MONTH_LABELS[slot.date.getUTCMonth()];
-      }
-    });
-  }
-
-  return computeBandRanges(
-    maxWeekIndex,
-    monthLabelByWeekIndex,
-    orientation,
-    splitByMonth,
-  ).length;
+  return layOut(startDate, endDate, weekStartDay, orientation, splitByMonth)
+    .bands.length;
 }
 
 /**
- * Renders a self-contained, fully inline-styled HTML heatmap (CSS Grid via
- * plain `<div>`s — no `<table>`, no `<style>` block, no class-name-based
- * rules) for the given range, blank days included so the shape reads as a
- * real calendar. This mirrors the native plugin's own rendering technique
- * (`display:grid` via inline-styled elements) rather than depending on any
- * external stylesheet — a `<table>` embedded in a Markdown note is subject to
- * Obsidian's own theme table CSS (padding, centering, borders), which fights
- * any styling supplied via an embedded `<style>` tag. Used verbatim by both
- * the Markdown and HTML report exports.
- *
- * `orientation: "columns"` (weeks as columns) matches the native plugin
- * heatmap; `"rows"` (weeks as rows) is a compact alternative. Ranges too
- * long for a single band are cut into multiple, stacked vertically for
- * columns / horizontally for rows — apportioned by whole months when
- * `splitByMonth` is on, by week-slots otherwise (see `computeBandRanges`).
+ * The heatmap as self-contained, inline-styled HTML (a CSS grid of `<div>`s,
+ * blank days included), used by both report formats. Not a `<table>` and no
+ * `<style>` block: inside a Markdown note, Obsidian's theme CSS restyles
+ * both. Columns mode (weeks as columns) matches the in-app heatmap. Ranges
+ * too long for one band wrap into several, by whole months when split by
+ * month and by week-slots otherwise (see `computeBandRanges`).
  */
 export function buildHeatmapGridHtml({
   entriesByDate,
@@ -370,15 +290,12 @@ export function buildHeatmapGridHtml({
   showMonthLabels = false,
   skipWeekends = false,
   legend = [],
-  cellSize = 12,
 }: HeatmapGridOptions): string {
   const start = parseUTCDate(startDate);
   const end = parseUTCDate(endDate);
 
-  const weekdayLabelSource =
-    orientation === "rows" ? WEEKDAY_LABELS_SHORT : WEEKDAY_LABELS;
   const shiftedWeekdayLabels = getShiftedWeekdays(
-    weekdayLabelSource,
+    weekdayLabels(orientation),
     weekStartDay,
   );
   const dayEntries = shiftedWeekdayLabels
@@ -389,73 +306,42 @@ export function buildHeatmapGridHtml({
     }))
     .filter((d) => !skipWeekends || (d.dow !== 0 && d.dow !== 6));
 
-  const slots = placeDays(start, end, weekStartDay, splitByMonth);
-  const maxWeekIndex =
-    slots.length === 0 ? -1 : Math.max(...slots.map((s) => s.weekIndex));
+  const {
+    slots,
+    weekCount,
+    monthLabels: monthLabelByWeekIndex,
+    bands,
+  } = layOut(startDate, endDate, weekStartDay, orientation, splitByMonth);
+  const dateByPosition = new Map(
+    slots.map((slot) => [slot.position, slot.date]),
+  );
+  const dateAt = (weekIndex: number, weekdayIndex: number) =>
+    dateByPosition.get(weekIndex * 7 + weekdayIndex) ?? null;
+  const yearLabelByWeekIndex = perWeekSlot(slots, weekCount, (date) =>
+    String(date.getUTCFullYear()),
+  );
+  // Lets `weekHeaderLabel` tell a real week start from the second half of a
+  // week that a month split pushed into a new slot.
+  const weekStartByWeekIndex = perWeekSlot(slots, weekCount, (date) =>
+    getWeekStartDate(date, weekStartDay),
+  );
 
-  const dateByPosition = new Map<string, Date>();
-  const monthLabelByWeekIndex: (string | null)[] = new Array(
-    maxWeekIndex + 1,
-  ).fill(null);
-  const yearLabelByWeekIndex: (string | null)[] = new Array(
-    maxWeekIndex + 1,
-  ).fill(null);
-  // The calendar week (its Monday-equivalent start) each week-slot's earliest
-  // day belongs to — precomputed once per slot so `weekHeaderLabel` can tell
-  // whether a slot is a genuine week start or just the tail half of a week
-  // that a month-split pushed into a new slot (see below).
-  const weekStartByWeekIndex: (Date | null)[] = new Array(
-    maxWeekIndex + 1,
-  ).fill(null);
-
-  slots.forEach((slot) => {
-    dateByPosition.set(`${slot.weekIndex}:${slot.weekdayIndex}`, slot.date);
-    if (monthLabelByWeekIndex[slot.weekIndex] === null) {
-      monthLabelByWeekIndex[slot.weekIndex] =
-        MONTH_LABELS[slot.date.getUTCMonth()];
-    }
-    if (yearLabelByWeekIndex[slot.weekIndex] === null) {
-      yearLabelByWeekIndex[slot.weekIndex] = String(slot.date.getUTCFullYear());
-    }
-    if (weekStartByWeekIndex[slot.weekIndex] === null) {
-      weekStartByWeekIndex[slot.weekIndex] = getWeekStartDate(
-        slot.date,
-        weekStartDay,
-      );
-    }
-  });
-
-  // Only worth a header row/column when the month header is itself shown
-  // (it reads relative to "on top of"/"left of" the month) and the range
-  // actually crosses a year boundary — a single-year export doesn't need it.
+  // Only with month labels, and only when the range crosses a year.
   const showYearRow =
     showMonthLabels && start.getUTCFullYear() !== end.getUTCFullYear();
 
-  /**
-   * The week-start day-of-month for a slot, or "" if this slot doesn't show
-   * one — either because the option is off, or because this slot is the
-   * *second* half of a week a month-split cut in two (its first half, an
-   * earlier slot, already showed the same date; repeating it here would look
-   * like the same week appearing twice).
-   */
-  function weekHeaderLabel(weekIndex: number): string {
-    if (!showWeekStartDate) return "";
-
+  // The week-start day of month, blank on the second half of a week that a
+  // month split carried into a new slot.
+  const weekHeaderLabel = (weekIndex: number) => {
     const weekStart = weekStartByWeekIndex[weekIndex];
-    if (!weekStart) return "";
-
-    const previousWeekStart =
-      weekIndex > 0 ? weekStartByWeekIndex[weekIndex - 1] : null;
-    const isContinuationOfSplitWeek =
-      previousWeekStart !== null &&
-      previousWeekStart.getTime() === weekStart.getTime();
-    if (isContinuationOfSplitWeek) return "";
-
-    return String(weekStart.getUTCDate());
-  }
+    const previous = weekStartByWeekIndex[weekIndex - 1];
+    return weekStart && previous?.getTime() !== weekStart.getTime()
+      ? String(weekStart.getUTCDate())
+      : "";
+  };
 
   function dayCellDiv(date: Date | null): string {
-    const size = `width:${cellSize}px;height:${cellSize}px;border-radius:2px;`;
+    const size = `width:${CELL_SIZE}px;height:${CELL_SIZE}px;border-radius:2px;`;
 
     if (!date) {
       return `<div style="${size}background-color:transparent;"></div>`;
@@ -487,49 +373,40 @@ export function buildHeatmapGridHtml({
     const items: string[] = [];
 
     if (orientation === "columns") {
-      const gridTemplateColumns = `auto repeat(${bandSize}, ${cellSize}px)`;
+      const gridTemplateColumns = `auto repeat(${bandSize}, ${CELL_SIZE}px)`;
       const numHeaderRows =
         (showYearRow ? 1 : 0) +
         (showMonthLabels ? 1 : 0) +
         (showWeekStartDate ? 1 : 0);
       const gridTemplateRows =
         numHeaderRows > 0
-          ? `repeat(${numHeaderRows}, auto) repeat(${dayEntries.length}, ${cellSize}px)`
-          : `repeat(${dayEntries.length}, ${cellSize}px)`;
+          ? `repeat(${numHeaderRows}, auto) repeat(${dayEntries.length}, ${CELL_SIZE}px)`
+          : `repeat(${dayEntries.length}, ${CELL_SIZE}px)`;
 
       let row = 1;
 
-      if (showYearRow) {
-        yearRuns.forEach((run) => {
+      const headerRuns: [boolean, RunEntry[]][] = [
+        [showYearRow, yearRuns],
+        [showMonthLabels, monthRuns],
+      ];
+      headerRuns.forEach(([shown, runs]) => {
+        if (!shown) return;
+        runs.forEach((run) => {
           const col = 2 + run.start;
           items.push(
-            `<div style="grid-column:${col} / span ${run.span};grid-row:${row};${LABEL_STYLE}">${
-              run.label ? escapeHtml(run.label) : ""
-            }</div>`,
+            `<div style="grid-column:${col} / span ${run.span};grid-row:${row};${LABEL_STYLE}">${escapeHtml(
+              run.label ?? "",
+            )}</div>`,
           );
         });
         row += 1;
-      }
-
-      if (showMonthLabels) {
-        monthRuns.forEach((run) => {
-          const col = 2 + run.start;
-          items.push(
-            `<div style="grid-column:${col} / span ${run.span};grid-row:${row};${LABEL_STYLE}">${
-              run.label ? escapeHtml(run.label) : ""
-            }</div>`,
-          );
-        });
-        row += 1;
-      }
+      });
 
       if (showWeekStartDate) {
         for (let i = 0; i < bandSize; i++) {
           const col = 2 + i;
           items.push(
-            `<div style="grid-column:${col};grid-row:${row};${LABEL_STYLE}">${escapeHtml(
-              weekHeaderLabel(bandStart + i),
-            )}</div>`,
+            `<div style="grid-column:${col};grid-row:${row};${LABEL_STYLE}">${weekHeaderLabel(bandStart + i)}</div>`,
           );
         }
         row += 1;
@@ -542,10 +419,8 @@ export function buildHeatmapGridHtml({
         );
         for (let i = 0; i < bandSize; i++) {
           const col = 2 + i;
-          const date =
-            dateByPosition.get(`${bandStart + i}:${weekdayIndex}`) ?? null;
           items.push(
-            `<div style="grid-column:${col};grid-row:${dayRow};">${dayCellDiv(date)}</div>`,
+            `<div style="grid-column:${col};grid-row:${dayRow};">${dayCellDiv(dateAt(bandStart + i, weekdayIndex))}</div>`,
           );
         }
       });
@@ -560,9 +435,9 @@ export function buildHeatmapGridHtml({
       (showWeekStartDate ? 1 : 0);
     const gridTemplateColumns =
       numLeadingCols > 0
-        ? `repeat(${numLeadingCols}, auto) repeat(${dayEntries.length}, ${cellSize}px)`
-        : `repeat(${dayEntries.length}, ${cellSize}px)`;
-    const gridTemplateRows = `auto repeat(${bandSize}, ${cellSize}px)`;
+        ? `repeat(${numLeadingCols}, auto) repeat(${dayEntries.length}, ${CELL_SIZE}px)`
+        : `repeat(${dayEntries.length}, ${CELL_SIZE}px)`;
+    const gridTemplateRows = `auto repeat(${bandSize}, ${CELL_SIZE}px)`;
 
     let col = 1;
     const yearCol = showYearRow ? col++ : null;
@@ -580,9 +455,9 @@ export function buildHeatmapGridHtml({
       yearRuns.forEach((run) => {
         const rowStart = 2 + run.start;
         items.push(
-          `<div style="grid-column:${yearCol};grid-row:${rowStart} / span ${run.span};${VERTICAL_LABEL_STYLE}">${
-            run.label ? escapeHtml(run.label) : ""
-          }</div>`,
+          `<div style="grid-column:${yearCol};grid-row:${rowStart} / span ${run.span};${VERTICAL_LABEL_STYLE}">${escapeHtml(
+            run.label ?? "",
+          )}</div>`,
         );
       });
     }
@@ -591,9 +466,9 @@ export function buildHeatmapGridHtml({
       monthRuns.forEach((run) => {
         const rowStart = 2 + run.start;
         items.push(
-          `<div style="grid-column:${monthCol};grid-row:${rowStart} / span ${run.span};${SPANNING_LABEL_STYLE}">${
-            run.label ? escapeHtml(run.label) : ""
-          }</div>`,
+          `<div style="grid-column:${monthCol};grid-row:${rowStart} / span ${run.span};${SPANNING_LABEL_STYLE}">${escapeHtml(
+            run.label ?? "",
+          )}</div>`,
         );
       });
     }
@@ -602,17 +477,13 @@ export function buildHeatmapGridHtml({
       const gridRow = 2 + i;
       if (weekHeaderCol !== null) {
         items.push(
-          `<div style="grid-column:${weekHeaderCol};grid-row:${gridRow};${LEADING_LABEL_STYLE}">${escapeHtml(
-            weekHeaderLabel(bandStart + i),
-          )}</div>`,
+          `<div style="grid-column:${weekHeaderCol};grid-row:${gridRow};${LEADING_LABEL_STYLE}">${weekHeaderLabel(bandStart + i)}</div>`,
         );
       }
       dayEntries.forEach(({ weekdayIndex }, j) => {
         const dayCol = firstDayCol + j;
-        const date =
-          dateByPosition.get(`${bandStart + i}:${weekdayIndex}`) ?? null;
         items.push(
-          `<div style="grid-column:${dayCol};grid-row:${gridRow};">${dayCellDiv(date)}</div>`,
+          `<div style="grid-column:${dayCol};grid-row:${gridRow};">${dayCellDiv(dateAt(bandStart + i, weekdayIndex))}</div>`,
         );
       });
     }
@@ -620,14 +491,7 @@ export function buildHeatmapGridHtml({
     return `<div style="display:inline-grid;grid-template-columns:${gridTemplateColumns};grid-template-rows:${gridTemplateRows};gap:2px;align-items:center;justify-items:center;">${items.join("")}</div>`;
   }
 
-  const bandRanges = computeBandRanges(
-    maxWeekIndex,
-    monthLabelByWeekIndex,
-    orientation,
-    splitByMonth,
-  );
-
-  const bandsHtml = bandRanges.map(([s, e]) => buildBandHtml(s, e)).join("");
+  const bandsHtml = bands.map(([s, e]) => buildBandHtml(s, e)).join("");
   const bandsContainerStyle =
     orientation === "columns"
       ? "display:flex;flex-direction:column;gap:8px;align-items:flex-start;"

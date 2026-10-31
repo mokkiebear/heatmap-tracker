@@ -19,23 +19,58 @@
     }
   }
 
+  // Tighter, so the date fields and preset buttons share one line.
+  &__controls--range {
+    column-gap: 0.5em;
+  }
+
+  &__week-start {
+    min-width: 9em;
+  }
+
+  &__presets-config {
+    align-self: center;
+  }
+
   &__presets {
     display: flex;
     gap: 0.3em;
     flex-wrap: wrap;
+
+    button {
+      padding-inline: 10px;
+    }
   }
 
+  // Fills the rest of the save row: vault paths are long.
   &__folder-label {
     display: inline-flex;
+    flex: 1 1 16em;
+    max-width: 36em;
     align-items: center;
     gap: 0.5em;
+
+    input {
+      flex: 1;
+      min-width: 0;
+    }
   }
 
-  &__toggle {
-    display: flex;
-    flex-direction: row !important;
+  // More room between options than within one, so each label reads as
+  // belonging to its own checkbox rather than to the next one.
+  &__controls--toggles {
+    column-gap: 1.5em;
+  }
+
+  // Outranks the `&__controls label` column layout.
+  &__controls &__toggle {
+    flex-direction: row;
     align-items: center;
-    gap: 0.4em !important;
+    gap: 0.5em;
+
+    input {
+      margin: 0;
+    }
   }
 
   &__summary {
@@ -48,6 +83,8 @@
 
   &__actions {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 0.5em;
   }
 
@@ -57,6 +94,33 @@
     border: var(--border-width) solid var(--background-modifier-border);
     border-radius: var(--radius-s);
     background: var(--background-primary);
+  }
+}
+
+// Sized to the date itself: most of a date input's dead space is the picker
+// icon's default leading margin, tightened here. Content-box so the padding
+// can't squeeze the date.
+.heatmap-export input.heatmap-export__date {
+  box-sizing: content-box;
+  width: 7.5em;
+  padding-inline: 6px 4px;
+
+  &::-webkit-calendar-picker-indicator {
+    margin-inline-start: 2px;
+    padding: 0;
+  }
+}
+
+/// The grip a list row is dragged by.
+@mixin drag-handle {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  color: var(--text-faint);
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
   }
 }
 
@@ -70,6 +134,7 @@
   .heatmap-legend-modal__label-input,
   .heatmap-legend-modal__value-input,
   .heatmap-legend-modal__weight-input,
+  .heatmap-legend-modal__gear-button,
   .heatmap-legend-modal__include-toggle {
     opacity: $opacity;
     transition: opacity 0.15s ease;
@@ -77,9 +142,14 @@
 }
 
 .heatmap-legend-modal {
-  &__hint {
+  &__hint,
+  &__empty,
+  &__color-text {
     color: var(--text-muted);
     font-size: var(--font-ui-small);
+  }
+
+  &__hint {
     margin-bottom: 0.75em;
 
     &--italic {
@@ -106,11 +176,8 @@
     align-items: center;
     gap: 0.5em;
     border-radius: var(--radius-s);
-    // Reserved (transparent) so lighting up border-top-color below doesn't
-    // shift layout - a highlighted box around the whole row left it
-    // ambiguous whether the drop would land above or below it; a line
-    // is unambiguous, since a drop always lands immediately before
-    // whichever row it's shown on.
+    // The drop indicator: a line above the row a drop lands before, reserved
+    // so lighting it up doesn't shift the layout.
     border-top: 3px solid transparent;
     transition:
       opacity 0.15s ease,
@@ -135,35 +202,31 @@
     }
   }
 
-  &__include-toggle {
+  &__include-toggle,
+  &__gear-button,
+  &__mode-select {
     flex-shrink: 0;
   }
 
   &__handle {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    color: var(--text-faint);
-    cursor: grab;
+    @include drag-handle;
+  }
 
-    &:active {
-      cursor: grabbing;
-    }
+  &__swatch,
+  &__gradient-strip-swatch {
+    height: 20px;
+    border-radius: var(--radius-s);
+    border: var(--border-width) solid var(--background-modifier-border);
   }
 
   &__swatch {
     width: 20px;
-    height: 20px;
-    border-radius: var(--radius-s);
     flex-shrink: 0;
-    border: var(--border-width) solid var(--background-modifier-border);
   }
 
   &__color-text {
     width: 100px;
     flex-shrink: 0;
-    color: var(--text-muted);
-    font-size: var(--font-ui-small);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -177,32 +240,16 @@
 
   &__gradient-strip-swatch {
     width: 14px;
-    height: 20px;
-    border-radius: var(--radius-s);
-    border: var(--border-width) solid var(--background-modifier-border);
-  }
-
-  &__gear-button {
-    flex-shrink: 0;
   }
 
   &__label-input {
     flex: 1;
   }
 
-  &__value-input {
-    width: 56px;
-    flex-shrink: 0;
-  }
-
+  &__value-input,
   &__weight-input {
     width: 56px;
     flex-shrink: 0;
-  }
-
-  &__empty {
-    color: var(--text-muted);
-    font-size: var(--font-ui-small);
   }
 
   &__button-row {
@@ -212,8 +259,205 @@
     margin-bottom: 0.75em;
     flex-wrap: wrap;
   }
+}
 
-  &__mode-select {
+.heatmap-range-presets-modal {
+  // Same cap as the create modal. Inside it only the body scrolls, so Reset
+  // and Done stay in view however long the preset list grows.
+  max-height: 85vh;
+
+  .modal-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  &__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  &__intro,
+  &__field-label,
+  &__units-ago {
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+  }
+
+  &__intro {
+    margin: 0 0 var(--size-4-3);
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: var(--size-4-1);
+    border: var(--border-width) solid var(--background-modifier-border);
+    border-radius: var(--radius-m);
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-2);
+    padding: 3px var(--size-4-2);
+    border-radius: var(--radius-s);
+    line-height: 1.35;
+    // Same drop indicator as the legend editor, a line above the row a drop
+    // lands before — drawn as an inset shadow so it takes no height.
+    box-shadow: inset 0 3px 0 transparent;
+    transition:
+      background-color 0.1s ease,
+      opacity 0.15s ease,
+      box-shadow 0.15s ease;
+
+    &:hover,
+    &.is-editing {
+      background-color: var(--background-modifier-hover);
+    }
+
+    &.is-dragging {
+      opacity: 0.4;
+    }
+
+    &.is-drag-over {
+      box-shadow: inset 0 3px 0 var(--interactive-accent);
+    }
+
+    &.is-hidden .heatmap-range-presets-modal__text {
+      opacity: 0.45;
+    }
+  }
+
+  &__drop-end {
+    height: var(--size-4-1);
+    border-top: 3px solid transparent;
+
+    &.is-drag-over {
+      border-top-color: var(--interactive-accent);
+    }
+  }
+
+  &__handle {
+    @include drag-handle;
+  }
+
+  &__icon-button {
     flex-shrink: 0;
+
+    &.is-destructive:hover {
+      color: var(--text-error);
+    }
+  }
+
+  &__text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__label {
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-medium, 500);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__detail {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__form {
+    margin-top: var(--size-4-4);
+    padding: var(--size-4-3) var(--size-4-4) var(--size-4-4);
+    border-radius: var(--radius-m);
+    background-color: var(--background-secondary);
+  }
+
+  &__form-heading {
+    margin-bottom: var(--size-4-3);
+    font-weight: var(--font-semibold);
+  }
+
+  &__form-grid {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: center;
+    gap: var(--size-4-2) var(--size-4-4);
+  }
+
+  &__bound {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--size-4-2);
+  }
+
+  &__count {
+    width: 4.5em;
+  }
+
+  // The live result, as a chip so it reads as output rather than a field.
+  &__preview {
+    justify-self: start;
+    padding: 2px var(--size-4-2);
+    border-radius: var(--radius-s);
+    background-color: var(--background-primary);
+    font-size: var(--font-ui-small);
+    font-variant-numeric: tabular-nums;
+
+    // An error is plain text, not a result.
+    &.is-invalid {
+      padding-inline: 0;
+      background-color: transparent;
+      color: var(--text-error);
+    }
+  }
+
+  &__rule {
+    font-size: var(--font-ui-small);
+  }
+
+  &__label-input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  &__hint {
+    margin-top: var(--size-4-3);
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    line-height: 1.5;
+  }
+
+  &__form-buttons,
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--size-4-2);
+  }
+
+  &__form-buttons {
+    margin-top: var(--size-4-3);
+  }
+
+  // Pinned under the scrolling body. Reset is secondary and sits apart on
+  // the left; Done saves and closes on the right.
+  &__footer {
+    flex: none;
+    margin-top: var(--size-4-3);
+    // The bottom padding keeps the buttons' shadows clear of the content's
+    // `overflow: hidden`.
+    padding: var(--size-4-3) 0 2px;
+    border-top: var(--border-width) solid var(--background-modifier-border);
+
+    > :first-child {
+      margin-inline-end: auto;
+    }
   }
 }

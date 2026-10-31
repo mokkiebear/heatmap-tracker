@@ -11,48 +11,36 @@ describe("normalizeColor", () => {
   });
 });
 
+const legend: LegendEntry[] = [
+  { color: "#7BC96F", label: "Workday" },
+  { color: "#8b949e", label: "Leave", valueOverride: 0 },
+];
+
 describe("matchLegendEntry", () => {
-  const legend: LegendEntry[] = [
-    { color: "#7BC96F", label: "Workday" },
-    { color: "#8b949e", label: "Leave", valueOverride: 0 },
-  ];
-
-  it("matches case- and whitespace-insensitively", () => {
-    expect(matchLegendEntry(" #7bc96f ", legend)?.label).toBe("Workday");
-  });
-
-  it("returns undefined when no color is given", () => {
-    expect(matchLegendEntry(undefined, legend)).toBeUndefined();
-  });
-
-  it("returns undefined when no entry matches", () => {
-    expect(matchLegendEntry("#000000", legend)).toBeUndefined();
+  it.each([
+    // Case- and whitespace-insensitively.
+    [" #7bc96f ", "Workday"],
+    [undefined, undefined],
+    ["#000000", undefined],
+  ])("matches %p to %p", (color, label) => {
+    expect(matchLegendEntry(color, legend)?.label).toBe(label);
   });
 });
 
 describe("resolveDisplayValue", () => {
-  const legend: LegendEntry[] = [
-    { color: "#7bc96f", label: "Workday" },
-    { color: "#8b949e", label: "Leave", valueOverride: 0 },
-  ];
-
-  it("returns the override when the matching legend entry has one", () => {
-    expect(resolveDisplayValue(1, "#8b949e", legend)).toBe(0);
-  });
-
-  it("returns the raw value when the matching legend entry has no override", () => {
-    expect(resolveDisplayValue(8, "#7bc96f", legend)).toBe(8);
-  });
-
-  it("returns the raw value when no legend entry matches", () => {
-    expect(resolveDisplayValue(5, "#000000", legend)).toBe(5);
-  });
-
-  it("returns the raw value when there is no legend at all", () => {
-    expect(resolveDisplayValue(5, "#8b949e", [])).toBe(5);
-  });
-
-  it("passes through undefined when there is no raw value and no override applies", () => {
-    expect(resolveDisplayValue(undefined, "#7bc96f", legend)).toBeUndefined();
+  it.each([
+    ["the matching entry's override", 1, "#8b949e", legend, 0],
+    ["the raw value for an entry with no override", 8, "#7bc96f", legend, 8],
+    ["the raw value when no entry matches", 5, "#000000", legend, 5],
+    ["the raw value with no legend", 5, "#8b949e", [], 5],
+    [
+      "undefined with no raw value to pass on",
+      undefined,
+      "#7bc96f",
+      legend,
+      undefined,
+    ],
+  ])("returns %s", (_, raw, color, entries, expected) => {
+    expect(resolveDisplayValue(raw, color, entries)).toBe(expected);
   });
 });

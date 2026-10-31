@@ -8,6 +8,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Added
 - Drop-in compatibility with the unmaintained [heatmap-calendar](https://github.com/Richardsl/heatmap-calendar-obsidian) plugin: `renderHeatmapCalendar()` is now provided by Heatmap Tracker, so existing `dataviewjs` blocks render as-is once the old plugin is disabled — no note edits needed. Its named palettes are read from its plugin data so `colors: "blue"` keeps resolving. Per-entry `color` is ignored; those days use the main palette. Left alone if the old plugin is still enabled, so running both side by side doesn't race over which one wins the global.
+- `countAs` entry field: count a day toward several summary categories, fractionally if needed — e.g. `{ "Workday": 0.5, "Annual Leave": 0.5 }` for a half day of leave that still shows the hours worked.
+- Configurable date-range presets in the export tab: show, hide, reorder and rename them, and add your own from a unit (day to year) and a start and end that are each N periods ago or a fixed date. New quarter presets.
+- HTML exports render notes like reading view: code, callouts, tables, task lists and math (KaTeX; needs an internet connection for its stylesheet).
+
+### Changed
+- The export tab, its dialogs and exported reports follow the plugin language.
+- Default presets are Logged, Last week, WTD, Last month and MTD; Last year and YTD are now hidden by default, alongside the new quarter presets.
+- Exported file names separate the dates with " – " instead of " to ".
+- A more compact export tab: the date fields and preset buttons share one line.
+
+### Fixed
+- A change to the export options made just before leaving the tab is no longer lost.
+- Several translations, e.g. "Legend" in Portuguese and Hindi, and the "Logged" and "Last month" presets.
+- In the legend editor, the gear icon now dims with the rest of a gradient row that is hidden or hidden from summaries.
+- Clicking a row's drag handle without dragging no longer leaves that row draggable from anywhere, in the legend editor and the date-range presets dialog.
 
 ## [2.15.0] - 2026-09-25
 

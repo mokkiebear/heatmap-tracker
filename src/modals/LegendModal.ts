@@ -1,27 +1,15 @@
 import { App, Modal, Setting } from "obsidian";
+import i18n from "src/localization/i18n";
 import { LegendEntry } from "src/utils/report/legend";
 import { normalizeColor } from "src/utils/report/legendMatch";
-import { RowDragController } from "./legendModal/RowDragController";
+import { RowDragController, reorder } from "./legendModal/RowDragController";
 import {
   LegendRowContext,
   renderEntryRow,
   renderGradientGroupRow,
 } from "./legendModal/legendRows";
-import {
-  LegendDisplayMode,
-  mergeLegendWithDefaults,
-  reorderLegendEntries,
-} from "./legendModal/legendEntries";
-
-// Re-exported so existing importers (and tests) keep one entry point for the
-// legend editor's pure helpers.
-export {
-  LegendDisplayMode,
-  aggregateVisibility,
-  mergeLegendWithDefaults,
-  paletteEntriesInOrder,
-  reorderLegendEntries,
-} from "./legendModal/legendEntries";
+import { mergeLegendWithDefaults } from "./legendModal/legendEntries";
+import { LegendDisplayMode } from "src/types";
 
 /**
  * Popup editor for the report's {color, label} legend, driving both the legend
@@ -51,21 +39,15 @@ export {
 export class LegendModal extends Modal {
   private entries: LegendEntry[];
   private listEl: HTMLElement | null = null;
-  private drag = new RowDragController((dragged, target) => {
-    this.entries = reorderLegendEntries(this.entries, dragged, target);
+  private drag = new RowDragController<LegendEntry[]>((dragged, target) => {
+    this.entries = reorder(this.entries, dragged, target);
     this.renderRows();
   });
 
   constructor(
     app: App,
     initialEntries: LegendEntry[],
-    /**
-     * Every color used ANYWHERE in the whole calendar, not just within the
-     * export's currently selected date range (see `buildRefreshBaseline`) -
-     * shared by "Refresh" (merge it in, keeping existing customizations) and
-     * "Reset" (discard everything and clone it fresh), so neither one shows
-     * a narrower set of colors than the other depending on which is clicked.
-     */
+    /** What "Refresh" merges in and "Reset" restores (see `buildRefreshBaseline`). */
     private baseline: LegendEntry[],
     private colorsList: string[],
     private legendMode: LegendDisplayMode,
@@ -84,11 +66,11 @@ export class LegendModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
     this.modalEl.addClass("heatmap-legend-modal");
-    this.setTitle("Calendar legend");
+    this.setTitle(i18n.t("report.legendEditor.title"));
 
     contentEl.createEl("p", {
       cls: "heatmap-legend-modal__hint",
-      text: "Define the meaning of each calendar color for legend and summary.",
+      text: i18n.t("report.legendEditor.intro"),
     });
 
     this.listEl = contentEl.createDiv({ cls: "heatmap-legend-modal__list" });
@@ -97,24 +79,17 @@ export class LegendModal extends Modal {
     const footnote = contentEl.createEl("p", {
       cls: "heatmap-legend-modal__footnote",
     });
-    footnote.appendText(
-      "Drag rows to reorder. Click the eye to cycle through shown, summary-hidden, and fully hidden.",
-    );
+    footnote.appendText(i18n.t("report.legendEditor.reorderHint"));
     footnote.createEl("br");
-    footnote.appendText(
-      "Optionally set fixed values to make every day in that category use the same value.",
-    );
+    footnote.appendText(i18n.t("report.legendEditor.valueHint"));
 
     this.renderButtonRow(contentEl);
 
     new Setting(contentEl).addButton((btn) =>
       btn
-        .setButtonText("Done")
+        .setButtonText(i18n.t("report.actions.done"))
         .setCta()
         .onClick(() => {
-          // Every row is already a real, meaningful color slot (auto-
-          // populated by the caller) - there's no "untouched Add row" junk
-          // to filter out anymore, so entries are saved exactly as edited.
           this.onSave(this.entries, this.legendMode, this.gradientLabel);
           this.close();
         }),
@@ -130,17 +105,18 @@ export class LegendModal extends Modal {
       cls: "heatmap-legend-modal__button-row",
     });
 
-    // "dropdown" is Obsidian's own class for select elements (applied
-    // automatically by its DropdownComponent elsewhere) - without it, a bare
-    // <select> picks up the same border/background/height as a <button> and
-    // reads as one more button in the row instead of a distinct dropdown.
+    // Obsidian's own dropdown class; a bare <select> in this row would be
+    // styled like the buttons beside it.
     const modeSelect = buttonRow.createEl("select", {
       cls: "heatmap-legend-modal__mode-select dropdown",
     });
-    modeSelect.createEl("option", { value: "separate", text: "Separate rows" });
+    modeSelect.createEl("option", {
+      value: "separate",
+      text: i18n.t("report.legendEditor.separateRows"),
+    });
     modeSelect.createEl("option", {
       value: "gradient",
-      text: "Single gradient row",
+      text: i18n.t("report.legendEditor.gradientRow"),
     });
     modeSelect.value = this.legendMode;
     modeSelect.addEventListener("change", () => {
@@ -149,11 +125,8 @@ export class LegendModal extends Modal {
     });
 
     const refreshBtn = buttonRow.createEl("button", {
-      attr: {
-        "aria-label":
-          "Fetch new colors and drop stale ones, keeping everything else as-is",
-      },
-      text: "Refresh colors",
+      attr: { "aria-label": i18n.t("report.legendEditor.refreshTooltip") },
+      text: i18n.t("report.legendEditor.refreshColors"),
     });
     refreshBtn.addEventListener("click", () => {
       this.entries = mergeLegendWithDefaults(this.entries, this.baseline);
@@ -162,8 +135,8 @@ export class LegendModal extends Modal {
 
     const resetBtn = buttonRow.createEl("button", {
       cls: "mod-warning",
-      attr: { "aria-label": "Discard all customizations and start over" },
-      text: "Reset",
+      attr: { "aria-label": i18n.t("report.legendEditor.resetTooltip") },
+      text: i18n.t("report.actions.reset"),
     });
     resetBtn.addEventListener("click", () => {
       this.entries = this.baseline.map((entry) => ({ ...entry }));
@@ -193,7 +166,7 @@ export class LegendModal extends Modal {
     if (this.entries.length === 0) {
       container.createSpan({
         cls: "heatmap-legend-modal__empty",
-        text: "No legend entries yet.",
+        text: i18n.t("report.legendEditor.empty"),
       });
       return;
     }
@@ -205,10 +178,8 @@ export class LegendModal extends Modal {
       return;
     }
 
-    // The group row renders wherever the palette-color block currently sits
-    // in `this.entries` (at the position of the first palette-color entry
-    // encountered) rather than always first - that's what makes it draggable
-    // to a genuinely different position, not just visually fixed up front.
+    // The group row sits where the first palette entry sits, which is what
+    // lets it be dragged.
     const paletteColors = new Set(this.colorsList.map(normalizeColor));
     const paletteBlock = this.entries.filter((entry) =>
       paletteColors.has(normalizeColor(entry.color)),

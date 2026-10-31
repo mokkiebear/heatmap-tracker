@@ -1,28 +1,24 @@
 import { useTranslation } from "src/localization/useTranslation";
 import { HeatmapOrientation } from "src/utils/report/heatmapHtml";
+import { SettingsIcon } from "src/components/icons/SettingsIcon";
 import { ExportOptions } from "./useExportOptions";
-import { RangePreset } from "./exportRange";
+import { DateSpan } from "./exportRange";
 
-// Only these two conventions are common enough to offer; anything else is
-// normalized to Monday (see `initialOptions`).
-const WEEK_START_DAY_OPTIONS = [
-  { value: 1, key: "Monday" },
-  { value: 0, key: "Sunday" },
-] as const;
+/** A visible preset button, already labelled. */
+export interface PresetButton {
+  id: string;
+  label: string;
+  span: () => DateSpan | null;
+}
 
-/** Booleans rendered as a plain checkbox row, in display order. */
-const TOGGLE_GROUPS: { key: keyof ExportOptions; label: string }[][] = [
-  [
-    { key: "splitByMonth", label: "report.splitByMonth" },
-    { key: "showMonthLabels", label: "report.showMonthLabels" },
-    { key: "showWeekStartDate", label: "report.showWeekStartDate" },
-    { key: "skipWeekends", label: "report.skipWeekends" },
-  ],
-  [
-    { key: "hideSummary", label: "report.hideSummary" },
-    { key: "hideTotalValue", label: "report.hideTotalValue" },
-    { key: "hideAllValues", label: "report.hideAllValues" },
-  ],
+type Toggle = {
+  [K in keyof ExportOptions]: ExportOptions[K] extends boolean ? K : never;
+}[keyof ExportOptions];
+
+/** Checkbox rows, in display order, each labelled `report.<option>`. */
+export const TOGGLE_GROUPS: Toggle[][] = [
+  ["splitByMonth", "showMonthLabels", "showWeekStartDate", "skipWeekends"],
+  ["hideSummary", "hideTotalValue", "hideAllValues"],
 ];
 
 interface Props {
@@ -31,7 +27,8 @@ interface Props {
     key: K,
     value: ExportOptions[K],
   ) => void;
-  presets: RangePreset[];
+  presets: PresetButton[];
+  onConfigurePresets: () => void;
   onEditLegend: () => void;
 }
 
@@ -39,11 +36,12 @@ function ExportOptionsForm({
   options,
   setOption,
   presets,
+  onConfigurePresets,
   onEditLegend,
 }: Props) {
   const { t } = useTranslation();
 
-  function applyPreset(preset: RangePreset) {
+  function applyPreset(preset: PresetButton) {
     const range = preset.span();
     if (!range) return;
     setOption("startDate", range.start);
@@ -52,13 +50,13 @@ function ExportOptionsForm({
 
   return (
     <>
-      <div className="heatmap-export__controls">
+      <div className="heatmap-export__controls heatmap-export__controls--range">
         <label>
           {t("report.startDate")}
           <input
             type="date"
+            className="heatmap-export__date"
             value={options.startDate}
-            aria-label={t("report.startDate")}
             onChange={(e) => setOption("startDate", e.currentTarget.value)}
           />
         </label>
@@ -66,17 +64,24 @@ function ExportOptionsForm({
           {t("report.endDate")}
           <input
             type="date"
+            className="heatmap-export__date"
             value={options.endDate}
-            aria-label={t("report.endDate")}
             onChange={(e) => setOption("endDate", e.currentTarget.value)}
           />
         </label>
         <div className="heatmap-export__presets">
           {presets.map((preset) => (
-            <button key={preset.key} onClick={() => applyPreset(preset)}>
-              {t(`report.${preset.key}`)}
+            <button key={preset.id} onClick={() => applyPreset(preset)}>
+              {preset.label}
             </button>
           ))}
+          <button
+            className="clickable-icon heatmap-export__presets-config"
+            aria-label={t("report.configurePresets")}
+            onClick={onConfigurePresets}
+          >
+            <SettingsIcon />
+          </button>
         </div>
       </div>
 
@@ -97,15 +102,13 @@ function ExportOptionsForm({
         <label>
           {t("report.weekStartDay")}
           <select
-            className="dropdown"
+            className="dropdown heatmap-export__week-start"
             value={options.weekStartDay}
             onChange={(e) => setOption("weekStartDay", Number(e.target.value))}
           >
-            {WEEK_START_DAY_OPTIONS.map(({ value, key }) => (
-              <option key={key} value={value}>
-                {t(`weekdaysLong.${key}`)}
-              </option>
-            ))}
+            {/* Only these two are common enough to offer (see `initialOptions`). */}
+            <option value={1}>{t("weekdaysLong.Monday")}</option>
+            <option value={0}>{t("weekdaysLong.Sunday")}</option>
           </select>
         </label>
         <label>
@@ -124,17 +127,18 @@ function ExportOptionsForm({
       </div>
 
       {TOGGLE_GROUPS.map((group, index) => (
-        <div className="heatmap-export__controls" key={index}>
-          {group.map(({ key, label }) => (
+        <div
+          className="heatmap-export__controls heatmap-export__controls--toggles"
+          key={index}
+        >
+          {group.map((key) => (
             <label className="heatmap-export__toggle" key={key}>
               <input
                 type="checkbox"
-                checked={options[key] as boolean}
-                onChange={(e) =>
-                  setOption(key, e.target.checked as ExportOptions[typeof key])
-                }
+                checked={options[key]}
+                onChange={(e) => setOption(key, e.target.checked)}
               />
-              {t(label)}
+              {t(`report.${key}`)}
             </label>
           ))}
         </div>

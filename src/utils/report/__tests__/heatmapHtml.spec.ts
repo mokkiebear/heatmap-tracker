@@ -2,14 +2,38 @@ import { Entry } from "src/types";
 import { addDays, formatDateToISO8601, parseUTCDate } from "src/utils/date";
 import {
   EMPTY_CELL_COLOR,
+  HeatmapGridOptions,
   MAX_WEEKS_PER_BAND,
   buildHeatmapGridHtml,
   countBandsInRange,
-  countWeeksInRange,
   escapeHtml,
 } from "../heatmapHtml";
 
 const colorsList = ["#ebedf0", "#c6e48b", "#7bc96f", "#239a3b", "#196127"];
+
+/** A grid over `startDate`–`endDate`, empty, Monday-start, weeks as columns, unless overridden. */
+function grid(
+  startDate: string,
+  endDate: string,
+  overrides: Partial<HeatmapGridOptions> = {},
+): string {
+  return buildHeatmapGridHtml({
+    entriesByDate: {},
+    colorsList,
+    startDate,
+    endDate,
+    weekStartDay: 1,
+    orientation: "columns",
+    ...overrides,
+  });
+}
+
+/** The inline style of the label div whose text is `text`. */
+function styleOf(html: string, text: string): string {
+  const match = html.match(new RegExp(`style="([^"]*)">${text}</div>`));
+  if (!match) throw new Error(`No label "${text}" in the grid`);
+  return match[1];
+}
 
 function countDayCells(html: string): number {
   return (
@@ -41,63 +65,9 @@ describe("escapeHtml", () => {
   });
 });
 
-describe("countWeeksInRange", () => {
-  it("counts a single week-slot spanning part of the range", () => {
-    expect(countWeeksInRange("2026-07-13", "2026-07-15", 1)).toBe(1);
-  });
-
-  it("counts multiple week-slots", () => {
-    expect(countWeeksInRange("2026-07-13", "2026-07-20", 1)).toBe(2);
-  });
-
-  it("counts extra week-slots inserted by month gaps when splitByMonth is on", () => {
-    const without = countWeeksInRange("2026-06-01", "2026-07-19", 1, false);
-    const withGaps = countWeeksInRange("2026-06-01", "2026-07-19", 1, true);
-    expect(withGaps).toBeGreaterThan(without);
-  });
-});
-
-describe("countBandsInRange", () => {
-  it("fits a 12-month range in 2 bands for columns (max 8 months/band)", () => {
-    expect(
-      countBandsInRange("2025-01-01", "2025-12-31", 1, "columns", true),
-    ).toBe(2);
-  });
-
-  it("fits the same 12-month range in 2 bands for rows too (max 6 months/band)", () => {
-    expect(countBandsInRange("2025-01-01", "2025-12-31", 1, "rows", true)).toBe(
-      2,
-    );
-  });
-
-  it("a 7-month range needs only 1 band for columns but 2 for rows", () => {
-    expect(
-      countBandsInRange("2025-01-01", "2025-07-31", 1, "columns", true),
-    ).toBe(1);
-    expect(countBandsInRange("2025-01-01", "2025-07-31", 1, "rows", true)).toBe(
-      2,
-    );
-  });
-
-  it("falls back to week-slot counting when splitByMonth is off", () => {
-    const start = "2025-01-06"; // a Monday
-    const longEnd = formatDateToISO8601(
-      addDays(parseUTCDate(start), 60 * 7 - 1),
-    ) as string; // 60-week span
-    expect(countBandsInRange(start, longEnd, 1, "columns", false)).toBe(2);
-  });
-});
-
 describe("buildHeatmapGridHtml", () => {
   it("renders as an inline CSS grid, left-aligned and never as a <table>", () => {
-    const html = buildHeatmapGridHtml({
-      entriesByDate: {},
-      colorsList,
-      startDate: "2026-07-13",
-      endDate: "2026-07-15",
-      weekStartDay: 1,
-      orientation: "columns",
-    });
+    const html = grid("2026-07-13", "2026-07-15");
 
     expect(html).toContain("display:inline-grid");
     expect(html).toContain('style="display:block;margin:0;text-align:left;"');
@@ -105,34 +75,19 @@ describe("buildHeatmapGridHtml", () => {
     expect(html).not.toContain("<style>");
   });
 
-  it("renders transparent cells for days outside the range, within the grid's one week-slot", () => {
-    const html = buildHeatmapGridHtml({
-      entriesByDate: {},
-      colorsList,
-      startDate: "2026-07-13",
-      endDate: "2026-07-15",
-      weekStartDay: 1,
-      orientation: "columns",
-    });
+  it.each(["columns", "rows"] as const)(
+    "pads the range's one week-slot with transparent cells in %s mode",
+    (orientation) => {
+      const html = grid("2026-07-13", "2026-07-15", { orientation });
 
-    // 3 in-range days (colored with the empty-cell fallback) + 4 out-of-range (transparent).
-    expect(countDayCells(html)).toBe(7);
-    expect(countTransparentCells(html)).toBe(4);
-  });
-
-  it("produces the same cell counts in rows orientation (transposed)", () => {
-    const html = buildHeatmapGridHtml({
-      entriesByDate: {},
-      colorsList,
-      startDate: "2026-07-13",
-      endDate: "2026-07-15",
-      weekStartDay: 1,
-      orientation: "rows",
-    });
-
-    expect(countDayCells(html)).toBe(7);
-    expect(countTransparentCells(html)).toBe(4);
-  });
+      // 3 in-range days, blank so in the theme border color, + 4 outside it.
+      expect(countDayCells(html)).toBe(7);
+      expect(countTransparentCells(html)).toBe(4);
+      expect(html.split(`background-color:${EMPTY_CELL_COLOR}`)).toHaveLength(
+        4,
+      );
+    },
+  );
 
   it("colors in-range cells from customColor first, then mapped intensity", () => {
     const entriesByDate: Record<string, Entry> = {
@@ -145,14 +100,7 @@ describe("buildHeatmapGridHtml", () => {
       "2026-07-14": { date: "2026-07-14", value: 5, intensity: 2 },
     };
 
-    const html = buildHeatmapGridHtml({
-      entriesByDate,
-      colorsList,
-      startDate: "2026-07-13",
-      endDate: "2026-07-14",
-      weekStartDay: 1,
-      orientation: "columns",
-    });
+    const html = grid("2026-07-13", "2026-07-14", { entriesByDate });
 
     expect(html).toContain("background-color:#d18616");
     expect(html).toContain(`background-color:${colorsList[1]}`);
@@ -170,13 +118,8 @@ describe("buildHeatmapGridHtml", () => {
       },
     };
 
-    const html = buildHeatmapGridHtml({
+    const html = grid("2026-07-13", "2026-07-13", {
       entriesByDate,
-      colorsList,
-      startDate: "2026-07-13",
-      endDate: "2026-07-13",
-      weekStartDay: 1,
-      orientation: "columns",
       legend: [{ color: "#8b949e", label: "Leave", valueOverride: 0 }],
     });
 
@@ -184,36 +127,9 @@ describe("buildHeatmapGridHtml", () => {
     expect(html).not.toContain('title="2026-07-13: 1"');
   });
 
-  it("falls back to the theme border color for blank in-range days", () => {
-    const html = buildHeatmapGridHtml({
-      entriesByDate: {},
-      colorsList,
-      startDate: "2026-07-13",
-      endDate: "2026-07-13",
-      weekStartDay: 1,
-      orientation: "columns",
-    });
-
-    expect(html).toContain(`background-color:${EMPTY_CELL_COLOR}`);
-  });
-
   it("shifts the weekday header order to match weekStartDay, in columns mode's full-name labels", () => {
-    const htmlMonday = buildHeatmapGridHtml({
-      entriesByDate: {},
-      colorsList,
-      startDate: "2026-07-13",
-      endDate: "2026-07-19",
-      weekStartDay: 1,
-      orientation: "columns",
-    });
-    const htmlSunday = buildHeatmapGridHtml({
-      entriesByDate: {},
-      colorsList,
-      startDate: "2026-07-13",
-      endDate: "2026-07-19",
-      weekStartDay: 0,
-      orientation: "columns",
-    });
+    const htmlMonday = grid("2026-07-13", "2026-07-19");
+    const htmlSunday = grid("2026-07-13", "2026-07-19", { weekStartDay: 0 });
 
     expect(htmlMonday.indexOf(">Mon<")).toBeLessThan(
       htmlMonday.indexOf(">Sun<"),
@@ -224,467 +140,158 @@ describe("buildHeatmapGridHtml", () => {
   });
 
   it("uses single-letter weekday labels in rows mode, where they're column headers", () => {
-    const html = buildHeatmapGridHtml({
-      entriesByDate: {},
-      colorsList,
-      startDate: "2026-07-13",
-      endDate: "2026-07-19",
-      weekStartDay: 1,
-      orientation: "rows",
-    });
+    const html = grid("2026-07-13", "2026-07-19", { orientation: "rows" });
 
     expect(html).not.toContain(">Mon<");
     expect(html).toContain(">M<");
   });
 
-  it("omits week header labels when neither week-number nor week-start-date is requested", () => {
-    const html = buildHeatmapGridHtml({
-      entriesByDate: {},
-      colorsList,
-      startDate: "2026-07-13",
-      endDate: "2026-07-19",
-      weekStartDay: 1,
-      orientation: "columns",
-    });
-
-    expect(html).not.toContain("Wk ");
-  });
-
   it("shows the week-start day-of-month number when requested", () => {
-    const html = buildHeatmapGridHtml({
-      entriesByDate: {},
-      colorsList,
-      startDate: "2026-07-13",
-      endDate: "2026-07-19",
-      weekStartDay: 1,
-      orientation: "columns",
-      showWeekStartDate: true,
-    });
+    const html = grid("2026-07-13", "2026-07-19", { showWeekStartDate: true });
 
     expect(html).toContain(">13<");
   });
 
   describe("band wrapping", () => {
     const start = "2025-01-06"; // a Monday
+    const longWeeks = 60;
     const longEnd = formatDateToISO8601(
-      addDays(parseUTCDate(start), 60 * 7 - 1),
-    ) as string; // 60-week span
+      addDays(parseUTCDate(start), longWeeks * 7 - 1),
+    ) as string;
 
-    it("renders a single grid (one band) for a short range", () => {
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2026-07-13",
-        endDate: "2026-07-19",
-        weekStartDay: 1,
-        orientation: "columns",
-      });
-
-      expect((html.match(/display:inline-grid/g) ?? []).length).toBe(1);
-    });
-
-    it("cuts a range longer than MAX_WEEKS_PER_BAND into multiple bands, stacked vertically for columns", () => {
-      expect(countWeeksInRange(start, longEnd, 1)).toBeGreaterThan(
-        MAX_WEEKS_PER_BAND,
-      );
-
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: start,
-        endDate: longEnd,
-        weekStartDay: 1,
-        orientation: "columns",
-      });
-
-      expect((html.match(/display:inline-grid/g) ?? []).length).toBe(2);
-      expect(html).toContain("flex-direction:column");
-    });
-
-    it("cuts the same long range into multiple bands, stacked horizontally for rows", () => {
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: start,
-        endDate: longEnd,
-        weekStartDay: 1,
-        orientation: "rows",
-      });
-
-      expect((html.match(/display:inline-grid/g) ?? []).length).toBe(2);
-      expect(html).toContain("flex-direction:row");
-    });
-
-    it("evens out months across bands instead of front-loading the max into the first one", () => {
-      // 12 months over the columns cap of 10/band should split 6+6, not 10+2.
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2025-01-01",
-        endDate: "2025-12-31",
-        weekStartDay: 1,
-        orientation: "columns",
-        splitByMonth: true,
-        showMonthLabels: true,
-      });
-
-      const bands = splitBands(html);
-      expect(bands).toHaveLength(2);
-      expect(bands.map(countMonthLabels)).toEqual([6, 6]);
-    });
-
-    it("uses a smaller per-band month cap for rows than columns", () => {
-      // Same 7-month range: fits in 1 band for columns (cap 8), needs 2 for rows (cap 6).
-      const columnsHtml = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2025-01-01",
-        endDate: "2025-07-31",
-        weekStartDay: 1,
-        orientation: "columns",
-        splitByMonth: true,
-        showMonthLabels: true,
-      });
-      const rowsHtml = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2025-01-01",
-        endDate: "2025-07-31",
-        weekStartDay: 1,
-        orientation: "rows",
-        splitByMonth: true,
-        showMonthLabels: true,
-      });
-
-      expect(splitBands(columnsHtml)).toHaveLength(1);
-      const rowsBands = splitBands(rowsHtml);
-      expect(rowsBands).toHaveLength(2);
-      expect(rowsBands.map(countMonthLabels)).toEqual([4, 3]);
-    });
-
-    it("keeps the 6-month-per-band cap for rows at exactly 24 months (4 bands)", () => {
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2024-01-01",
-        endDate: "2025-12-31", // 24 months
-        weekStartDay: 1,
-        orientation: "rows",
-        splitByMonth: true,
-        showMonthLabels: true,
-      });
-
-      const bands = splitBands(html);
-      expect(bands).toHaveLength(4);
-      expect(bands.map(countMonthLabels)).toEqual([6, 6, 6, 6]);
-    });
-
-    it("caps rows mode at 4 bands total beyond 24 months, growing per-band count instead", () => {
-      // 42 months: 42/4 = 10.5 -> 11 per band, last band gets the remainder.
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2023-01-01",
-        endDate: "2026-06-30", // 42 months
-        weekStartDay: 1,
-        orientation: "rows",
-        splitByMonth: true,
-        showMonthLabels: true,
-      });
-
-      const bands = splitBands(html);
-      expect(bands).toHaveLength(4);
-      expect(bands.map(countMonthLabels)).toEqual([11, 11, 11, 9]);
-    });
-
-    it("does not cap columns mode's band count the same way", () => {
-      // Same 42-month range: columns has no band-count cap, only an
-      // 8-months-per-band cap, so it should use 6 bands (ceil(42/8)), not 4.
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2023-01-01",
-        endDate: "2026-06-30",
-        weekStartDay: 1,
-        orientation: "columns",
-        splitByMonth: true,
-        showMonthLabels: true,
-      });
-
-      const bands = splitBands(html);
-      expect(bands).toHaveLength(6);
-      bands.forEach((band) =>
-        expect(countMonthLabels(band)).toBeLessThanOrEqual(8),
+    it("stacks bands down for columns and across for rows", () => {
+      expect(longWeeks).toBeGreaterThan(MAX_WEEKS_PER_BAND);
+      expect(grid(start, longEnd)).toContain("flex-direction:column");
+      expect(grid(start, longEnd, { orientation: "rows" })).toContain(
+        "flex-direction:row",
       );
     });
+
+    it.each([
+      ["2026-07-13", "2026-07-19", "columns", 1],
+      [start, longEnd, "columns", 2],
+      [start, longEnd, "rows", 2],
+    ] as const)(
+      "cuts %s to %s into week-slot bands in %s mode: %i",
+      (from, to, orientation, bands) => {
+        expect(splitBands(grid(from, to, { orientation }))).toHaveLength(bands);
+        expect(countBandsInRange(from, to, 1, orientation)).toBe(bands);
+      },
+    );
+
+    it.each([
+      // Spread evenly (caps: 8 months a band for columns, 6 for rows), not
+      // filled to the cap with a small leftover band.
+      ["2025-01-01", "2025-12-31", "columns", [6, 6]],
+      ["2025-01-01", "2025-12-31", "rows", [6, 6]],
+      ["2025-01-01", "2025-07-31", "columns", [7]],
+      ["2025-01-01", "2025-07-31", "rows", [4, 3]],
+      ["2024-01-01", "2025-12-31", "rows", [6, 6, 6, 6]],
+      // Rows stop at 4 bands and grow each one instead; columns have no cap.
+      ["2023-01-01", "2026-06-30", "rows", [11, 11, 11, 9]],
+      ["2023-01-01", "2026-06-30", "columns", [7, 7, 7, 7, 7, 7]],
+    ] as const)(
+      "cuts %s to %s into month bands in %s mode: %j",
+      (from, to, orientation, months) => {
+        const html = grid(from, to, {
+          orientation,
+          splitByMonth: true,
+          showMonthLabels: true,
+        });
+
+        expect(splitBands(html).map(countMonthLabels)).toEqual(months);
+        expect(countBandsInRange(from, to, 1, orientation, true)).toBe(
+          months.length,
+        );
+      },
+    );
   });
 
   describe("year header", () => {
-    it("shows a year row above the month row in columns mode, when the range spans multiple years", () => {
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2025-12-01",
-        endDate: "2026-02-28",
-        weekStartDay: 1,
-        orientation: "columns",
-        splitByMonth: true,
-        showMonthLabels: true,
-      });
+    it.each([
+      ["columns", /grid-row:1;/],
+      ["rows", /^grid-column:1;grid-row:\d+ \/ span/],
+    ] as const)(
+      "comes before the month header in %s mode across years",
+      (orientation, yearStyle) => {
+        const html = grid("2025-12-01", "2026-02-28", {
+          orientation,
+          splitByMonth: true,
+          showMonthLabels: true,
+        });
 
-      expect(html).toContain(">2025<");
-      expect(html).toContain(">2026<");
-      // The year row is pushed first (grid-row 1), the month row after it.
-      expect(html.indexOf(">2025<")).toBeLessThan(html.indexOf(">Dec<"));
-      expect(html).toMatch(/grid-row:1;[^"]*">2025</);
+        expect(html).toContain(">2026<");
+        expect(html.indexOf(">2025<")).toBeLessThan(html.indexOf(">Dec<"));
+        expect(styleOf(html, "2025")).toMatch(yearStyle);
+      },
+    );
+
+    it("rotates only the rows-mode year label, and spaces both leading columns", () => {
+      const range = ["2025-12-01", "2026-02-28"] as const;
+      const labels = { splitByMonth: true, showMonthLabels: true };
+      const rows = grid(...range, { ...labels, orientation: "rows" });
+      const columns = grid(...range, labels);
+
+      // A year run spans many months; written normally it would widen every
+      // side-by-side band.
+      expect(styleOf(rows, "2025")).toContain("writing-mode:vertical-rl");
+      expect(styleOf(rows, "Dec")).not.toContain("writing-mode");
+      expect(styleOf(rows, "Dec")).toContain("justify-content:center");
+      expect(styleOf(rows, "2025")).toContain("margin-right:4px");
+      expect(styleOf(rows, "Dec")).toContain("margin-right:4px");
+      expect(columns).not.toContain("writing-mode");
     });
 
-    it("shows a year column to the left of the month column in rows mode", () => {
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2025-12-01",
-        endDate: "2026-02-28",
-        weekStartDay: 1,
-        orientation: "rows",
-        splitByMonth: true,
-        showMonthLabels: true,
-      });
+    it.each([
+      ["within a single year", "2025-01-01", "2025-07-31", true],
+      ["without month labels", "2025-12-01", "2026-02-28", false],
+    ])("is left out %s", (_, from, to, showMonthLabels) => {
+      const html = grid(from, to, { splitByMonth: true, showMonthLabels });
 
-      expect(html).toContain(">2025<");
-      expect(html).toContain(">2026<");
-      // Year sits in column 1, month in column 2 — year renders first.
-      expect(html.indexOf(">2025<")).toBeLessThan(html.indexOf(">Dec<"));
-      expect(html).toMatch(
-        /grid-column:1;grid-row:\d+ \/ span \d+;[^"]*">2025</,
-      );
-    });
-
-    it("renders the rows-mode year label with vertical text, to stay narrow across many side-by-side bands", () => {
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2025-12-01",
-        endDate: "2026-02-28",
-        weekStartDay: 1,
-        orientation: "rows",
-        splitByMonth: true,
-        showMonthLabels: true,
-      });
-
-      expect(html).toMatch(
-        /grid-column:1;grid-row:\d+ \/ span \d+;[^"]*writing-mode:vertical-rl[^"]*">2025</,
-      );
-    });
-
-    it("renders the rows-mode month label horizontally, centered across its whole span (unlike the rotated year column)", () => {
-      // Mirrors columns mode centering its own month header horizontally
-      // across the week-columns it spans (LABEL_STYLE) - here on the other
-      // axis. Still spans the whole multi-row run and centers within it,
-      // same as the year column - just not rotated, since a month name is
-      // short enough to read normally there.
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2025-12-01",
-        endDate: "2026-02-28",
-        weekStartDay: 1,
-        orientation: "rows",
-        splitByMonth: true,
-        showMonthLabels: true,
-      });
-
-      const decMatch = html.match(
-        /<div style="grid-column:2;grid-row:\d+ \/ span \d+;([^"]*)">Dec<\/div>/,
-      );
-      expect(decMatch).not.toBeNull();
-      const [, style] = decMatch as RegExpMatchArray;
-      expect(style).not.toContain("writing-mode");
-      expect(style).toContain("justify-content:center");
-    });
-
-    it("gives the rows-mode year and month leading columns breathing room from their neighbors", () => {
-      // With weekends shown and week-start-date on too, the year, month, and
-      // week-start-date columns sit right next to each other with only the
-      // grid's 2px gap between them, which read as touching/overlapping.
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2025-12-01",
-        endDate: "2026-02-28",
-        weekStartDay: 1,
-        orientation: "rows",
-        splitByMonth: true,
-        showMonthLabels: true,
-        showWeekStartDate: true,
-        skipWeekends: false,
-      });
-
-      // Year column (col 1) spans its whole multi-row run.
-      expect(html).toMatch(
-        /grid-column:1;grid-row:\d+ \/ span \d+;[^"]*margin-right:4px[^"]*">2025</,
-      );
-      // Month column (col 2) does too.
-      expect(html).toMatch(
-        /grid-column:2;grid-row:\d+ \/ span \d+;[^"]*margin-right:4px[^"]*">Dec</,
-      );
-    });
-
-    it("keeps the columns-mode year row horizontal (not rotated)", () => {
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2025-12-01",
-        endDate: "2026-02-28",
-        weekStartDay: 1,
-        orientation: "columns",
-        splitByMonth: true,
-        showMonthLabels: true,
-      });
-
-      expect(html).not.toContain("writing-mode");
-    });
-
-    it("omits the year header when the range stays within a single year", () => {
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2025-01-01",
-        endDate: "2025-07-31",
-        weekStartDay: 1,
-        orientation: "columns",
-        splitByMonth: true,
-        showMonthLabels: true,
-      });
-
-      expect(html).not.toContain(">2025<");
-    });
-
-    it("omits the year header when month labels are off, even across a year boundary", () => {
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2025-12-01",
-        endDate: "2026-02-28",
-        weekStartDay: 1,
-        orientation: "columns",
-        splitByMonth: true,
-        showMonthLabels: false,
-      });
-
-      expect(html).not.toContain(">2025<");
-      expect(html).not.toContain(">2026<");
+      expect(html).not.toMatch(/>20\d\d</);
     });
   });
 
-  describe("skipWeekends", () => {
-    it("renders only 5 day-cells per week in columns orientation", () => {
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2026-07-13", // Mon
-        endDate: "2026-07-19", // Sun, one full week
-        weekStartDay: 1,
-        orientation: "columns",
+  it.each(["columns", "rows"] as const)(
+    "renders only 5 weekdays with skipWeekends in %s mode",
+    (orientation) => {
+      // Mon to Sun, one full week.
+      const html = grid("2026-07-13", "2026-07-19", {
+        orientation,
         skipWeekends: true,
       });
 
       expect(countDayCells(html)).toBe(5);
-      expect(html).not.toContain(">Sat<");
-      expect(html).not.toContain(">Sun<");
-    });
-
-    it("renders only 5 day-cells per week in rows orientation", () => {
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2026-07-13",
-        endDate: "2026-07-19",
-        weekStartDay: 1,
-        orientation: "rows",
-        skipWeekends: true,
-      });
-
-      // rows mode uses single-letter weekday headers (see below), so check the
-      // column count directly rather than searching for a "Sat"/"Sun" label.
-      expect(countDayCells(html)).toBe(5);
-    });
-  });
+      // Rows mode heads its columns with one letter: "S" for both.
+      expect(html).not.toMatch(/>(Sat|Sun|S)</);
+    },
+  );
 
   describe("splitByMonth and showMonthLabels (decoupled)", () => {
-    const weekStartDay = 1;
     const startDate = "2026-06-01";
     const endDate = "2026-07-19";
 
-    it("labels each month's columns with a grid-column span, even without splitByMonth", () => {
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate,
-        endDate,
-        weekStartDay,
-        orientation: "columns",
-        showMonthLabels: true,
-      });
+    it.each([
+      ["columns", /grid-column:\d+ \/ span \d+/],
+      ["rows", /grid-row:\d+ \/ span \d+/],
+    ] as const)(
+      "spans each month's label across its weeks in %s mode, even unsplit",
+      (orientation, span) => {
+        const html = grid(startDate, endDate, {
+          orientation,
+          showMonthLabels: true,
+        });
 
-      const junIndex = html.indexOf(">Jun<");
-      const julIndex = html.indexOf(">Jul<");
-      expect(junIndex).toBeGreaterThan(-1);
-      expect(julIndex).toBeGreaterThan(-1);
-      expect(junIndex).toBeLessThan(julIndex);
-      expect(html).toMatch(/grid-column:\d+ \/ span \d+/);
-    });
-
-    it("uses a grid-row span for month grouping in rows orientation", () => {
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate,
-        endDate,
-        weekStartDay,
-        orientation: "rows",
-        showMonthLabels: true,
-      });
-
-      expect(html).toContain(">Jun<");
-      expect(html).toContain(">Jul<");
-      expect(html).toMatch(/grid-row:\d+ \/ span \d+/);
-    });
-
-    it("splits a week straddling two months at the exact day boundary, not at the week boundary", () => {
-      // 2026-06-29 (Mon) .. 2026-07-05 (Sun) is a single calendar week, with
-      // Jul 1 (Wed) in the middle of it. The native day-by-day algorithm must
-      // use only 2 week-slots total for this range (not 3, which a
-      // whole-week-per-month grouping would produce), splitting the week at
-      // the day boundary exactly like the live heatmap does.
-      expect(countWeeksInRange("2026-06-29", "2026-07-05", 1, true)).toBe(2);
-
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2026-06-29",
-        endDate: "2026-07-05",
-        weekStartDay: 1,
-        orientation: "columns",
-        splitByMonth: true,
-        showMonthLabels: true,
-      });
-
-      expect(html).toContain(">Jun<");
-      expect(html).toContain(">Jul<");
-    });
+        expect(html.indexOf(">Jun<")).toBeGreaterThan(-1);
+        expect(html.indexOf(">Jun<")).toBeLessThan(html.indexOf(">Jul<"));
+        expect(html).toMatch(span);
+      },
+    );
 
     it("shows the week-start date only once across a month-split week, not on both halves", () => {
-      // Same straddling week as above: Jun 29-30 and Jul 1-5 both belong to
-      // the calendar week starting Jun 29, but land in two different
-      // week-slots. Without the fix, both slots would show "29".
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2026-06-29",
-        endDate: "2026-07-05",
-        weekStartDay: 1,
-        orientation: "columns",
+      // Jun 29-30 and Jul 1-5 are one calendar week, starting Jun 29, split
+      // into two week-slots. Without the fix, both slots would show "29".
+      const html = grid("2026-06-29", "2026-07-05", {
         splitByMonth: true,
         showWeekStartDate: true,
       });
@@ -693,31 +300,18 @@ describe("buildHeatmapGridHtml", () => {
     });
 
     it("splits the grid with a blank gap but shows no header text when only splitByMonth is on", () => {
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2026-06-29",
-        endDate: "2026-07-05",
-        weekStartDay: 1,
-        orientation: "columns",
-        splitByMonth: true,
-      });
+      const html = grid("2026-06-29", "2026-07-05", { splitByMonth: true });
 
       expect(html).not.toContain(">Jun<");
       expect(html).not.toContain(">Jul<");
       expect(html).not.toMatch(/\/ span/);
-      // 2 week-slots x 7 day-rows, instead of 1 x 7 without the split.
+      // Split at Jul 1 (Wed), mid-week: 2 week-slots x 7 day-rows, where a
+      // whole-week split would make 3.
       expect(countDayCells(html)).toBe(14);
     });
 
     it("does not split or label anything when both are off", () => {
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate,
-        endDate,
-        weekStartDay,
-        orientation: "columns",
+      const html = grid(startDate, endDate, {
         splitByMonth: false,
         showMonthLabels: false,
       });
@@ -727,44 +321,20 @@ describe("buildHeatmapGridHtml", () => {
     });
   });
 
-  describe("leading label alignment", () => {
-    it("right-aligns the weekday label column in columns mode, with extra margin from the grid", () => {
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2026-07-13",
-        endDate: "2026-07-19",
-        weekStartDay: 1,
-        orientation: "columns",
-      });
+  it.each([
+    ["the weekday column in columns mode", "Mon", {}],
+    [
+      "the week-start-date column in rows mode",
+      "13",
+      { orientation: "rows", showWeekStartDate: true },
+    ],
+  ] as const)("right-aligns %s, clear of the grid", (_, label, options) => {
+    const style = styleOf(grid("2026-07-13", "2026-07-19", options), label);
 
-      // `justify-self:end` is the property that actually matters visually —
-      // the grid container sets `justify-items:center`, which would otherwise
-      // center this (content-sized) box and leave the inner flexbox
-      // alignment with no slack to shift text by.
-      expect(html).toMatch(
-        /grid-column:1;grid-row:\d+;[^"]*justify-content:flex-end[^"]*margin-right:4px[^"]*justify-self:end/,
-      );
-    });
-
-    it("right-aligns the week-start-date column in rows mode, with extra margin from the grid", () => {
-      const html = buildHeatmapGridHtml({
-        entriesByDate: {},
-        colorsList,
-        startDate: "2026-07-13",
-        endDate: "2026-07-19",
-        weekStartDay: 1,
-        orientation: "rows",
-        showWeekStartDate: true,
-      });
-
-      // `justify-self:end` is the property that actually matters visually —
-      // the grid container sets `justify-items:center`, which would otherwise
-      // center this (content-sized) box and leave the inner flexbox
-      // alignment with no slack to shift text by.
-      expect(html).toMatch(
-        /grid-column:1;grid-row:\d+;[^"]*justify-content:flex-end[^"]*margin-right:4px[^"]*justify-self:end/,
-      );
-    });
+    // `justify-self:end` is what moves it: the grid's `justify-items:center`
+    // would otherwise center the box and leave the flex alignment no slack.
+    expect(style).toContain("justify-self:end");
+    expect(style).toContain("justify-content:flex-end");
+    expect(style).toContain("margin-right:4px");
   });
 });

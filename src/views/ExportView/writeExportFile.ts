@@ -14,13 +14,13 @@ async function ensureFolder(app: App, folderPath: string): Promise<void> {
 }
 
 /**
- * Creates `<folder>/<title> <start> to <end>.<ext>`, creating the folder and
+ * Creates `<folder>/<title> <start> – <end>.<ext>`, creating the folder and
  * side-stepping an existing file of the same name.
  */
 export async function writeExportFile(
   app: App,
   args: {
-    folder: string;
+    exportFolder: string;
     title: string;
     startDate: string;
     endDate: string;
@@ -28,10 +28,11 @@ export async function writeExportFile(
     content: string;
   },
 ): Promise<TFile> {
-  const filename = `${sanitizeFilename(args.title)} ${args.startDate} to ${args.endDate}.${args.extension}`;
-  await ensureFolder(app, args.folder);
-  const path = nextAvailablePath(joinPath(args.folder, filename), (candidate) =>
-    Boolean(app.vault.getAbstractFileByPath(candidate)),
+  const filename = `${sanitizeFilename(args.title)} ${args.startDate} – ${args.endDate}.${args.extension}`;
+  await ensureFolder(app, args.exportFolder);
+  const path = nextAvailablePath(
+    joinPath(args.exportFolder, filename),
+    (candidate) => Boolean(app.vault.getAbstractFileByPath(candidate)),
   );
   return app.vault.create(path, args.content);
 }

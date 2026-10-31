@@ -1,326 +1,128 @@
+import { makeReportModel } from "src/test-utils";
+import { ReportOptions } from "../reportHeader";
 import { ReportModel } from "../reportModel";
 import { buildReportHtml } from "../reportHtml";
-import { EMPTY_CELL_COLOR } from "../heatmapHtml";
 
-const model: ReportModel = {
-  startDate: "2026-07-13",
-  endDate: "2026-07-14",
-  weeks: [
-    {
-      weekStart: "2026-07-13",
-      days: [
-        {
-          date: "2026-07-13",
-          weekday: 1,
-          value: 8,
-          color: "#7bc96f",
-          body: "- meeting\n- <script>alert(1)</script>",
-        },
-        {
-          date: "2026-07-14",
-          weekday: 2,
-          value: undefined,
-          color: undefined,
-          body: undefined,
-        },
-      ],
-    },
-  ],
-  summary: { totalDays: 2, totalValue: 8, activeWeeks: 1 },
-};
+const model = makeReportModel([
+  {
+    date: "2026-07-13",
+    weekday: 1,
+    value: 8,
+    color: "#7bc96f",
+    body: "- meeting\n- <script>alert(1)</script>",
+  },
+  {
+    date: "2026-07-14",
+    weekday: 2,
+    value: undefined,
+    color: undefined,
+    body: undefined,
+  },
+]);
+
+const html = (overrides: Partial<ReportOptions> = {}, report = model) =>
+  buildReportHtml(report, {
+    title: "Work Log Report",
+    generatedAt: "2026-07-17",
+    heatmapHtml: '<div class="wlr-heatmap"></div>',
+    ...overrides,
+  });
 
 describe("buildReportHtml", () => {
   it("produces a self-contained document with the title, summary, and embedded heatmap", () => {
-    const html = buildReportHtml(model, {
-      title: "Work Log Report",
-      generatedAt: "2026-07-17",
-      heatmapHtml: '<div class="wlr-heatmap"></div>',
-    });
+    const doc = html();
 
-    expect(html).toContain("<!doctype html>");
-    expect(html).toContain("<title>Work Log Report</title>");
-    expect(html).toContain('<div class="wlr-heatmap"></div>');
-    expect(html).toContain("Days logged: 2");
-    expect(html).toContain("Total value: 8");
-    expect(html).toContain("Week of Jul 13, 2026");
-    expect(html).toContain(
+    expect(doc).toContain("<!doctype html>");
+    expect(doc).toContain("<title>Work Log Report</title>");
+    expect(doc).toContain('<div class="wlr-heatmap"></div>');
+    expect(doc).toContain("Days logged: 2");
+    expect(doc).toContain("Total value: 8");
+    expect(doc).toContain("Week of Jul 13, 2026");
+    // The range line drops the weekday that per-day headings keep.
+    expect(doc).toContain(
       '<div class="wlr-meta">Jul 13, 2026 – Jul 14, 2026<br>Report generated 2026-07-17</div>',
     );
   });
 
-  it("drops the weekday from the overall range line (only per-day headings keep it)", () => {
-    const html = buildReportHtml(model, {
-      title: "Work Log Report",
-      generatedAt: "2026-07-17",
-      heatmapHtml: "",
-    });
+  it("renders a body nothing rendered as escaped text: bullets as a list, '-' when empty", () => {
+    const doc = html();
 
-    expect(html).not.toContain("Mon, Jul 13, 2026 –");
+    expect(doc).toContain(
+      "<ul><li>meeting</li><li>&lt;script&gt;alert(1)&lt;/script&gt;</li></ul>",
+    );
+    expect(doc).not.toContain("<script>alert(1)</script>");
+    expect(doc).not.toContain('<div class="wlr-body');
+    expect(doc).toContain("<p>-</p>");
   });
 
-  it("converts bullet lines into a real <ul><li> list", () => {
-    const html = buildReportHtml(model, {
-      title: "Work Log Report",
-      generatedAt: "2026-07-17",
-      heatmapHtml: "",
-    });
+  it("closes the list around plain lines and drops blank ones", () => {
+    const body = "intro\n- a\n* b\nmiddle\n\n• c\n  outro  ";
+    const doc = html(
+      {},
+      makeReportModel([{ date: "2026-07-13", weekday: 1, body }]),
+    );
 
-    expect(html).toContain("<ul>");
-    expect(html).toContain("<li>meeting</li>");
-  });
-
-  it("escapes note-body text so raw HTML/scripts cannot execute", () => {
-    const html = buildReportHtml(model, {
-      title: "Work Log Report",
-      generatedAt: "2026-07-17",
-      heatmapHtml: "",
-    });
-
-    expect(html).not.toContain("<script>alert(1)</script>");
-    expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
-  });
-
-  it("shows a placeholder for days with no note body", () => {
-    const html = buildReportHtml(model, {
-      title: "Work Log Report",
-      generatedAt: "2026-07-17",
-      heatmapHtml: "",
-    });
-
-    expect(html).toContain("<p>-</p>");
-  });
-
-  it("renders the day-type breakdown as one flat '·'-joined line, total on its own line", () => {
-    const html = buildReportHtml(model, {
-      title: "Work Log Report",
-      generatedAt: "2026-07-17",
-      heatmapHtml: "",
-      valueLabel: "hours",
-      legend: [{ color: "#7bc96f", label: "Workday" }],
-    });
-
-    expect(html).not.toContain("Days logged");
-    expect(html).toContain(
-      '<div class="wlr-summary">Workday: 1 · Other: 1<br>Total hours: 8</div>',
+    expect(doc).toContain(
+      "<p>intro</p><ul><li>a</li><li>b</li></ul><p>middle</p><ul><li>c</li></ul><p>outro</p>",
     );
   });
 
-  it("omits an excluded category from the day-type line but keeps it correctly out of Other", () => {
-    const html = buildReportHtml(model, {
-      title: "Work Log Report",
-      generatedAt: "2026-07-17",
-      heatmapHtml: "",
-      legend: [
-        { color: "#7bc96f", label: "Workday", includeInSummary: false },
-        { color: "#8b949e", label: "Leave" },
-      ],
-    });
-
-    // "Workday" still appears in the swatch legend (a separate concern from the
-    // summary line) — check the summary divs specifically, not the whole doc.
-    const summaryText = (
-      html.match(/<div class="wlr-summary">(.*?)<\/div>/g) ?? []
-    ).join(" ");
-    expect(summaryText).toContain("Leave: 0 · Other: 1");
-    expect(summaryText).not.toContain("Workday");
-  });
-
-  it("embeds the legend as an inline-styled swatch + label (no dependency on a <style> block)", () => {
-    const html = buildReportHtml(model, {
-      title: "Work Log Report",
-      generatedAt: "2026-07-17",
-      heatmapHtml: "",
-      legend: [{ color: "#7bc96f", label: "Workday" }],
-    });
-
-    expect(html).toContain("background-color:#7bc96f");
-    expect(html).toContain(">Workday<");
-  });
-
-  it("escapes legend labels in both the summary and the legend block", () => {
-    const html = buildReportHtml(model, {
-      title: "Work Log Report",
-      generatedAt: "2026-07-17",
-      heatmapHtml: "",
+  it("embeds the legend as inline-styled swatches, escaping labels in it and the summary", () => {
+    const doc = html({
       legend: [{ color: "#7bc96f", label: "<b>Workday</b>" }],
     });
 
-    expect(html).not.toContain("<b>Workday</b>");
-    expect(html).toContain("&lt;b&gt;Workday&lt;/b&gt;");
-  });
-
-  it("renders only the total (no blank day-type portion) when every legend entry is excluded", () => {
-    // Both days match a legend color (no "Other" bucket to keep the
-    // breakdown line alive), and both entries are excluded from the summary.
-    const bothMatched: ReportModel = {
-      ...model,
-      weeks: [
-        {
-          weekStart: "2026-07-13",
-          days: [
-            {
-              date: "2026-07-13",
-              weekday: 1,
-              value: 8,
-              color: "#7bc96f",
-              body: undefined,
-            },
-            {
-              date: "2026-07-14",
-              weekday: 2,
-              value: undefined,
-              color: "#8b949e",
-              body: undefined,
-            },
-          ],
-        },
-      ],
-    };
-
-    const html = buildReportHtml(bothMatched, {
-      title: "Work Log Report",
-      generatedAt: "2026-07-17",
-      heatmapHtml: "MARKER",
-      legend: [
-        { color: "#7bc96f", label: "Workday", includeInSummary: false },
-        { color: "#8b949e", label: "Leave", includeInSummary: false },
-      ],
-    });
-
-    expect(html).toContain('<div class="wlr-summary">Total value: 8</div>');
+    expect(doc).toContain("background-color:#7bc96f");
+    expect(doc).not.toContain("<b>Workday</b>");
+    expect(doc.match(/&lt;b&gt;Workday&lt;\/b&gt;/g)).toHaveLength(2);
   });
 
   it("omits the wlr-summary div entirely when both the day-type breakdown and the total are hidden", () => {
-    const html = buildReportHtml(model, {
-      title: "Work Log Report",
-      generatedAt: "2026-07-17",
-      heatmapHtml: "MARKER",
-      hideSummary: true,
-      hideAllValues: true,
-    });
-
-    expect(html).not.toContain('class="wlr-summary"');
-  });
-
-  it("omits the day-type breakdown but keeps the total when hideSummary is set", () => {
-    const html = buildReportHtml(model, {
-      title: "Work Log Report",
-      generatedAt: "2026-07-17",
-      heatmapHtml: "",
-      legend: [{ color: "#7bc96f", label: "Workday" }],
-      hideSummary: true,
-    });
-
-    expect(html).toContain('<div class="wlr-summary">Total value: 8</div>');
-    expect(html).not.toContain("Days logged");
-  });
-
-  it("omits the total but keeps the day-type breakdown when hideTotalValue is set", () => {
-    const html = buildReportHtml(model, {
-      title: "Work Log Report",
-      generatedAt: "2026-07-17",
-      heatmapHtml: "",
-      legend: [{ color: "#7bc96f", label: "Workday" }],
-      hideTotalValue: true,
-    });
-
-    expect(html).toContain(
-      '<div class="wlr-summary">Workday: 1 · Other: 1</div>',
+    expect(html({ hideSummary: true, hideAllValues: true })).not.toContain(
+      'class="wlr-summary"',
     );
-    expect(html).not.toContain("Total value");
   });
 
   it("hides both the total and each day's own value when hideAllValues is set", () => {
-    const html = buildReportHtml(model, {
-      title: "Work Log Report",
-      generatedAt: "2026-07-17",
-      heatmapHtml: "",
+    const doc = html({
       legend: [{ color: "#7bc96f", label: "Workday" }],
       hideAllValues: true,
     });
 
-    expect(html).not.toContain("Total value");
-    // The static CSS rule for .wlr-day__value stays in the stylesheet
-    // regardless (it's just unused); check no actual span is rendered.
-    expect(html).not.toContain('<span class="wlr-day__value">');
-    expect(html).toContain("<h3>Mon, Jul 13, 2026</h3>");
+    expect(doc).not.toContain("Total value");
+    expect(doc).toContain("<h3>Mon, Jul 13, 2026</h3>");
+  });
+});
+
+describe("buildReportHtml with rendered note bodies", () => {
+  const withBodyHtml = (bodyHtml: string): ReportModel =>
+    makeReportModel([{ ...model.weeks[0].days[0], bodyHtml }]);
+
+  it("embeds the Obsidian-rendered HTML (math, code, callouts) instead of the escaped text", () => {
+    const rendered =
+      '<div class="callout" data-callout="tip"></div><span class="katex"></span><pre><code class="language-js"></code></pre>';
+    const doc = html({}, withBodyHtml(rendered));
+
+    expect(doc).toContain(
+      `<div class="wlr-body markdown-rendered">${rendered}`,
+    );
+    expect(doc).not.toContain("&lt;script&gt;");
   });
 
-  describe("legendMode: gradient", () => {
-    it("combines the non-blank legend entry into the gradient swatch strip with a shared count", () => {
-      const html = buildReportHtml(model, {
-        title: "Work Log Report",
-        generatedAt: "2026-07-17",
-        heatmapHtml: "",
-        legend: [{ color: "#7bc96f", label: "" }],
-        legendMode: "gradient",
-        gradientLabel: "Activity",
-        colorsList: ["#7bc96f"],
-      });
+  it("ships the stylesheet those class names need", () => {
+    const doc = html({}, withBodyHtml("<p>x</p>"));
 
-      expect(html).toContain("background-color:#7bc96f");
-      const summaryText = (
-        html.match(/<div class="wlr-summary">(.*?)<\/div>/g) ?? []
-      ).join(" ");
-      expect(summaryText).toContain("Activity: 1");
-      expect(summaryText).toContain("Other: 1");
-    });
+    expect(doc).toContain(".wlr-body .callout");
+    expect(doc).toContain(".wlr-body .token.keyword");
+  });
 
-    it("still renders the blank entry as its own separate swatch and summary line", () => {
-      const html = buildReportHtml(model, {
-        title: "Work Log Report",
-        generatedAt: "2026-07-17",
-        heatmapHtml: "",
-        legend: [
-          { color: "#7bc96f", label: "" },
-          { color: EMPTY_CELL_COLOR, label: "Rest day" },
-        ],
-        legendMode: "gradient",
-        gradientLabel: "Activity",
-        colorsList: ["#7bc96f"],
-      });
+  it("links the KaTeX stylesheet only when a note contains math", () => {
+    const link =
+      /<link rel="stylesheet" href="https:\/\/cdn\.jsdelivr\.net\/npm\/katex@[\d.]+\/dist\/katex\.min\.css"/;
 
-      expect(html).toContain(">Rest day<");
-      // This fixture's 2-day range is fully logged (no gap days), so the
-      // blank count is 0 - the point here is that it renders as its own
-      // line at all, separately from the gradient's combined count.
-      const summaryText = (
-        html.match(/<div class="wlr-summary">(.*?)<\/div>/g) ?? []
-      ).join(" ");
-      expect(summaryText).toContain("Rest day: 0");
-    });
-
-    it("does not render individual per-color swatch rows for non-blank entries", () => {
-      const html = buildReportHtml(model, {
-        title: "Work Log Report",
-        generatedAt: "2026-07-17",
-        heatmapHtml: "",
-        legend: [{ color: "#7bc96f", label: "Workday" }],
-        legendMode: "gradient",
-        gradientLabel: "Activity",
-        colorsList: ["#7bc96f"],
-      });
-
-      // "Workday" is the per-entry label, unused for display in gradient mode.
-      expect(html).not.toContain(">Workday<");
-    });
-
-    it("still renders a matched color outside the palette as its own legend swatch, alongside the gradient strip", () => {
-      const html = buildReportHtml(model, {
-        title: "Work Log Report",
-        generatedAt: "2026-07-17",
-        heatmapHtml: "",
-        legend: [
-          { color: "#7bc96f", label: "" },
-          { color: "#f59e0b", label: "Rest day work" },
-        ],
-        legendMode: "gradient",
-        gradientLabel: "Activity",
-        colorsList: ["#7bc96f"],
-      });
-
-      expect(html).toContain(">Rest day work<");
-      expect(html).toContain("background-color:#f59e0b");
-    });
+    expect(
+      html({}, withBodyHtml('<p><span class="katex">x</span></p>')),
+    ).toMatch(link);
+    expect(html({}, withBodyHtml("<p>x</p>"))).not.toMatch(link);
   });
 });

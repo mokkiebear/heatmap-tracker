@@ -1,6 +1,8 @@
+import { makeReportModel } from "src/test-utils";
 import { ReportDay, ReportModel } from "../reportModel";
 import {
-  DayTypeCount,
+  LegendEntry,
+  LegendVisibility,
   buildGradientLegendHtml,
   buildLegendHtml,
   buildSummaryModel,
@@ -8,749 +10,562 @@ import {
   getLegendVisibility,
   nextLegendVisibility,
   setLegendVisibility,
-  LegendEntry,
+  sumCountAs,
 } from "../legend";
 import { EMPTY_CELL_COLOR } from "../heatmapHtml";
 
-function day(overrides: Partial<ReportDay> & { date: string }): ReportDay {
-  return { weekday: 1, ...overrides };
-}
+const GREEN = "#196127";
+const GRAY = "#8b949e";
+const PURPLE = "#a371f7";
 
-function countFor(counts: DayTypeCount[], color: string): number | undefined {
-  return counts.find((c) => c.entry.color === color)?.count;
-}
+const day = (
+  date: string,
+  color?: string,
+  extra: Partial<ReportDay> = {},
+): ReportDay => ({ date, weekday: 1, color, ...extra });
+const entry = (
+  color: string,
+  label = "",
+  extra: Partial<LegendEntry> = {},
+): LegendEntry => ({ color, label, ...extra });
+const part = (label: string, value: number) => ({ label, value });
+const summaryHidden = { includeInSummary: false };
+const legendHidden = { includeInLegend: false };
+
+/** The summary's day-type parts, in gradient mode when given a palette. */
+const dayTypes = (
+  model: ReportModel,
+  legend: LegendEntry[],
+  colorsList?: string[],
+  gradientLabel = "Activity",
+) =>
+  buildSummaryModel(
+    model,
+    colorsList
+      ? { legend, legendMode: "gradient", colorsList, gradientLabel }
+      : { legend },
+  ).dayTypeParts;
 
 describe("computeDayTypeCounts", () => {
-  const legend: LegendEntry[] = [
-    { color: "#196127", label: "Workday" },
-    { color: "#8b949e", label: "Leave" },
-  ];
+  const legend = [entry(GREEN, "Workday"), entry(GRAY, "Leave")];
 
-  it("counts days matching each legend color", () => {
-    const days = [
-      day({ date: "2026-07-13", color: "#196127" }),
-      day({ date: "2026-07-14", color: "#196127" }),
-      day({ date: "2026-07-15", color: "#8b949e" }),
-    ];
+  it.each([
+    ["by legend color", [GREEN, GREEN, GRAY], legend, [2, 1], 0],
+    // Fresh entries all have a blank label; keying by label would merge them.
+    [
+      "by color, not by a label entries share",
+      [GREEN, GREEN, GRAY],
+      [entry(GREEN), entry(GRAY)],
+      [2, 1],
+      0,
+    ],
+    ["ignoring case and surrounding space", [" #8B949E "], legend, [0, 1], 0],
+    [
+      "as Other when no entry matches, or there is no color",
+      ["#d18616", undefined],
+      legend,
+      [0, 0],
+      2,
+    ],
+    ["as Other when there is no legend", [GREEN], [], [], 1],
+  ])("counts days %s", (_, colors, entries, counts, otherCount) => {
+    const days = colors.map((color, i) => day(`2026-07-${13 + i}`, color));
+    const result = computeDayTypeCounts(days, entries);
 
-    const { counts, otherCount } = computeDayTypeCounts(days, legend);
-
-    expect(countFor(counts, "#196127")).toBe(2);
-    expect(countFor(counts, "#8b949e")).toBe(1);
-    expect(otherCount).toBe(0);
+    // One pair per entry, in legend order.
+    result.counts.forEach((c, i) => expect(c.entry).toBe(entries[i]));
+    expect(result.counts.map((c) => c.count)).toEqual(counts);
+    expect(result.otherCount).toBe(otherCount);
   });
 
-  it("returns one {entry, count} pair per input entry, in input order", () => {
-    const { counts } = computeDayTypeCounts([], legend);
-
-    expect(counts).toHaveLength(2);
-    expect(counts[0].entry).toBe(legend[0]);
-    expect(counts[1].entry).toBe(legend[1]);
-  });
-
-  it("keeps separate counts for entries that share the same (blank) label", () => {
-    // Auto-populated, not-yet-customized entries all start with a blank
-    // label — counting by label instead of by color/entry would collide
-    // these into a single bucket instead of tracking each color separately.
-    const unlabeledLegend: LegendEntry[] = [
-      { color: "#196127", label: "" },
-      { color: "#8b949e", label: "" },
-    ];
-    const days = [
-      day({ date: "2026-07-13", color: "#196127" }),
-      day({ date: "2026-07-14", color: "#196127" }),
-      day({ date: "2026-07-15", color: "#8b949e" }),
+  it.each([
+    ["the range's unlogged days", day("2026-07-13", GREEN), 5, [1, 4]],
+    [
+      "none without the range's size",
+      day("2026-07-13", GREEN),
+      undefined,
+      [1, 0],
+    ],
+    [
+      "a countAs day as logged, not blank",
+      day("2026-07-13", GREEN, { countAs: { Workday: 0.5 } }),
+      5,
+      [0, 4],
+    ],
+  ])("counts %s against the blank color", (_, logged, total, counts) => {
+    const legendWithBlank = [
+      entry(GREEN, "Workday"),
+      entry(EMPTY_CELL_COLOR, "Rest day"),
     ];
 
-    const { counts } = computeDayTypeCounts(days, unlabeledLegend);
-
-    expect(countFor(counts, "#196127")).toBe(2);
-    expect(countFor(counts, "#8b949e")).toBe(1);
-  });
-
-  it("matches case-insensitively and ignores surrounding whitespace", () => {
-    const days = [
-      day({ date: "2026-07-13", color: " #196127 ".trim().toUpperCase() }),
-    ];
-    const { counts, otherCount } = computeDayTypeCounts(days, legend);
-
-    expect(countFor(counts, "#196127")).toBe(1);
-    expect(otherCount).toBe(0);
-  });
-
-  it("buckets unmatched colors and undefined colors into otherCount", () => {
-    const days = [
-      day({ date: "2026-07-13", color: "#d18616" }),
-      day({ date: "2026-07-14", color: undefined }),
-    ];
-
-    const { counts, otherCount } = computeDayTypeCounts(days, legend);
-
-    expect(countFor(counts, "#196127")).toBe(0);
-    expect(countFor(counts, "#8b949e")).toBe(0);
-    expect(otherCount).toBe(2);
-  });
-
-  it("buckets everything as other when the legend is empty", () => {
-    const days = [day({ date: "2026-07-13", color: "#196127" })];
-    const { counts, otherCount } = computeDayTypeCounts(days, []);
-
-    expect(counts).toEqual([]);
-    expect(otherCount).toBe(1);
-  });
-
-  it("counts unlogged (blank) days against the legend entry using EMPTY_CELL_COLOR", () => {
-    const days = [day({ date: "2026-07-13", color: "#196127" })];
-    const legendWithBlank: LegendEntry[] = [
-      { color: "#196127", label: "Workday" },
-      { color: EMPTY_CELL_COLOR, label: "Rest day" },
-    ];
-
-    const { counts } = computeDayTypeCounts(days, legendWithBlank, 5);
-
-    expect(countFor(counts, "#196127")).toBe(1);
-    expect(countFor(counts, EMPTY_CELL_COLOR)).toBe(4);
-  });
-
-  it("does not add a blank count when totalDaysInRange is omitted", () => {
-    const days = [day({ date: "2026-07-13", color: "#196127" })];
-    const legendWithBlank: LegendEntry[] = [
-      { color: EMPTY_CELL_COLOR, label: "Rest day" },
-    ];
-
-    const { counts } = computeDayTypeCounts(days, legendWithBlank);
-
-    expect(countFor(counts, EMPTY_CELL_COLOR)).toBe(0);
+    expect(
+      computeDayTypeCounts([logged], legendWithBlank, total).counts.map(
+        (c) => c.count,
+      ),
+    ).toEqual(counts);
   });
 });
 
 describe("buildLegendHtml", () => {
-  it("returns an empty string for an empty legend", () => {
-    expect(buildLegendHtml([])).toBe("");
-  });
+  it("renders a swatch and the escaped label per entry", () => {
+    const html = buildLegendHtml([entry(GREEN, "<b>Workday</b>")]);
 
-  it("renders a swatch + escaped label per entry", () => {
-    const html = buildLegendHtml([
-      { color: "#196127", label: "<b>Workday</b>" },
-    ]);
-
-    expect(html).toContain("background-color:#196127");
+    expect(html).toContain(`background-color:${GREEN}`);
     expect(html).toContain("&lt;b&gt;Workday&lt;/b&gt;");
     expect(html).not.toContain("<b>Workday</b>");
   });
 
-  it("skips an entry with no label instead of rendering a blank swatch", () => {
-    const html = buildLegendHtml([
-      { color: "#196127", label: "Workday" },
-      { color: "#8b949e", label: "", includeInSummary: false },
-    ]);
-
-    expect(html).toContain("background-color:#196127");
-    expect(html).not.toContain("background-color:#8b949e");
-  });
-
-  it("returns an empty string when every entry is unlabeled", () => {
-    expect(
-      buildLegendHtml([
-        { color: "#8b949e", label: "", includeInSummary: false },
-      ]),
-    ).toBe("");
-  });
-
-  it("skips an entry hidden entirely (includeInLegend: false), even with a label", () => {
-    const html = buildLegendHtml([
-      { color: "#196127", label: "Workday" },
-      { color: "#8b949e", label: "Leave", includeInLegend: false },
-    ]);
-
-    expect(html).toContain("background-color:#196127");
-    expect(html).not.toContain("background-color:#8b949e");
-    expect(html).not.toContain(">Leave<");
+  it.each([
+    ["no entries", []],
+    ["only unlabeled entries", [entry(GRAY, "", summaryHidden)]],
+    [
+      "only entries hidden from the legend",
+      [entry(GRAY, "Leave", legendHidden)],
+    ],
+  ])("is empty for %s", (_, legend) => {
+    expect(buildLegendHtml(legend)).toBe("");
   });
 });
 
-describe("legend visibility state machine", () => {
-  it("defaults to shown for a plain entry", () => {
-    expect(getLegendVisibility({ color: "#196127", label: "Workday" })).toBe(
-      "shown",
+describe("legend visibility", () => {
+  const stored: [LegendVisibility, Partial<LegendEntry>][] = [
+    ["shown", {}],
+    ["summaryHidden", summaryHidden],
+    ["hidden", { ...summaryHidden, ...legendHidden }],
+  ];
+
+  it.each(stored)("reads and writes %s as %j", (visibility, flags) => {
+    expect(getLegendVisibility(entry(GREEN, "Workday", flags))).toBe(
+      visibility,
     );
+    // Writing replaces whatever flags the entry had.
+    stored.forEach(([, before]) => {
+      const written = entry(GREEN, "Workday", before);
+      setLegendVisibility(written, visibility);
+      expect(written).toEqual(entry(GREEN, "Workday", flags));
+    });
   });
 
-  it("reads summaryHidden from includeInSummary: false alone", () => {
+  it("reads hidden from includeInLegend: false alone", () => {
+    expect(getLegendVisibility(entry(GREEN, "", legendHidden))).toBe("hidden");
+  });
+
+  it("cycles shown → summaryHidden → hidden → shown", () => {
     expect(
-      getLegendVisibility({
-        color: "#196127",
-        label: "Workday",
-        includeInSummary: false,
-      }),
-    ).toBe("summaryHidden");
-  });
-
-  it("reads hidden from includeInLegend: false, regardless of includeInSummary", () => {
-    expect(
-      getLegendVisibility({
-        color: "#196127",
-        label: "Workday",
-        includeInLegend: false,
-        includeInSummary: false,
-      }),
-    ).toBe("hidden");
-  });
-
-  it("cycles shown -> summaryHidden -> hidden -> shown", () => {
-    expect(nextLegendVisibility("shown")).toBe("summaryHidden");
-    expect(nextLegendVisibility("summaryHidden")).toBe("hidden");
-    expect(nextLegendVisibility("hidden")).toBe("shown");
-  });
-
-  it("setLegendVisibility('hidden') implies includeInSummary: false too", () => {
-    const entry: LegendEntry = { color: "#196127", label: "Workday" };
-    setLegendVisibility(entry, "hidden");
-
-    expect(entry.includeInLegend).toBe(false);
-    expect(entry.includeInSummary).toBe(false);
-  });
-
-  it("setLegendVisibility('shown') clears both flags back to the default", () => {
-    const entry: LegendEntry = {
-      color: "#196127",
-      label: "Workday",
-      includeInLegend: false,
-      includeInSummary: false,
-    };
-    setLegendVisibility(entry, "shown");
-
-    expect(getLegendVisibility(entry)).toBe("shown");
-  });
-
-  it("setLegendVisibility('summaryHidden') clears includeInLegend even if previously hidden", () => {
-    const entry: LegendEntry = {
-      color: "#196127",
-      label: "Workday",
-      includeInLegend: false,
-      includeInSummary: false,
-    };
-    setLegendVisibility(entry, "summaryHidden");
-
-    expect(getLegendVisibility(entry)).toBe("summaryHidden");
-    expect(entry.includeInLegend).toBeUndefined();
+      stored.map(([visibility]) => nextLegendVisibility(visibility)),
+    ).toEqual(["summaryHidden", "hidden", "shown"]);
   });
 });
 
 describe("buildGradientLegendHtml", () => {
   const colors = ["#c6e48b", "#7bc96f", "#239a3b", "#196127"];
 
-  it("returns an empty string for an empty palette and no independent entries", () => {
-    expect(buildGradientLegendHtml([], "Activity")).toBe("");
-  });
-
-  it("renders one swatch per palette color, in the given order", () => {
+  it("renders one swatch per palette color in order, then the shared label", () => {
     const html = buildGradientLegendHtml(colors, "Activity");
-    colors.forEach((color) =>
-      expect(html).toContain(`background-color:${color}`),
+    const positions = [
+      ...colors.map((color) => `background-color:${color}`),
+      ">Activity<",
+    ].map((text) => html.indexOf(text));
+
+    expect(positions[0]).toBeGreaterThanOrEqual(0);
+    positions
+      .slice(1)
+      .forEach((p, i) => expect(p).toBeGreaterThan(positions[i]));
+  });
+
+  it("escapes the shared label, and leaves a blank one out", () => {
+    const html = buildGradientLegendHtml(colors, "<b>Activity</b>");
+
+    expect(html).toContain("&lt;b&gt;Activity&lt;/b&gt;");
+    expect(html).not.toContain("<b>Activity</b>");
+    expect(buildGradientLegendHtml(colors, "   ")).not.toContain(
+      '<span style="font-size:0.85em;">',
     );
-    expect(html.indexOf(colors[0])).toBeLessThan(html.indexOf(colors[1]));
-    expect(html.indexOf(colors[2])).toBeLessThan(html.indexOf(colors[3]));
   });
 
-  it("shows the shared label beside the strip, with no Less/More caption", () => {
-    const html = buildGradientLegendHtml(colors, "Activity");
-    expect(html).toContain(">Activity<");
-    // No font size small enough reliably fits both words under as few as
-    // two swatches without truncating or overlapping - dropped entirely.
-    expect(html).not.toContain("Less");
-    expect(html).not.toContain("More");
+  it("never puts the blank color in the strip", () => {
+    expect(
+      buildGradientLegendHtml([...colors, EMPTY_CELL_COLOR], "Activity"),
+    ).not.toContain(`background-color:${EMPTY_CELL_COLOR}`);
   });
 
-  it("escapes the shared label and omits it entirely when blank", () => {
-    const escaped = buildGradientLegendHtml(colors, "<b>Activity</b>");
-    expect(escaped).toContain("&lt;b&gt;Activity&lt;/b&gt;");
-    expect(escaped).not.toContain("<b>Activity</b>");
-
-    const blank = buildGradientLegendHtml(colors, "   ");
-    expect(blank).not.toContain('<span style="font-size:0.85em;">');
-  });
-
-  it("never includes the blank/background color in the strip, even if passed in", () => {
-    const html = buildGradientLegendHtml(
-      [...colors, EMPTY_CELL_COLOR],
-      "Activity",
-    );
-    expect(html).not.toContain(`background-color:${EMPTY_CELL_COLOR}`);
-  });
-
-  it("renders independent (non-palette) entries as their own swatch+label items in the same row as the strip", () => {
+  it("lists labeled, shown non-palette entries in the same row as the strip", () => {
     const html = buildGradientLegendHtml(colors, "Activity", [
-      { color: "#8b95a5", label: "Leave" },
-      { color: "#f59e0b", label: "Rest day work" },
+      entry("#8b95a5", "Leave"),
+      entry("#f59e0b", "Rest day work"),
+      entry("#aaaaaa"),
+      entry("#bbbbbb", "Hidden", legendHidden),
     ]);
 
     expect(html).toContain("background-color:#8b95a5");
     expect(html).toContain(">Leave<");
     expect(html).toContain("background-color:#f59e0b");
     expect(html).toContain(">Rest day work<");
-    // Exactly one wrapping row (one top-level flex container), not a
-    // separate line below the gradient strip.
+    expect(html).not.toContain("#aaaaaa");
+    expect(html).not.toContain("#bbbbbb");
+    // One wrapping row, not a second line under the strip.
     expect(
       html.match(
         /flex-wrap:wrap;gap:12px;margin:8px 0 16px;align-items:center;/g,
-      )?.length,
-    ).toBe(1);
+      ),
+    ).toHaveLength(1);
   });
 
-  it("omits an independent entry with no label", () => {
-    const html = buildGradientLegendHtml(colors, "Activity", [
-      { color: "#8b95a5", label: "" },
+  it("shows non-palette entries without a palette, and nothing without either", () => {
+    expect(
+      buildGradientLegendHtml([], "Activity", [entry("#8b95a5", "Leave")]),
+    ).toContain(">Leave<");
+    expect(buildGradientLegendHtml([], "Activity")).toBe("");
+  });
+
+  it("places the strip where its palette colors sit in the legend", () => {
+    // Dragging the gradient row in the editor must move it in the export.
+    const html = buildGradientLegendHtml(["#c6e48b", "#7bc96f"], "Activity", [
+      entry("#8b95a5", "Leave"),
+      entry("#c6e48b"),
+      entry("#7bc96f"),
     ]);
-    expect(html).not.toContain("#8b95a5");
-  });
 
-  it("omits an independent entry hidden entirely (includeInLegend: false)", () => {
-    const html = buildGradientLegendHtml(colors, "Activity", [
-      { color: "#8b95a5", label: "Leave", includeInLegend: false },
-    ]);
-    expect(html).not.toContain("#8b95a5");
-    expect(html).not.toContain(">Leave<");
-  });
-
-  it("still renders independent entries even when the palette itself is empty", () => {
-    const html = buildGradientLegendHtml([], "Activity", [
-      { color: "#8b95a5", label: "Leave" },
-    ]);
-    expect(html).toContain(">Leave<");
-  });
-
-  it("places the combined gradient item at the same position its palette colors occupy in the full legend array, not hardcoded first", () => {
-    const legend: LegendEntry[] = [
-      { color: "#8b95a5", label: "Leave" },
-      { color: "#c6e48b", label: "" },
-      { color: "#7bc96f", label: "" },
-    ];
-    const html = buildGradientLegendHtml(
-      ["#c6e48b", "#7bc96f"],
-      "Activity",
-      legend,
-    );
-
-    // "Leave" comes first in the array, so it renders before the gradient
-    // item too - dragging the gradient group row (see LegendModal) must be
-    // able to actually change this order, not just cosmetically in the editor.
     expect(html.indexOf(">Leave<")).toBeLessThan(html.indexOf(">Activity<"));
   });
 
-  it("omits the whole gradient item (strip + label) when every palette-color entry is hidden entirely", () => {
-    const legend: LegendEntry[] = [
-      { color: "#c6e48b", label: "", includeInLegend: false },
-      { color: "#7bc96f", label: "", includeInLegend: false },
+  it("leaves the strip out only when every palette entry is hidden from the legend", () => {
+    const palette = ["#c6e48b", "#7bc96f"];
+    const legend = (second: Partial<LegendEntry>) => [
+      entry(palette[0], "", legendHidden),
+      entry(palette[1], "", second),
     ];
-    const html = buildGradientLegendHtml(
-      ["#c6e48b", "#7bc96f"],
-      "Activity",
-      legend,
+
+    expect(
+      buildGradientLegendHtml(palette, "Activity", legend(legendHidden)),
+    ).toBe("");
+    expect(buildGradientLegendHtml(palette, "Activity", legend({}))).toContain(
+      ">Activity<",
     );
-
-    expect(html).toBe("");
-  });
-
-  it("keeps showing the gradient item when only some palette colors are hidden", () => {
-    const legend: LegendEntry[] = [
-      { color: "#c6e48b", label: "", includeInLegend: false },
-      { color: "#7bc96f", label: "" },
-    ];
-    const html = buildGradientLegendHtml(
-      ["#c6e48b", "#7bc96f"],
-      "Activity",
-      legend,
-    );
-
-    expect(html).toContain(">Activity<");
   });
 });
 
 describe("buildSummaryModel", () => {
-  const model: ReportModel = {
-    startDate: "2026-07-13",
-    endDate: "2026-07-15",
-    weeks: [
-      {
-        weekStart: "2026-07-13",
-        days: [
-          day({ date: "2026-07-13", color: "#196127", value: 8 }),
-          day({ date: "2026-07-14", color: "#8b949e", value: 0 }),
-          day({ date: "2026-07-15", color: "#196127", value: 6 }),
-        ],
-      },
+  // Two workdays and a leave day, 14 in all.
+  const model = makeReportModel([
+    day("2026-07-13", GREEN, { value: 8 }),
+    day("2026-07-14", GRAY, { value: 0 }),
+    day("2026-07-15", GREEN, { value: 6 }),
+  ]);
+  // One logged day, then four blank ones.
+  const sparse = makeReportModel([day("2026-07-13", GREEN, { value: 8 })], {
+    end: "2026-07-17",
+  });
+  const workday = entry(GREEN, "Workday");
+  const daysLogged = [part("Days logged", 3)];
+  const totalValue = part("Total value", 14);
+
+  it.each([
+    [{}, daysLogged, totalValue],
+    [{ valueLabel: "hours" }, daysLogged, part("Total hours", 14)],
+    [{ hideSummary: true }, [], totalValue],
+    [{ hideSummary: true, legend: [workday] }, [], totalValue],
+    [{ hideTotalValue: true }, daysLogged, null],
+    [{ hideAllValues: true }, daysLogged, null],
+    [{ hideSummary: true, hideAllValues: true }, [], null],
+  ])("with %j gives %j and %j", (options, dayTypeParts, total) => {
+    expect(buildSummaryModel(model, options)).toEqual({ dayTypeParts, total });
+  });
+
+  it.each([
+    [
+      "one part per entry",
+      model,
+      [workday, entry(GRAY, "Leave")],
+      [part("Workday", 2), part("Leave", 1)],
     ],
-    summary: { totalDays: 3, totalValue: 14, activeWeeks: 1 },
-  };
-
-  it("falls back to a flat day count when there is no legend", () => {
-    expect(buildSummaryModel(model, {})).toEqual({
-      dayTypeParts: [{ label: "Days logged", value: 3 }],
-      total: { label: "Total value", value: 14 },
-    });
+    [
+      "Other for the days no entry matches",
+      model,
+      [workday],
+      [part("Workday", 2), part("Other", 1)],
+    ],
+    [
+      "the range's blank days to the blank color",
+      sparse,
+      [workday, entry(EMPTY_CELL_COLOR, "Rest day")],
+      [part("Workday", 1), part("Rest day", 4)],
+    ],
+    // Hidden and unlabeled entries still claim their days, so none are Other.
+    [
+      "no part for an entry hidden from the summary",
+      model,
+      [workday, entry(GRAY, "Leave", summaryHidden)],
+      [part("Workday", 2)],
+    ],
+    [
+      "no part for an unlabeled entry",
+      model,
+      [workday, entry(GRAY, "", summaryHidden)],
+      [part("Workday", 2)],
+    ],
+    [
+      "nothing when every entry is hidden",
+      model,
+      [
+        entry(GREEN, "Workday", summaryHidden),
+        entry(GRAY, "Leave", summaryHidden),
+      ],
+      [],
+    ],
+  ])("breaks the days down by legend: %s", (_, m, legend, parts) => {
+    expect(dayTypes(m, legend)).toEqual(parts);
   });
 
-  it("uses a custom value label when provided", () => {
-    expect(buildSummaryModel(model, { valueLabel: "hours" }).total).toEqual({
-      label: "Total hours",
-      value: 14,
+  describe("in gradient mode", () => {
+    const palette = [GREEN, GRAY];
+
+    it.each([
+      ["sums the palette colors into one part", [entry(GREEN), entry(GRAY)], 3],
+      [
+        "scales each color by its countWeight",
+        [entry(GREEN), entry(GRAY, "", { countWeight: 0.5 })],
+        2.5,
+      ],
+      // 2 × 0.1 + 0.1 is 0.30000000000000004 unrounded.
+      [
+        "rounds float noise from fractional weights",
+        [
+          entry(GREEN, "", { countWeight: 0.1 }),
+          entry(GRAY, "", { countWeight: 0.1 }),
+        ],
+        0.3,
+      ],
+      [
+        "leaves out a color hidden from the summary",
+        [entry(GREEN), entry(GRAY, "", summaryHidden)],
+        2,
+      ],
+    ])("%s", (_, legend, value) => {
+      expect(dayTypes(model, legend, palette)).toEqual([
+        part("Activity", value),
+      ]);
+    });
+
+    it.each([
+      // A color outside the palette, like a one-off custom one, keeps its own part.
+      [
+        "keeps a non-palette color its own part",
+        model,
+        [entry(GREEN), entry(GRAY, "Custom")],
+        [part("Activity", 2), part("Custom", 1)],
+      ],
+      // A weight there would misstate the raw count of blank days.
+      [
+        "keeps the blank color its own part, never weighted",
+        sparse,
+        [
+          entry(GREEN),
+          entry(EMPTY_CELL_COLOR, "Rest day", { countWeight: 0.5 }),
+        ],
+        [part("Activity", 1), part("Rest day", 4)],
+      ],
+      [
+        "adds Other for the days no entry matches",
+        model,
+        [entry(GREEN)],
+        [part("Activity", 2), part("Other", 1)],
+      ],
+      // Dragging the gradient row below another category must move its part.
+      [
+        "places the part where the palette sits in the legend",
+        model,
+        [entry(GRAY, "Leave"), entry(GREEN)],
+        [part("Leave", 1), part("Activity", 2)],
+      ],
+    ])("%s", (_, m, legend, parts) => {
+      expect(dayTypes(m, legend, [GREEN])).toEqual(parts);
+    });
+
+    it("leaves the combined part out without a label, or with every palette color hidden", () => {
+      expect(
+        buildSummaryModel(model, {
+          legend: [entry(GREEN)],
+          legendMode: "gradient",
+          colorsList: [GREEN],
+        }).dayTypeParts,
+      ).toEqual([part("Other", 1)]);
+      expect(dayTypes(model, [entry(GREEN)], [GREEN], " ")).toEqual([
+        part("Other", 1),
+      ]);
+      expect(
+        dayTypes(
+          model,
+          [entry(GREEN, "", summaryHidden), entry(GRAY, "", summaryHidden)],
+          palette,
+        ),
+      ).toEqual([]);
     });
   });
+});
 
-  it("breaks down by day type when a legend is provided", () => {
-    const legend: LegendEntry[] = [
-      { color: "#196127", label: "Workday" },
-      { color: "#8b949e", label: "Leave" },
+describe("countAs", () => {
+  // A work log: a normal day, two half days of leave that stay green, a
+  // full day of annual leave counted by its gray, and a full sick day that
+  // carries its own countAs.
+  const workLog = makeReportModel([
+    day("2026-07-13", GREEN, { value: 8 }),
+    day("2026-07-14", GREEN, {
+      value: 3,
+      countAs: { Workday: 0.5, "Annual Leave": 0.5 },
+    }),
+    day("2026-07-15", GRAY, { value: 0 }),
+    day("2026-07-16", PURPLE, { value: 0, countAs: { "Sick Leave": 1 } }),
+    day("2026-07-17", GREEN, {
+      value: 4,
+      countAs: { Workday: 0.5, "sick leave": 0.5 },
+    }),
+  ]);
+  const days = workLog.weeks[0].days;
+
+  it("leaves a countAs day out of the color counts and Other", () => {
+    const { counts, otherCount } = computeDayTypeCounts(days, [
+      entry(GREEN, "Workday"),
+    ]);
+
+    expect(counts[0].count).toBe(1);
+    // The gray day is unmatched; the purple one is counted by its countAs.
+    expect(otherCount).toBe(1);
+  });
+
+  it("counts a day by color when its countAs has no usable share", () => {
+    const unusable: ReportDay["countAs"][] = [
+      {},
+      { Leave: 0 },
+      { "  ": 1 },
+      { Leave: undefined },
     ];
+    const greenDays = unusable.map((countAs, i) =>
+      day(`2026-07-${13 + i}`, GREEN, { countAs }),
+    );
 
-    expect(buildSummaryModel(model, { valueLabel: "hours", legend })).toEqual({
-      dayTypeParts: [
-        { label: "Workday", value: 2 },
-        { label: "Leave", value: 1 },
-      ],
-      total: { label: "Total hours", value: 14 },
+    expect(
+      computeDayTypeCounts(greenDays, [entry(GREEN, "Workday")]).counts[0]
+        .count,
+    ).toBe(4);
+  });
+
+  describe("sumCountAs", () => {
+    it("totals shares case-insensitively, keeping the first-seen label and order", () => {
+      expect(sumCountAs(days)).toEqual([
+        part("Workday", 1),
+        part("Annual Leave", 0.5),
+        part("Sick Leave", 1.5),
+      ]);
+    });
+
+    it("trims labels, skips blank ones and non-numbers, and rounds float noise", () => {
+      const shares = [
+        day("2026-07-13", undefined, { countAs: { " Done ": 0.1, "": 1 } }),
+        day("2026-07-14", undefined, {
+          countAs: { done: "0.2", Bad: "x" } as unknown as ReportDay["countAs"],
+        }),
+      ];
+
+      expect(sumCountAs(shares)).toEqual([part("Done", 0.3)]);
     });
   });
 
-  it("adds an Other bucket when some days don't match the legend", () => {
-    const legend: LegendEntry[] = [{ color: "#196127", label: "Workday" }];
-
-    expect(buildSummaryModel(model, { legend })).toEqual({
-      dayTypeParts: [
-        { label: "Workday", value: 2 },
-        { label: "Other", value: 1 },
+  it.each([
+    [
+      "joins the line of the same label, whatever its case",
+      [
+        entry(GREEN, "workday"),
+        entry(GRAY, "Annual leave"),
+        entry(PURPLE, "Sick Leave"),
       ],
-      total: { label: "Total value", value: 14 },
-    });
+      undefined,
+      [part("workday", 2), part("Annual leave", 1.5), part("Sick Leave", 1.5)],
+    ],
+    [
+      "adds a line the legend lacks, before Other",
+      [entry(GREEN, "Workday")],
+      undefined,
+      [
+        part("Workday", 2),
+        part("Annual Leave", 0.5),
+        part("Sick Leave", 1.5),
+        part("Other", 1),
+      ],
+    ],
+    [
+      "is dropped with a category hidden from the summary",
+      [
+        entry(GREEN, "Workday"),
+        entry(GRAY, "Annual Leave"),
+        entry(PURPLE, "Sick Leave", summaryHidden),
+      ],
+      undefined,
+      [part("Workday", 2), part("Annual Leave", 1.5)],
+    ],
+    [
+      "joins a shown line over a hidden one of the same label",
+      [
+        entry(GREEN, "Workday"),
+        entry("#000000", "Sick Leave", summaryHidden),
+        entry(PURPLE, "Sick Leave"),
+        entry(GRAY, "Annual Leave"),
+      ],
+      undefined,
+      [part("Workday", 2), part("Sick Leave", 1.5), part("Annual Leave", 1.5)],
+    ],
+    // Without a legend every logged day is already counted.
+    ["is ignored without a legend", [], undefined, [part("Days logged", 5)]],
+    [
+      "splits half days between work and leave in gradient mode",
+      [
+        entry("#7bc96f"),
+        entry(GREEN),
+        entry(GRAY, "Annual Leave", { valueOverride: 0 }),
+        entry(PURPLE, "Sick Leave", { valueOverride: 0 }),
+      ],
+      ["#7bc96f", GREEN],
+      [part("Workday", 2), part("Annual Leave", 1.5), part("Sick Leave", 1.5)],
+    ],
+    [
+      "is dropped with the gradient line when every palette color is hidden",
+      [entry(GREEN, "", summaryHidden), entry(GRAY, "Annual Leave")],
+      [GREEN],
+      [part("Annual Leave", 1.5), part("Sick Leave", 1.5)],
+    ],
+  ])("a share %s", (_, legend, colorsList, parts) => {
+    expect(dayTypes(workLog, legend, colorsList, "Workday")).toEqual(parts);
   });
 
-  it("counts blank (unlogged) days against a legend entry using EMPTY_CELL_COLOR", () => {
-    const sparseModel: ReportModel = {
-      startDate: "2026-07-13",
-      endDate: "2026-07-17", // 5 calendar days
-      weeks: [
-        {
-          weekStart: "2026-07-13",
-          days: [day({ date: "2026-07-13", color: "#196127", value: 8 })], // only 1 logged
-        },
-      ],
-      summary: { totalDays: 1, totalValue: 8, activeWeeks: 1 },
-    };
-    const legend: LegendEntry[] = [
-      { color: "#196127", label: "Workday" },
-      { color: EMPTY_CELL_COLOR, label: "Rest day" },
-    ];
+  it("folds a share named after a palette color's own label into the gradient line", () => {
+    const model = makeReportModel([
+      day("2026-07-13", GREEN),
+      day("2026-07-14", GREEN, { countAs: { Worked: 0.5 } }),
+    ]);
 
-    expect(buildSummaryModel(sparseModel, { legend }).dayTypeParts).toEqual([
-      { label: "Workday", value: 1 },
-      { label: "Rest day", value: 4 },
+    expect(
+      dayTypes(model, [entry(GREEN, "Worked")], [GREEN], "Workday"),
+    ).toEqual([part("Workday", 1.5)]);
+  });
+
+  it("adds a share labeled Other to the Other line rather than a second one", () => {
+    const model = makeReportModel([
+      day("2026-07-13", GRAY),
+      day("2026-07-14", GREEN, { countAs: { other: 0.5 } }),
+    ]);
+
+    expect(dayTypes(model, [entry(GREEN, "Workday")])).toEqual([
+      part("Workday", 0),
+      part("Other", 1.5),
     ]);
   });
 
-  it("omits an entry from the summary when includeInSummary is false, without affecting Other", () => {
-    const legend: LegendEntry[] = [
-      { color: "#196127", label: "Workday" },
-      { color: "#8b949e", label: "Leave", includeInSummary: false },
-    ];
+  it("rounds float noise left by adding shares to a line", () => {
+    const model = makeReportModel([
+      day("2026-07-13", GREEN, { countAs: { Done: 0.1 } }),
+      day("2026-07-14", GREEN, { countAs: { Done: 0.2 } }),
+    ]);
 
-    // Leave's day is matched (not "Other"), just not displayed as its own line.
-    expect(
-      buildSummaryModel(model, { valueLabel: "hours", legend }).dayTypeParts,
-    ).toEqual([{ label: "Workday", value: 2 }]);
-  });
-
-  it("still matches a blank-labeled, summary-excluded entry's color instead of counting it as Other", () => {
-    // LegendModal keeps a blank-labeled row only when it's excluded from the
-    // summary (the only way to hide a color from both the legend and the
-    // summary line) — its days must still land on its own color, not "Other".
-    const legend: LegendEntry[] = [
-      { color: "#196127", label: "Workday" },
-      { color: "#8b949e", label: "", includeInSummary: false },
-    ];
-
-    expect(
-      buildSummaryModel(model, { valueLabel: "hours", legend }).dayTypeParts,
-    ).toEqual([{ label: "Workday", value: 2 }]);
-  });
-
-  it("returns an empty dayTypeParts array (not a blank placeholder) when every legend entry is excluded", () => {
-    const legend: LegendEntry[] = [
-      { color: "#196127", label: "Workday", includeInSummary: false },
-      { color: "#8b949e", label: "Leave", includeInSummary: false },
-    ];
-
-    expect(buildSummaryModel(model, { legend }).dayTypeParts).toEqual([]);
-  });
-
-  it("omits the day-type breakdown entirely when hideSummary is set", () => {
-    const legend: LegendEntry[] = [{ color: "#196127", label: "Workday" }];
-
-    const result = buildSummaryModel(model, { legend, hideSummary: true });
-
-    expect(result.dayTypeParts).toEqual([]);
-    expect(result.total).toEqual({ label: "Total value", value: 14 });
-  });
-
-  it("omits the day count fallback too when hideSummary is set and there's no legend", () => {
-    expect(
-      buildSummaryModel(model, { hideSummary: true }).dayTypeParts,
-    ).toEqual([]);
-  });
-
-  it("omits only the total when hideTotalValue is set", () => {
-    const result = buildSummaryModel(model, { hideTotalValue: true });
-
-    expect(result.dayTypeParts).toEqual([{ label: "Days logged", value: 3 }]);
-    expect(result.total).toBeNull();
-  });
-
-  it("omits only the total when hideAllValues is set", () => {
-    const result = buildSummaryModel(model, { hideAllValues: true });
-
-    expect(result.dayTypeParts).toEqual([{ label: "Days logged", value: 3 }]);
-    expect(result.total).toBeNull();
-  });
-
-  it("omits everything when both hideSummary and hideAllValues are set", () => {
-    expect(
-      buildSummaryModel(model, { hideSummary: true, hideAllValues: true }),
-    ).toEqual({
-      dayTypeParts: [],
-      total: null,
-    });
-  });
-
-  describe("legendMode: gradient", () => {
-    const colorsList = ["#196127", "#8b949e"];
-
-    it("combines all palette-color entries into one part labeled with the shared gradientLabel", () => {
-      const legend: LegendEntry[] = [
-        { color: "#196127", label: "" },
-        { color: "#8b949e", label: "" },
-      ];
-
-      expect(
-        buildSummaryModel(model, {
-          legend,
-          legendMode: "gradient",
-          gradientLabel: "Activity",
-          colorsList,
-        }).dayTypeParts,
-      ).toEqual([{ label: "Activity", value: 3 }]);
-    });
-
-    it("keeps a matched color that isn't in colorsList as its own independent part, not folded into the gradient", () => {
-      // "#8b949e" is used in the data and matched by the legend, but isn't
-      // part of the configured palette (e.g. a one-off custom color) - it
-      // must stay its own line, exactly like the blank color does.
-      const legend: LegendEntry[] = [
-        { color: "#196127", label: "" },
-        { color: "#8b949e", label: "Custom" },
-      ];
-
-      expect(
-        buildSummaryModel(model, {
-          legend,
-          legendMode: "gradient",
-          gradientLabel: "Activity",
-          colorsList: ["#196127"],
-        }).dayTypeParts,
-      ).toEqual([
-        { label: "Activity", value: 2 },
-        { label: "Custom", value: 1 },
-      ]);
-    });
-
-    it("scales a color's contribution by its countWeight (e.g. a lighter 'half day' color)", () => {
-      const legend: LegendEntry[] = [
-        { color: "#196127", label: "" }, // 2 days, default weight 1
-        { color: "#8b949e", label: "", countWeight: 0.5 }, // 1 day, half weight
-      ];
-
-      expect(
-        buildSummaryModel(model, {
-          legend,
-          legendMode: "gradient",
-          gradientLabel: "Workday",
-          colorsList,
-        }).dayTypeParts,
-      ).toEqual([{ label: "Workday", value: 2.5 }]);
-    });
-
-    it("never applies a weight to the blank entry, even if one were set", () => {
-      const sparseModel: ReportModel = {
-        startDate: "2026-07-13",
-        endDate: "2026-07-17",
-        weeks: [
-          {
-            weekStart: "2026-07-13",
-            days: [day({ date: "2026-07-13", color: "#196127", value: 8 })],
-          },
-        ],
-        summary: { totalDays: 1, totalValue: 8, activeWeeks: 1 },
-      };
-      const legend: LegendEntry[] = [
-        { color: "#196127", label: "" },
-        // 4 gap days; a weight here (if it were honored) would misleadingly
-        // shrink/grow the blank line - it must always show the raw count.
-        { color: EMPTY_CELL_COLOR, label: "Rest day", countWeight: 0.5 },
-      ];
-
-      expect(
-        buildSummaryModel(sparseModel, {
-          legend,
-          legendMode: "gradient",
-          gradientLabel: "Workday",
-          colorsList: ["#196127"],
-        }).dayTypeParts,
-      ).toEqual([
-        { label: "Workday", value: 1 },
-        { label: "Rest day", value: 4 },
-      ]);
-    });
-
-    it("rounds away floating-point drift from repeated fractional weights", () => {
-      const threeDayModel: ReportModel = {
-        startDate: "2026-07-13",
-        endDate: "2026-07-15",
-        weeks: [
-          {
-            weekStart: "2026-07-13",
-            days: [
-              day({ date: "2026-07-13", color: "#196127" }),
-              day({ date: "2026-07-14", color: "#196127" }),
-              day({ date: "2026-07-15", color: "#196127" }),
-            ],
-          },
-        ],
-        summary: { totalDays: 3, totalValue: 0, activeWeeks: 1 },
-      };
-      // 3 * 0.1 === 0.30000000000000004 in raw IEEE754 arithmetic.
-      const legend: LegendEntry[] = [
-        { color: "#196127", label: "", countWeight: 0.1 },
-      ];
-
-      expect(
-        buildSummaryModel(threeDayModel, {
-          legend,
-          legendMode: "gradient",
-          gradientLabel: "Workday",
-          colorsList: ["#196127"],
-        }).dayTypeParts[0].value,
-      ).toBe(0.3);
-    });
-
-    it("keeps the blank entry as its own separate part, never folded into the gradient total", () => {
-      const sparseModel: ReportModel = {
-        startDate: "2026-07-13",
-        endDate: "2026-07-17", // 5 calendar days
-        weeks: [
-          {
-            weekStart: "2026-07-13",
-            days: [day({ date: "2026-07-13", color: "#196127", value: 8 })], // only 1 logged
-          },
-        ],
-        summary: { totalDays: 1, totalValue: 8, activeWeeks: 1 },
-      };
-      const legend: LegendEntry[] = [
-        { color: "#196127", label: "" },
-        { color: EMPTY_CELL_COLOR, label: "Rest day" },
-      ];
-
-      expect(
-        buildSummaryModel(sparseModel, {
-          legend,
-          legendMode: "gradient",
-          gradientLabel: "Activity",
-          colorsList: ["#196127"],
-        }).dayTypeParts,
-      ).toEqual([
-        { label: "Activity", value: 1 },
-        { label: "Rest day", value: 4 },
-      ]);
-    });
-
-    it("excludes a specific color from the gradient total when its includeInSummary is false", () => {
-      const legend: LegendEntry[] = [
-        { color: "#196127", label: "" },
-        { color: "#8b949e", label: "", includeInSummary: false },
-      ];
-
-      expect(
-        buildSummaryModel(model, {
-          legend,
-          legendMode: "gradient",
-          gradientLabel: "Activity",
-          colorsList,
-        }).dayTypeParts,
-      ).toEqual([{ label: "Activity", value: 2 }]);
-    });
-
-    it("omits the combined part entirely when gradientLabel is blank", () => {
-      const legend: LegendEntry[] = [{ color: "#196127", label: "" }];
-
-      expect(
-        buildSummaryModel(model, {
-          legend,
-          legendMode: "gradient",
-          colorsList: ["#196127"],
-        }).dayTypeParts,
-      ).toEqual([{ label: "Other", value: 1 }]);
-    });
-
-    it("still adds an Other bucket for unmatched colors in gradient mode", () => {
-      const legend: LegendEntry[] = [{ color: "#196127", label: "" }];
-
-      expect(
-        buildSummaryModel(model, {
-          legend,
-          legendMode: "gradient",
-          gradientLabel: "Activity",
-          colorsList: ["#196127"],
-        }).dayTypeParts,
-      ).toEqual([
-        { label: "Activity", value: 2 },
-        { label: "Other", value: 1 },
-      ]);
-    });
-
-    it("positions the combined part according to where the palette colors actually sit in the legend array, not hardcoded first", () => {
-      const legend: LegendEntry[] = [
-        { color: "#8b949e", label: "Leave" }, // independent, listed first
-        { color: "#196127", label: "" }, // palette, listed second
-      ];
-
-      // Dragging the gradient group row (see LegendModal) after another
-      // category must actually change this order, not just cosmetically in
-      // the editor.
-      expect(
-        buildSummaryModel(model, {
-          legend,
-          legendMode: "gradient",
-          gradientLabel: "Activity",
-          colorsList: ["#196127"],
-        }).dayTypeParts,
-      ).toEqual([
-        { label: "Leave", value: 1 },
-        { label: "Activity", value: 2 },
-      ]);
-    });
-
-    it("omits the combined line entirely (not as a zero) when every palette color is excluded from the summary", () => {
-      const legend: LegendEntry[] = [
-        { color: "#196127", label: "", includeInSummary: false },
-        { color: "#8b949e", label: "", includeInSummary: false },
-      ];
-
-      expect(
-        buildSummaryModel(model, {
-          legend,
-          legendMode: "gradient",
-          gradientLabel: "Activity",
-          colorsList: ["#196127", "#8b949e"],
-        }).dayTypeParts,
-      ).toEqual([]);
-    });
+    expect(dayTypes(model, [entry(GRAY, "Done")])).toEqual([part("Done", 0.3)]);
   });
 });

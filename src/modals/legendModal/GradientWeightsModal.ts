@@ -1,6 +1,12 @@
 import { App, Modal, Setting } from "obsidian";
-import { LegendEntry, getLegendVisibility } from "src/utils/report/legend";
-import { numberInput, valueOverrideInput } from "./rowControls";
+import i18n from "src/localization/i18n";
+import { LegendEntry } from "src/utils/report/legend";
+import {
+  addColorCell,
+  applyVisibilityClasses,
+  numberInput,
+  valueOverrideInput,
+} from "./rowControls";
 
 /**
  * Per-palette-color fixed value and day-count weight, which don't fit in the
@@ -20,18 +26,18 @@ export class GradientWeightsModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
     this.modalEl.addClass("heatmap-legend-modal");
-    this.setTitle("Palette color settings");
+    this.setTitle(i18n.t("report.legendEditor.weightsTitle"));
 
     contentEl.createEl("p", {
       cls: "heatmap-legend-modal__hint heatmap-legend-modal__hint--italic",
-      text: "For each color in the palette, you can optionally set a fixed value per day and specify how much it's weighted towards the shared day count.",
+      text: i18n.t("report.legendEditor.weightsIntro"),
     });
 
     this.renderRows(contentEl.createDiv({ cls: "heatmap-legend-modal__list" }));
 
     new Setting(contentEl).addButton((btn) =>
       btn
-        .setButtonText("Done")
+        .setButtonText(i18n.t("report.actions.done"))
         .setCta()
         .onClick(() => this.close()),
     );
@@ -46,29 +52,15 @@ export class GradientWeightsModal extends Modal {
 
     this.entries.forEach((entry) => {
       const row = container.createDiv({ cls: "heatmap-legend-modal__row" });
-      const visibility = getLegendVisibility(entry);
-      row.toggleClass("is-excluded", visibility === "summaryHidden");
-      row.toggleClass("is-hidden", visibility === "hidden");
+      applyVisibilityClasses(row, [entry]);
+      addColorCell(row, entry.color, entry.color);
 
-      const swatch = row.createDiv({ cls: "heatmap-legend-modal__swatch" });
-      swatch.style.backgroundColor = entry.color;
-
-      row.createSpan({
-        cls: "heatmap-legend-modal__color-text",
-        text: entry.color,
-      });
-
-      valueOverrideInput(
-        row,
-        entry,
-        "Fixed value for this color, overriding its actual logged value",
-      );
+      valueOverrideInput(row, entry);
 
       numberInput(row, {
         cls: "heatmap-legend-modal__weight-input",
-        placeholder: "weight",
-        ariaLabel:
-          "Day-count weight (e.g. 0.5 for a half day, or 0 to exclude entirely)",
+        placeholder: i18n.t("report.legendEditor.weightPlaceholder"),
+        ariaLabel: i18n.t("report.legendEditor.weightTooltip"),
         get: () => entry.countWeight,
         set: (value) => {
           entry.countWeight = value;

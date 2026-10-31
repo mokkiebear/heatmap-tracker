@@ -11,20 +11,16 @@ export async function readNoteBody(
   filePath: string,
 ): Promise<string | undefined> {
   const file = app.vault.getAbstractFileByPath(filePath);
-  if (!(file instanceof TFile)) {
-    return undefined;
-  }
+  if (!(file instanceof TFile)) return undefined;
 
   const raw = await app.vault.cachedRead(file);
   const frontmatterEnd =
     app.metadataCache.getFileCache(file)?.frontmatterPosition?.end.offset;
-
-  const body =
+  return (
     frontmatterEnd !== undefined
       ? raw.slice(frontmatterEnd)
-      : raw.replace(FRONTMATTER_FALLBACK_RE, "");
-
-  return body.trim();
+      : raw.replace(FRONTMATTER_FALLBACK_RE, "")
+  ).trim();
 }
 
 /** Batch-reads note bodies for a set of vault-relative file paths, keyed by path. */
@@ -32,19 +28,15 @@ export async function readNoteBodies(
   app: App,
   filePaths: string[],
 ): Promise<Record<string, string>> {
-  const uniquePaths = Array.from(new Set(filePaths));
-
-  const results = await Promise.all(
-    uniquePaths.map(
-      async (path) => [path, await readNoteBody(app, path)] as const,
-    ),
+  const paths = [...new Set(filePaths)];
+  const bodies = await Promise.all(
+    paths.map((path) => readNoteBody(app, path)),
   );
 
   const bodiesByPath: Record<string, string> = {};
-  for (const [path, body] of results) {
-    if (body !== undefined) {
-      bodiesByPath[path] = body;
-    }
-  }
+  paths.forEach((path, i) => {
+    const body = bodies[i];
+    if (body !== undefined) bodiesByPath[path] = body;
+  });
   return bodiesByPath;
 }

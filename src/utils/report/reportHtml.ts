@@ -1,67 +1,31 @@
+import i18n from "src/localization/i18n";
+import katex from "katex";
 import { ReportDay, ReportModel } from "src/utils/report/reportModel";
 import { escapeHtml } from "src/utils/report/heatmapHtml";
 import { formatDayLabel, formatWeekLabel } from "src/utils/report/dateLabels";
+import { REPORT_BODY_CSS } from "src/utils/report/reportBodyCss";
 import {
-  LegendEntry,
-  buildGradientLegendHtml,
-  buildLegendHtml,
-  buildSummaryModel,
-} from "src/utils/report/legend";
-
-export interface ReportHtmlOptions {
-  title: string;
-  generatedAt: string;
-  /** Pre-rendered heatmap grid HTML (see buildHeatmapGridHtml), embedded verbatim. */
-  heatmapHtml: string;
-  /** Renames "Total value" in the summary line, e.g. "hours". */
-  valueLabel?: string;
-  /** Drives both the embedded legend and the summary's day-type breakdown. */
-  legend?: LegendEntry[];
-  /** "separate" (default) or "gradient" — see buildSummaryModel/buildGradientLegendHtml. */
-  legendMode?: "separate" | "gradient";
-  /** Shared label for the gradient's combined swatch strip, when legendMode is "gradient". */
-  gradientLabel?: string;
-  /** Full intensity color palette, low→high — renders the gradient strip regardless of which colors are actually used in this range. */
-  colorsList?: string[];
-  /** Omits the day-count/day-type breakdown line entirely. */
-  hideSummary?: boolean;
-  /** Omits the "Total <value label>" line. */
-  hideTotalValue?: boolean;
-  /** Omits every value — the total line and each day's own "(N)" next to its heading. */
-  hideAllValues?: boolean;
-}
+  ReportOptions,
+  buildReportHeader,
+} from "src/utils/report/reportHeader";
 
 /** Converts a note body's bullet lines into a real <ul>, plain lines into <p>. */
 function bulletsToHtml(body: string): string {
-  const lines = body
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
-
-  const html: string[] = [];
-  let inList = false;
-
-  for (const line of lines) {
-    const bulletMatch = line.match(/^[-*•]\s+(.*)$/);
-
-    if (bulletMatch) {
-      if (!inList) {
-        html.push("<ul>");
-        inList = true;
-      }
-      html.push(`<li>${escapeHtml(bulletMatch[1])}</li>`);
-    } else {
-      if (inList) {
-        html.push("</ul>");
-        inList = false;
-      }
-      html.push(`<p>${escapeHtml(line)}</p>`);
-    }
-  }
-
-  if (inList) html.push("</ul>");
-
-  return html.join("");
+  return (
+    body
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const bullet = line.match(/^[-*•]\s+(.*)$/);
+        return bullet
+          ? `<li>${escapeHtml(bullet[1])}</li>`
+          : `<p>${escapeHtml(line)}</p>`;
+      })
+      .join("")
+      // Escaped text has no "<", so each run of items is a whole list.
+      .replace(/(?:<li>[^<]*<\/li>)+/g, (items) => `<ul>${items}</ul>`)
+  );
 }
 
 function renderDay(day: ReportDay, hideAllValues: boolean): string {
@@ -69,7 +33,13 @@ function renderDay(day: ReportDay, hideAllValues: boolean): string {
     !hideAllValues && day.value !== undefined
       ? ` <span class="wlr-day__value">(${escapeHtml(String(day.value))})</span>`
       : "";
-  const bodyHtml = day.body?.trim() ? bulletsToHtml(day.body) : "<p>-</p>";
+  // Obsidian-rendered HTML keeps math, code and callouts; the bullet fallback
+  // covers entries with no note behind them and notes that failed to render.
+  const bodyHtml = day.bodyHtml?.trim()
+    ? `<div class="wlr-body markdown-rendered">${day.bodyHtml}</div>`
+    : day.body?.trim()
+      ? bulletsToHtml(day.body)
+      : "<p>-</p>";
 
   return `<section class="wlr-day"><h3>${escapeHtml(formatDayLabel(day.date))}${valueLabel}</h3>${bodyHtml}</section>`;
 }
@@ -80,58 +50,39 @@ function renderDay(day: ReportDay, hideAllValues: boolean): string {
  */
 export function buildReportHtml(
   model: ReportModel,
-  {
-    title,
-    generatedAt,
-    heatmapHtml,
-    valueLabel,
-    legend = [],
-    legendMode = "separate",
-    gradientLabel = "",
-    colorsList = [],
-    hideSummary,
-    hideTotalValue,
-    hideAllValues = false,
-  }: ReportHtmlOptions,
+  options: ReportOptions,
 ): string {
-  const { dayTypeParts, total } = buildSummaryModel(model, {
-    valueLabel,
-    legend,
-    legendMode,
-    gradientLabel,
-    colorsList,
-    hideSummary,
-    hideTotalValue,
-    hideAllValues,
-  });
-  const dayTypeLine = dayTypeParts
-    .map((p) => `${escapeHtml(p.label)}: ${p.value}`)
-    .join(" · ");
-  const totalLine = total ? `${escapeHtml(total.label)}: ${total.value}` : "";
-  const summaryLine =
-    dayTypeLine && totalLine
-      ? `${dayTypeLine}<br>${totalLine}`
-      : dayTypeLine || totalLine;
-  const legendHtml =
-    legendMode === "gradient"
-      ? buildGradientLegendHtml(colorsList, gradientLabel, legend)
-      : buildLegendHtml(legend);
+  const { title, generatedAt, heatmapHtml, hideAllValues = false } = options;
+  const { summaryLine, legendHtml } = buildReportHeader(
+    model,
+    options,
+    escapeHtml,
+  );
 
   const weeksHtml = model.weeks
     .map(
       (week) =>
-        `<section class="wlr-week"><h2>Week of ${escapeHtml(
-          formatWeekLabel(week.weekStart),
+        `<section class="wlr-week"><h2>${escapeHtml(
+          i18n.t("report.document.weekOf", {
+            date: formatWeekLabel(week.weekStart),
+          }),
         )}</h2>${week.days.map((day) => renderDay(day, hideAllValues)).join("")}</section>`,
     )
     .join("");
 
+  const hasMath = model.weeks.some((week) =>
+    week.days.some((day) => day.bodyHtml?.includes('class="katex')),
+  );
+  const katexCss = hasMath
+    ? `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@${katex.version}/dist/katex.min.css" />\n`
+    : "";
+
   return `<!doctype html>
-<html lang="en">
+<html lang="${escapeHtml(i18n.language)}">
 <head>
 <meta charset="utf-8" />
 <title>${escapeHtml(title)}</title>
-<style>
+${katexCss}<style>
   :root { color-scheme: light dark; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; color: #1f2328; background: #ffffff; }
   @media (prefers-color-scheme: dark) { body { color: #e6edf3; background: #0d1117; } }
@@ -145,13 +96,15 @@ export function buildReportHtml(
   .wlr-day__value { font-weight: normal; color: #6b7280; }
   ul { margin: 0.25rem 0; padding-left: 1.25rem; }
   p { margin: 0.25rem 0; }
-</style>
+${REPORT_BODY_CSS}</style>
 </head>
 <body>
   <h1>${escapeHtml(title)}</h1>
   <div class="wlr-meta">${escapeHtml(formatWeekLabel(model.startDate))} – ${escapeHtml(
     formatWeekLabel(model.endDate),
-  )}<br>Report generated ${escapeHtml(generatedAt)}</div>
+  )}<br>${escapeHtml(
+    i18n.t("report.document.generated", { date: generatedAt }),
+  )}</div>
   ${summaryLine ? `<div class="wlr-summary">${summaryLine}</div>` : ""}
   ${heatmapHtml}
   ${legendHtml}

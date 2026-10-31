@@ -1,8 +1,4 @@
-/**
- * Path/filename helpers for writing an export into the vault. Kept next to the
- * rest of the report logic (and out of `ExportView`) so they can be tested
- * without rendering the 600-line export screen.
- */
+/** Path/filename helpers for writing an export into the vault, kept pure so they test without the view. */
 
 import { stripTags, trimSlashes } from "src/utils/path";
 

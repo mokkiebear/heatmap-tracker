@@ -96,8 +96,9 @@ export function getIntensitiesInfo(
 
 /**
  * Merges an entry into whatever is already recorded for its day: intensities
- * add up, content is joined by newlines. `average` divides the sum afterwards
- * (see `fillEntriesByKey`), so merging always sums here.
+ * add up, content is joined by newlines, `countAs` shares add up per label.
+ * `average` divides the sum afterwards (see `fillEntriesByKey`), so merging
+ * always sums here.
  */
 function mergeIntoDay(existing: Entry | undefined, entry: Entry): Entry {
   if (!existing) {
@@ -117,7 +118,30 @@ function mergeIntoDay(existing: Entry | undefined, entry: Entry): Entry {
     // but a later entry's emoji must still be picked up when the earlier one
     // had none, which the `...existing` spread alone would drop.
     emoji: existing.emoji || entry.emoji,
+    countAs: mergeCountAs(existing.countAs, entry.countAs),
   };
+}
+
+/**
+ * Adds two days' `countAs` shares label by label; either side may be absent.
+ * Shares go through `Number()` because data that failed validation is still
+ * rendered as-is, and two `"0.5"` strings must not join into `"0.50.5"`.
+ */
+function mergeCountAs(
+  a: Entry["countAs"],
+  b: Entry["countAs"],
+): Entry["countAs"] {
+  if (!a || !b) return a ?? b;
+
+  const merged: Record<string, number> = {};
+  for (const shares of [a, b]) {
+    for (const [label, share] of Object.entries(shares)) {
+      const value = Number(share);
+      merged[label] =
+        (merged[label] ?? 0) + (Number.isFinite(value) ? value : 0);
+    }
+  }
+  return merged;
 }
 
 /**
