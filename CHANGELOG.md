@@ -24,6 +24,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - In the legend editor, the gear icon now dims with the rest of a gradient row that is hidden or hidden from summaries.
 - Clicking a row's drag handle without dragging no longer leaves that row draggable from anywhere, in the legend editor and the date-range presets dialog.
 
+### Security
+- Saved HTML reports no longer carry executable markup from a note: `<script>`, `<iframe>`, `<object>`, `<embed>` and `on*` handlers are stripped when the note body is rendered. The in-app preview was already sandboxed; the saved file is opened directly in a browser.
+
 ## [2.15.0] - 2026-09-25
 
 ### Added

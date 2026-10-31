@@ -29,6 +29,17 @@ export function cleanRenderedDom(root: HTMLElement): void {
     )
     .forEach((el) => el.remove());
 
+  // A saved report is opened straight in a browser, outside the preview's
+  // sandboxed iframe, so anything executable a note could carry goes here.
+  root
+    .querySelectorAll("script, iframe, object, embed")
+    .forEach((el) => el.remove());
+  root.querySelectorAll("*").forEach((el) => {
+    el.getAttributeNames()
+      .filter((name) => name.toLowerCase().startsWith("on"))
+      .forEach((name) => el.removeAttribute(name));
+  });
+
   // `[[wikilinks]]` and `#tags` resolve through the app, so outside it they
   // are dead links. Keep the text and the class (for styling), drop the href.
   root.querySelectorAll("a.internal-link, a.tag").forEach((a) => {

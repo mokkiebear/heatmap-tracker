@@ -50,6 +50,22 @@ describe("cleanRenderedDom", () => {
       "https://example.com",
     );
   });
+
+  it("strips executable markup, since a saved report runs unsandboxed", () => {
+    const root = dom(
+      "<p>keep</p><script>alert(1)</script>" +
+        '<iframe src="x"></iframe><object data="x"></object><embed src="x" />' +
+        '<img src="x" onerror="alert(1)" ONLOAD="alert(2)" />',
+    );
+
+    cleanRenderedDom(root);
+
+    expect(root.querySelector("script, iframe, object, embed")).toBeNull();
+    const img = root.querySelector("img");
+    expect(img?.getAttribute("onerror")).toBeNull();
+    expect(img?.getAttribute("onload")).toBeNull();
+    expect(root.querySelector("p")?.textContent).toBe("keep");
+  });
 });
 
 describe("insertMath", () => {

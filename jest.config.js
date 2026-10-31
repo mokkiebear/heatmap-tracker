@@ -26,10 +26,10 @@ module.exports = {
   // change pass does. Raise these when coverage rises; don't lower them.
   coverageThreshold: {
     global: {
-      statements: 72,
-      branches: 66,
-      functions: 68,
-      lines: 73,
+      statements: 82,
+      branches: 81,
+      functions: 76,
+      lines: 83,
     },
   },
   moduleNameMapper: {
