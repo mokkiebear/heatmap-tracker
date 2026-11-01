@@ -54,7 +54,7 @@
   },
   "dependencies": {
     "katex": "^0.19.0",
-    "preact": "^10.29.8",
+    "preact": "^11.1.0",
     "zod": "^4.6.5"
   },
   "overrides": {
